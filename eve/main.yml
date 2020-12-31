@@ -1,0 +1,24 @@
+---
+version: '0.2'
+
+branches:
+  default:
+    stage: pre-merge
+
+stages:
+  pre-merge:
+    worker:
+      type: kube_pod
+      path: eve/workers/pod.yaml
+      images:
+        build: eve/workers/build
+    steps:
+      - Git: &git_pull
+          name: git pull
+          repourl: "%(prop:git_reference)s"
+          shallow: true
+          retryFetch: true
+          haltOnFailure: true
+      - ShellCommand:
+          name: gradle build
+          command: gradle build

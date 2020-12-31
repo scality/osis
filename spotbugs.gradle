@@ -1,0 +1,28 @@
+apply plugin: 'com.github.spotbugs'
+
+spotbugs {
+    toolVersion = '4.2.0'
+    ignoreFailures = false
+    reportsDir = file("$buildDir/reports/spotbugs")
+    showProgress = true
+    effort = 'max'
+    showStackTraces = true
+    reportLevel = 'high'
+    includeFilter = file("$rootDir/spotbugsInclude.xml")
+//    excludeFilter = file("spotbugsExclude.xml")
+//    onlyAnalyze = [ 'com.foobar.MyClass', 'com.foobar.pkg.*' ]
+}
+
+spotbugsMain {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
+spotbugsTest {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}

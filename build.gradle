@@ -1,0 +1,58 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+}
+
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'pmd'
+    id "com.github.spotbugs" version "4.6.0"
+}
+
+group = 'com.vmware.osis'
+version '0.0.1-SNAPSHOT'
+description = 'osis.scality'
+sourceCompatibility = '1.8'
+
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+}
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+
+    apply from: "$rootDir/spotbugs.gradle"
+    apply from: "$rootDir/pmd.gradle"
+    apply from: "$rootDir/jacoco.gradle"
+
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+        maven {
+            url = 'https://repo.maven.apache.org/maven2'
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    enabled = true
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
