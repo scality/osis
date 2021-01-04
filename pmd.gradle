@@ -19,6 +19,6 @@ pmd {
     toolVersion = "6.21.0"
     rulePriority = 5
     ignoreFailures = false
-    reportsDir = file("$buildDir/reports/pmd")
+    reportsDir = file("$rootDir/reports/pmd-lint")
 //        ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
 }

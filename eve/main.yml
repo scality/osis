@@ -22,3 +22,10 @@ stages:
       - ShellCommand:
           name: gradle build
           command: gradle build
+      - Upload:
+          name: Upload reports
+          source: 'reports'
+          urls:
+            - 'pmd-lint/*.html' # this will create links to every .html files
+            - 'spotbugs/*.html'
+            - 'code-coverage/*.html'

@@ -7,15 +7,14 @@ test {
     jacoco {
         excludes = []
     }
-//    finalizedBy jacocoTestReport // report is always generated after tests run
         finalizedBy jacocoTestCoverageVerification // code coverage is verified after tests run
 }
 jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
     reports {
-        xml.enabled false
+        xml.enabled true
         csv.enabled false
-        html.destination file("${buildDir}/reports/jacoco")
+        html.destination file("${rootDir}/reports/code-coverage")
     }
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
@@ -36,7 +35,7 @@ jacocoTestCoverageVerification {
     violationRules {
         rule {
             limit {
-                minimum = 0.5 // verifying mandatory code coverage of 50%
+                minimum = 0.8 // verifying mandatory code coverage of 80%
             }
         }
         rule {
@@ -46,3 +45,4 @@ jacocoTestCoverageVerification {
         }
     }
 }
+check.dependsOn('jacocoTestReport')

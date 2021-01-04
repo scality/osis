@@ -3,7 +3,7 @@ apply plugin: 'com.github.spotbugs'
 spotbugs {
     toolVersion = '4.2.0'
     ignoreFailures = false
-    reportsDir = file("$buildDir/reports/spotbugs")
+    reportsDir = file("$rootDir/reports/spotbugs")
     showProgress = true
     effort = 'max'
     showStackTraces = true
