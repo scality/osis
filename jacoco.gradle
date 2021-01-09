@@ -1,0 +1,48 @@
+apply plugin: "jacoco"
+jacoco {
+    toolVersion = "0.8.5"
+}
+
+test {
+    jacoco {
+        excludes = []
+    }
+        finalizedBy jacocoTestCoverageVerification // code coverage is verified after tests run
+}
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.destination file("${rootDir}/reports/code-coverage")
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+            ])
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+            ])
+        }))
+    }
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.8 // verifying mandatory code coverage of 80%
+            }
+        }
+        rule {
+            element = 'METHOD'
+            excludes = [
+            ]
+        }
+    }
+}
+check.dependsOn('jacocoTestReport')

@@ -1,0 +1,24 @@
+apply plugin: 'pmd'
+pmdMain {
+    source ='src/main/java'
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+pmdTest {
+    source ='src/test/java'
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
+pmd {
+    consoleOutput = true
+    toolVersion = "6.21.0"
+    rulePriority = 5
+    ignoreFailures = false
+    reportsDir = file("$rootDir/reports/pmd-lint")
+//        ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
+}
