@@ -19,6 +19,13 @@ jacocoTestReport {
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
+                    /*excluding original osis stub code*/
+                    "**/com/vmware/osis/resource/*.*",
+                    "**/com/vmware/osis/model/*.*",
+                    "**/com/vmware/osis/annotation/*.*",
+                    "**/com/vmware/osis/security/*.*",
+                    "**/com/vmware/osis/service/*.*",
+                    "**/com/vmware/osis/validation/*.*"
             ])
         }))
     }
@@ -29,6 +36,13 @@ jacocoTestCoverageVerification {
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
+                    /*excluding original osis stub code*/
+                    "**/com/vmware/osis/resource/*.*",
+                    "**/com/vmware/osis/model/*.*",
+                    "**/com/vmware/osis/annotation/*.*",
+                    "**/com/vmware/osis/security/*.*",
+                    "**/com/vmware/osis/service/*.*",
+                    "**/com/vmware/osis/validation/*.*"
             ])
         }))
     }
