@@ -28,7 +28,7 @@ public class BasicAuthentication extends BasicAuthenticationEntryPoint{
 
     @Override
     public void afterPropertiesSet() {
-        setRealmName("platform");
+        setRealmName("scality");
         super.afterPropertiesSet();
     }
 }

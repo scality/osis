@@ -8,23 +8,34 @@ repositories {
     maven {
         url = 'http://repo.maven.apache.org/maven2'
     }
+    maven {
+        url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
 }
 
 dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.6.0'
     compile 'com.google.code.gson:gson:2.8.0'
     compile 'com.google.guava:guava:21.0'
-    testCompile 'junit:junit:4.12'
     testCompile 'com.amazonaws:aws-java-sdk-s3:1.11.91'
     testCompile 'javax.xml.bind:jaxb-api:2.3.0'
     testCompile 'org.javaswift:joss:0.9.13'
     testCompile 'org.apache.httpcomponents:httpclient:4.5.2'
     testCompile 'ch.qos.logback:logback-classic:1.2.1'
+    implementation 'com.scality:vaultclient:0.1.0-SNAPSHOT'
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.11.914'
+    testImplementation 'org.mockito:mockito-core:2.7.22'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 }
 
-group = 'io.github.twonote'
-version = '2.0.3-snapshot'
-description = 'radosgw-admin4j'
+test {
+    useJUnitPlatform()
+}
+
+group = 'com.scality'
+version = '0.1.0-SNAPSHOT'
+description = 'osis-vault-cient'
 sourceCompatibility = '1.8'
 
 tasks.withType(JavaCompile) {

@@ -4,9 +4,13 @@ buildscript {
     }
     repositories {
         mavenCentral()
+        maven {
+            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
     }
 }
 
@@ -16,13 +20,9 @@ plugins {
     id 'pmd'
     id "com.github.spotbugs" version "4.6.0"
     id 'com.github.ksoichiro.console.reporter' version '0.6.2'
+    id 'org.barfuin.gradle.jacocolog' version '1.2.3'
+    id 'com.bmuschko.docker-remote-api' version '3.2.3'
 }
-
-group = 'com.vmware.osis'
-version '0.0.1-SNAPSHOT'
-description = 'osis.scality'
-sourceCompatibility = '1.8'
-
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
@@ -46,6 +46,9 @@ allprojects {
         maven {
             url = 'https://repo.maven.apache.org/maven2'
         }
+        maven {
+            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
     }
 }
 
@@ -57,6 +60,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'com.bmuschko.docker-remote-api'
 
 bootJar {
     mainClassName = 'com.vmware.osis.Application'
@@ -69,6 +73,15 @@ jar {
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
+//docker {
+//    name = "mrkulli/ktdemo:".plus(version)
+//    uri("mrkulli/ktdemo:".plus(version))
+//    tag("name", "ktdemo")
+//    buildArgs(ImmutableMap.of("name", "ktdemo"))
+//    copySpec.from("build").into("build")
+//    pull(true)
+//    setDockerfile(file("Dockerfile"))
+//}
 
 subprojects {
     apply plugin: 'io.spring.dependency-management'
@@ -87,7 +100,7 @@ sourceSets {
     }
 }
 
-configure(allprojects.findAll { it.name != 'platform-admin-client' }) {
+configure(allprojects.findAll { it.name != 'vault-admin-client' }) {
     ext {
         springBootVersion = '2.2.4.RELEASE'
     }
@@ -112,9 +125,16 @@ configure(allprojects.findAll { it.name != 'platform-admin-client' }) {
         compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
         compile 'io.jsonwebtoken:jjwt:0.9.1'
         implementation 'org.springframework.plugin:spring-plugin-core:1.2.0.RELEASE'
-        testCompile group: 'junit', name: 'junit', version: '4.12'
+        implementation 'com.scality:vaultclient:0.1.0-SNAPSHOT'
+        implementation 'com.amazonaws:aws-java-sdk-s3:1.11.914'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     }
 }
+
+group = 'com.vmware.osis'
+version = '0.1.0-SNAPSHOT'
+description = 'osis.scality'
+sourceCompatibility = '1.8'
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
@@ -130,4 +150,29 @@ jar {
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId 'com.vmware.osis'
+            artifactId 'scality'
+            version '0.1.0-SNAPSHOT'
+
+            from components.java
+
+        }
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+        maven {
+            url = 'https://repo.maven.apache.org/maven2'
+        }
+        maven {
+            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
+    }
 }

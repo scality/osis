@@ -1,5 +1,6 @@
 dependencies {
-    compile project(':platform-admin-client')
+    compile project(':vault-admin-client')
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.11.914'
 }
 test {
     useJUnitPlatform()

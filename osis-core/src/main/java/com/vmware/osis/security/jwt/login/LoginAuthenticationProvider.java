@@ -5,7 +5,7 @@
 
 package com.vmware.osis.security.jwt.login;
 
-import com.vmware.osis.platform.security.PlatformUserDetailsService;
+import com.vmware.osis.scality.security.ScalityUserDetailsService;
 import com.vmware.osis.security.jwt.model.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -28,7 +28,7 @@ public class LoginAuthenticationProvider implements AuthenticationProvider {
     private final UserDetailsService userService;
 
     @Autowired
-    public LoginAuthenticationProvider(final PlatformUserDetailsService userService, final BCryptPasswordEncoder encoder) {
+    public LoginAuthenticationProvider(final ScalityUserDetailsService userService, final BCryptPasswordEncoder encoder) {
         this.userService = userService;
         this.encoder = encoder;
     }

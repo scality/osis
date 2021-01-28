@@ -6,8 +6,8 @@
 package com.vmware.osis.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vmware.osis.platform.AppEnv;
-import com.vmware.osis.platform.security.PlatformUserDetailsService;
+import com.vmware.osis.scality.AppEnv;
+import com.vmware.osis.scality.security.ScalityUserDetailsService;
 import com.vmware.osis.security.jwt.JwtAuthenticationProvider;
 import com.vmware.osis.security.jwt.extractor.JwtHeaderTokenExtractor;
 import com.vmware.osis.security.jwt.login.LoginAuthenticationFailureHandler;
@@ -31,7 +31,7 @@ public class OsisJwtBeans {
     }
 
     @Bean
-    protected LoginAuthenticationProvider loginAuthenticationProvider(PlatformUserDetailsService userService, BCryptPasswordEncoder encoder) {
+    protected LoginAuthenticationProvider loginAuthenticationProvider(ScalityUserDetailsService userService, BCryptPasswordEncoder encoder) {
         return new LoginAuthenticationProvider(userService, encoder);
     }
 

@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.platform.security;
+package com.vmware.osis.scality.security;
 
-import com.vmware.osis.platform.AppEnv;
+import com.vmware.osis.scality.AppEnv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,16 +13,16 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PlatformUserDetailsService implements UserDetailsService {
+public class ScalityUserDetailsService implements UserDetailsService {
 
     @Autowired
     private AppEnv appEnv;
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-        if (username == null || !username.equals(appEnv.getPlatformAccessKey())) {
+        if (username == null || !username.equals(appEnv.getVaultAccessKey())) {
             throw new UsernameNotFoundException(username);
         }
-        return new PlatformUserDetails(appEnv.getPlatformAccessKey(), appEnv.getPlatformSecretKey());
+        return new ScalityUserDetails(appEnv.getVaultAccessKey(), appEnv.getVaultSecretKey());
     }
 }

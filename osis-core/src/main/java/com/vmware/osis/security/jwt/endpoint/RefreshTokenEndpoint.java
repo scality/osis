@@ -5,8 +5,8 @@
 
 package com.vmware.osis.security.jwt.endpoint;
 
-import com.vmware.osis.platform.AppEnv;
-import com.vmware.osis.platform.security.PlatformUserDetailsService;
+import com.vmware.osis.scality.AppEnv;
+import com.vmware.osis.scality.security.ScalityUserDetailsService;
 import com.vmware.osis.security.jwt.JwtTokenFactory;
 import com.vmware.osis.security.jwt.model.*;
 import com.vmware.osis.security.jwt.model.exception.InvalidJwtTokenException;
@@ -32,7 +32,7 @@ public class RefreshTokenEndpoint {
     @Autowired
     private JwtTokenFactory tokenFactory;
     @Autowired
-    private PlatformUserDetailsService userService;
+    private ScalityUserDetailsService userService;
     @Autowired
     private JwtTokenVerifier tokenVerifier;
     @Autowired

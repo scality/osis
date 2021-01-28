@@ -5,7 +5,7 @@
 
 package com.vmware.osis.security.jwt;
 
-import com.vmware.osis.platform.AppEnv;
+import com.vmware.osis.scality.AppEnv;
 import com.vmware.osis.security.jwt.model.JwtAuthenticationToken;
 import com.vmware.osis.security.jwt.model.RawAccessToken;
 import com.vmware.osis.security.jwt.model.UserContext;

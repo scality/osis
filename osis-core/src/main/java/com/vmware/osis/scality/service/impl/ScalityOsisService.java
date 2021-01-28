@@ -3,36 +3,48 @@
  * SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.platform.service.impl;
+package com.vmware.osis.scality.service.impl;
 
-import com.vmware.osis.model.*;
+import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.vmware.osis.model.exception.NotImplementedException;
-import com.vmware.osis.platform.AppEnv;
+import com.vmware.osis.scality.AppEnv;
+import com.vmware.osis.scality.utils.ModelConverter;
+import com.vmware.osis.model.*;
 import com.vmware.osis.resource.OsisCapsManager;
 import com.vmware.osis.service.OsisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.scality.vaultadmin.VaultAdmin;
 
-import java.util.Optional;
+import java.util.*;
 
 
 @Service
-public class PlatformOsisService implements OsisService {
-    private static final Logger logger = LoggerFactory.getLogger(PlatformOsisService.class);
-    private static final String S3_CAPABILITIES_JSON = "s3capabilities.json";
+public class ScalityOsisService implements OsisService {
+    private static final Logger logger = LoggerFactory.getLogger(ScalityOsisService.class);
 
     @Autowired
     private AppEnv appEnv;
 
     @Autowired
+    private VaultAdmin vaultAdmin;
+
+    @Autowired
     private OsisCapsManager osisCapsManager;
 
+    public ScalityOsisService(){}
+
+    public ScalityOsisService(VaultAdmin vaultAdmin){
+        this.vaultAdmin = vaultAdmin;
+    }
 
     @Override
     public OsisTenant createTenant(OsisTenant osisTenant) {
-        throw new NotImplementedException();
+        CreateAccountRequestDTO accountRequest = ModelConverter.toScalityAccountRequest(osisTenant);
+
+        return ModelConverter.toOsisTenant(vaultAdmin.createAccount(accountRequest));
     }
 
     @Override

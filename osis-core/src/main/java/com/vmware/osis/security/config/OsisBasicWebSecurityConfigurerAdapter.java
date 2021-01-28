@@ -5,7 +5,7 @@
 
 package com.vmware.osis.security.config;
 
-import com.vmware.osis.platform.security.PlatformUserDetailsService;
+import com.vmware.osis.scality.security.ScalityUserDetailsService;
 import com.vmware.osis.security.basic.BasicAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -32,7 +32,7 @@ public class OsisBasicWebSecurityConfigurerAdapter extends WebSecurityConfigurer
     private BasicAuthentication authentication;
 
     @Autowired
-    private PlatformUserDetailsService service;
+    private ScalityUserDetailsService service;
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {

@@ -3,7 +3,7 @@
  *SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.platform.security;
+package com.vmware.osis.scality.security;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -14,12 +14,12 @@ import java.util.Collection;
 
 import static com.vmware.osis.security.jwt.AuthConstants.ROLE_ADMIN;
 
-public class PlatformUserDetails implements UserDetails {
+public class ScalityUserDetails implements UserDetails {
 
     private final String username;
     private final String password;
 
-    public PlatformUserDetails(String username, String password) {
+    public ScalityUserDetails(String username, String password) {
         this.username = username;
         this.password = new BCryptPasswordEncoder().encode(password);
     }
