@@ -5,6 +5,7 @@
 
 package com.vmware.osis.scality.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.vmware.osis.model.exception.NotImplementedException;
 import com.vmware.osis.scality.AppEnv;
@@ -15,15 +16,18 @@ import com.vmware.osis.service.OsisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import com.scality.vaultadmin.VaultAdmin;
 
+import java.io.IOException;
 import java.util.*;
 
 
 @Service
 public class ScalityOsisService implements OsisService {
     private static final Logger logger = LoggerFactory.getLogger(ScalityOsisService.class);
+    private static final String S3_CAPABILITIES_JSON = "s3capabilities.json";
 
     @Autowired
     private AppEnv appEnv;
@@ -90,7 +94,15 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public OsisS3Capabilities getS3Capabilities() {
-        throw new NotImplementedException();
+        OsisS3Capabilities osisS3Capabilities = new OsisS3Capabilities();
+        try {
+            osisS3Capabilities = new ObjectMapper()
+                    .readValue(new ClassPathResource(S3_CAPABILITIES_JSON).getInputStream(),
+                            OsisS3Capabilities.class);
+        } catch (IOException e) {
+            logger.info("Fail to load S3 capabilities from configuration file {}.", S3_CAPABILITIES_JSON);
+        }
+        return osisS3Capabilities;
     }
 
     @Override
