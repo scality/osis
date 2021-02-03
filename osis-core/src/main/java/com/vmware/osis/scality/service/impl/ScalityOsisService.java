@@ -87,12 +87,12 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public String getProviderConsoleUrl() {
-        throw new NotImplementedException();
+        return appEnv.getConsoleEndpoint();
     }
 
     @Override
     public String getTenantConsoleUrl(String tenantId) {
-        throw new NotImplementedException();
+        return appEnv.getConsoleEndpoint();
     }
 
     @Override
