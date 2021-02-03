@@ -37,7 +37,7 @@ public final class ScalityConstants {
     public static final String OSIS_DISPLAY_NAME = "display_name";
     public static final String OSIS_ACCESS_KEY = "access_key";
     public static final String OSIS_ACTIVE = "active";
-    public static final String ICON_PATH = "/scality.png";
+    public static final String ICON_PATH = "/ceph.png";
     public static final String IAM_PREFIX = "/admin";
 
     public static final int MAX_ALLOWED_CD_TENANTID_COUNT = 6;

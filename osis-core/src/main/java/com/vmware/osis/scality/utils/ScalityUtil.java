@@ -33,4 +33,18 @@ public final class ScalityUtil {
         }
     }
 
+    public static URI getLogoUri(String domain) {
+        return URI.create(domain + ICON_PATH);
+    }
+
+    public static Information.StatusEnum checkScalityStatus(VaultAdmin vaultAdmin) {
+        Information.StatusEnum statusEnum = Information.StatusEnum.NORMAL;
+//        try {
+//            vaultAdmin.getUsage();
+//        } catch (VaultServiceException e) {
+//            statusEnum = Information.StatusEnum.ERROR;
+//        }
+        return statusEnum;
+    }
+
 }

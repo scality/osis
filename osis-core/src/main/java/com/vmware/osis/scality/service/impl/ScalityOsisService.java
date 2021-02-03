@@ -12,6 +12,7 @@ import com.vmware.osis.scality.AppEnv;
 import com.vmware.osis.scality.utils.ModelConverter;
 import com.vmware.osis.model.*;
 import com.vmware.osis.resource.OsisCapsManager;
+import com.vmware.osis.scality.utils.ScalityUtil;
 import com.vmware.osis.service.OsisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,8 @@ import com.scality.vaultadmin.VaultAdmin;
 
 import java.io.IOException;
 import java.util.*;
+
+import static com.vmware.osis.scality.utils.ScalityConstants.IAM_PREFIX;
 
 
 @Service
@@ -173,7 +176,17 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public Information getInformation(String domain) {
-        throw new NotImplementedException();
+        return new Information()
+                .addAuthModesItem(appEnv.isApiTokenEnabled() ? Information.AuthModesEnum.BEARER : Information.AuthModesEnum.BASIC)
+                .storageClasses(appEnv.getStorageInfo())
+                .regions(appEnv.getRegionInfo())
+                .platformName(appEnv.getPlatformName())
+                .platformVersion(appEnv.getPlatformVersion())
+                .apiVersion(appEnv.getApiVersion())
+                .notImplemented(osisCapsManager.getNotImplements())
+                .logoUri(ScalityUtil.getLogoUri(domain))
+                .services(new InformationServices().iam(domain + IAM_PREFIX).s3(appEnv.getS3Endpoint()))
+                .status(ScalityUtil.checkScalityStatus(vaultAdmin));
     }
 
     @Override
