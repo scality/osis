@@ -9,3 +9,7 @@ OSIS (Object Storage Interoperability Service) is proposed to extend OSE to supp
 For the platforms integrated with OSE via OSIS, the data channel is between OSE and the platform, but the control channel is between OSE and OSIS implementation (REST services implementing OSIS).
 
 This project is for OSIS which integrates [Scality RING](https://www.scality.com/products/ring/) with vCloud Director OSE. 
+
+## To Verify the implementation (Developers Only)
+
+Install and run [vmware-ose-osis-verifier](https://github.com/vmware-samples/object-storage-extension-samples/tree/master/vmware-ose-osis-verifier) for each API
