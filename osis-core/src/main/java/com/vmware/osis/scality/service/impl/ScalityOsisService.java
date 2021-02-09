@@ -56,12 +56,12 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfTenants queryTenants(long offset, long limit, String filter) {
-        throw new NotImplementedException();
+        return new PageOfTenants();
     }
 
     @Override
     public PageOfTenants listTenants(long offset, long limit) {
-        throw new NotImplementedException();
+        return new PageOfTenants();
     }
 
     @Override
@@ -71,7 +71,7 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfUsers queryUsers(long offset, long limit, String filter) {
-        throw new NotImplementedException();
+        return new PageOfUsers();
     }
 
 

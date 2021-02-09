@@ -795,7 +795,7 @@ public class OsisController {
             produces = "application/json")
     @NotImplement(name = OsisConstants.GET_ANONYMOUS_USER_API_CODE)
     public OsisUser getAnonymousUser() {
-        throw new NotImplementedException();
+        return new OsisUser();
     }
 
     @PostMapping(value = "/api/admin-apis", produces = "application/json")

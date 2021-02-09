@@ -18,6 +18,9 @@ osis:
     version: 1.0.0
 
 server:
+  tomcat:
+    accesslog:
+      enabled: true
   port: 8443
   verbose: true
   ssl:
