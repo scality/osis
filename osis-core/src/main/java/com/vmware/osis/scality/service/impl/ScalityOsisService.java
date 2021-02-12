@@ -6,7 +6,9 @@
 package com.vmware.osis.scality.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
+import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.vmware.osis.model.exception.NotImplementedException;
 import com.vmware.osis.scality.AppEnv;
 import com.vmware.osis.scality.utils.ModelConverter;
@@ -56,12 +58,42 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfTenants queryTenants(long offset, long limit, String filter) {
-        return new PageOfTenants();
+        return mockListTenants(offset, limit);
     }
 
     @Override
     public PageOfTenants listTenants(long offset, long limit) {
-        return new PageOfTenants();
+        return mockListTenants(offset, limit);
+    }
+
+    private PageOfTenants mockListTenants(long offset, long limit) {
+        PageOfTenants pageOfTenants = new PageOfTenants();
+
+        //tenant-1
+        String tenant1Res = "{\"account\":{\"data\":{\"id\":\"2c3e3e2908fb455893f09766977da58e\",\"emailAddress\":\"2c3e3e29-08fb-4558-93f0-9766977da58e@osis.account.com\",\"name\":\"sample-3__2c3e3e2908fb455893f09766977da58e\",\"arn\":\"arn:aws:iam::799467728277:/sai/\",\"createDate\":\"2021-02-12T21:17:21Z\"}}}";
+        OsisTenant tenant1 = ModelConverter.toOsisTenant(new Gson().fromJson(tenant1Res, CreateAccountResponseDTO.class));
+
+        //tenant-2
+        String tenant2Res = "{\"account\":{\"data\":{\"id\":\"eb5d6308a7e64d6a813964534366a7ae\",\"emailAddress\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae@osis.account.com\",\"name\":\"sample-org__eb5d6308a7e64d6a813964534366a7ae\",\"arn\":\"arn:aws:iam::eb5d6308a7e64d6a813964534366a7ae:/sample-org__eb5d6308a7e64d6a813964534366a7ae/\",\"createDate\":\"2021-02-12T21:17:21Z\"}}}";
+        OsisTenant tenant2 = ModelConverter.toOsisTenant(new Gson().fromJson(tenant2Res, CreateAccountResponseDTO.class));
+
+        //tenant-3
+        String tenant3Res = "{\"account\":{\"data\":{\"id\":\"8b45caac331d49deb1fc73e8cc77ddaa\",\"emailAddress\":\"8b45caac-331d-49de-b1fc-73e8cc77ddaa@osis.account.com\",\"name\":\"sample-tenant2__8b45caac331d49deb1fc73e8cc77ddaa\",\"arn\":\"arn:aws:iam::8b45caac331d49deb1fc73e8cc77ddaa:/sample-tenant2__8b45caac331d49deb1fc73e8cc77ddaa/\",\"createDate\":\"2021-02-12T21:17:21Z\"}}}";
+        OsisTenant tenant3 = ModelConverter.toOsisTenant(new Gson().fromJson(tenant3Res, CreateAccountResponseDTO.class));
+
+        List<OsisTenant> items = new ArrayList<>();
+        items.add(tenant1);
+        items.add(tenant2);
+        items.add(tenant3);
+
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setLimit(limit);
+        pageInfo.setOffset(offset);
+        pageInfo.setTotal(3l);
+
+        pageOfTenants.items(items);
+        pageOfTenants.setPageInfo(pageInfo);
+        return pageOfTenants;
     }
 
     @Override
@@ -151,7 +183,9 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public boolean headTenant(String tenantId) {
-        throw new NotImplementedException();
+        return tenantId.equals("8b45caac331d49deb1fc73e8cc77ddaa") ||
+                tenantId.equals("eb5d6308a7e64d6a813964534366a7ae") ||
+                tenantId.equals("2c3e3e2908fb455893f09766977da58e");
     }
 
     @Override
