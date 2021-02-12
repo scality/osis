@@ -111,6 +111,7 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public OsisUser createUser(OsisUser osisUser) {
+        osisUser.setUserId(ScalityUtil.normalize(osisUser.getCdUserId()));
         logger.info("create user request:"+ new Gson().toJson(osisUser));
         return osisUser;
     }
@@ -122,18 +123,24 @@ public class ScalityOsisService implements OsisService {
 
     private PageOfUsers mockListUsers(long offset, long limit) {
 
-        String user1 ="";
+        String user1 ="{\"userId\":\"5ef7c754ba3540589c3ac36cce2796ad\",\"tenantId\":\"eb5d6308a7e64d6a813964534366a7ae\",\"active\":true,\"cdUserId\":\"5ef7c754-ba35-4058-9c3a-c36cce2796ad\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae\",\"username\":\"test\",\"role\":\"TENANT_USER\"}";
         //user1
-        OsisUser osisUser = new Gson().fromJson(user1,OsisUser.class);
+        OsisUser osisUser1 = new Gson().fromJson(user1,OsisUser.class);
+
+
+        String user2 ="{\"userId\":\"94bf30e3f590491196d541e3dc309c69\",\"tenantId\":\"eb5d6308a7e64d6a813964534366a7ae\",\"active\":true,\"cdUserId\":\"94bf30e3-f590-4911-96d5-41e3dc309c69\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae\",\"username\":\"d4it2awsb588go5j9t00\",\"role\":\"TENANT_USER\"}";
+        //user2
+        OsisUser osisUser2 = new Gson().fromJson(user2,OsisUser.class);
 
         List<OsisUser> users = new ArrayList<>();
-        users.add(osisUser);
+        users.add(osisUser1);
+        users.add(osisUser2);
 
 
         PageInfo pageInfo = new PageInfo();
         pageInfo.setLimit(limit);
         pageInfo.setOffset(offset);
-        pageInfo.setTotal(1l);
+        pageInfo.setTotal(2l);
 
         PageOfUsers pageOfUsers = new PageOfUsers();
         pageOfUsers.setItems(users);
