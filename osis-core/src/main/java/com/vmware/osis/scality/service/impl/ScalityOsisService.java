@@ -25,6 +25,7 @@ import com.scality.vaultadmin.VaultAdmin;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.vmware.osis.scality.utils.ScalityConstants.IAM_PREFIX;
 
@@ -58,7 +59,19 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfTenants queryTenants(long offset, long limit, String filter) {
-        return mockListTenants(offset, limit);
+        PageOfTenants pageOfTenants = mockListTenants(offset, limit);
+        if(filter.contains("cd_tenant_id")){
+            PageOfTenants page = new PageOfTenants();
+            String cd = filter.substring(filter.indexOf("==")+2);
+
+            List<OsisTenant> items = pageOfTenants.getItems().stream().filter(tenant -> tenant.getCdTenantIds().contains(cd)).collect(Collectors.toList());
+            page.setItems(items);
+            page.setPageInfo(pageOfTenants.getPageInfo());
+            return page;
+        } else{
+            return pageOfTenants;
+        }
+
     }
 
     @Override
@@ -235,6 +248,6 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public OsisUsage getOsisUsage(Optional<String> tenantId, Optional<String> userId) {
-        throw new NotImplementedException();
+        return new OsisUsage();
     }
 }
