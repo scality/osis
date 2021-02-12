@@ -111,12 +111,34 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public OsisUser createUser(OsisUser osisUser) {
-        throw new NotImplementedException();
+        logger.info("create user request:"+ new Gson().toJson(osisUser));
+        return osisUser;
     }
 
     @Override
     public PageOfUsers queryUsers(long offset, long limit, String filter) {
-        return new PageOfUsers();
+        return mockListUsers(offset, limit);
+    }
+
+    private PageOfUsers mockListUsers(long offset, long limit) {
+
+        String user1 ="";
+        //user1
+        OsisUser osisUser = new Gson().fromJson(user1,OsisUser.class);
+
+        List<OsisUser> users = new ArrayList<>();
+        users.add(osisUser);
+
+
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setLimit(limit);
+        pageInfo.setOffset(offset);
+        pageInfo.setTotal(1l);
+
+        PageOfUsers pageOfUsers = new PageOfUsers();
+        pageOfUsers.setItems(users);
+        pageOfUsers.setPageInfo(pageInfo);
+        return pageOfUsers;
     }
 
 
@@ -213,7 +235,7 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfUsers listUsers(String tenantId, long offset, long limit) {
-        throw new NotImplementedException();
+        return mockListUsers(offset,limit);
     }
 
     @Override
