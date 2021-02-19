@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import com.scality.vaultadmin.VaultAdmin;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -123,12 +124,12 @@ public class ScalityOsisService implements OsisService {
 
     private PageOfUsers mockListUsers(long offset, long limit) {
 
-        String user1 ="{\"userId\":\"5ef7c754ba3540589c3ac36cce2796ad\",\"tenantId\":\"eb5d6308a7e64d6a813964534366a7ae\",\"active\":true,\"cdUserId\":\"5ef7c754-ba35-4058-9c3a-c36cce2796ad\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae\",\"username\":\"test\",\"role\":\"TENANT_USER\"}";
+        String user1 ="{\"userId\":\"UHZP0XA52MK171I3KHLIZVRC9R1CK1C9\",\"tenantId\":\"eb5d6308a7e64d6a813964534366a7ae\",\"active\":true,\"cdUserId\":\"5ef7c754-ba35-4058-9c3a-c36cce2796ad\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae\",\"username\":\"test\",\"role\":\"TENANT_USER\"}";
         //user1
         OsisUser osisUser1 = new Gson().fromJson(user1,OsisUser.class);
 
 
-        String user2 ="{\"userId\":\"94bf30e3f590491196d541e3dc309c69\",\"tenantId\":\"eb5d6308a7e64d6a813964534366a7ae\",\"active\":true,\"cdUserId\":\"94bf30e3-f590-4911-96d5-41e3dc309c69\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae\",\"username\":\"d4it2awsb588go5j9t00\",\"role\":\"TENANT_USER\"}";
+        String user2 ="{\"userId\":\"O4ROVPVTLYECFV3WS9DC0GH7DP4NI3RU\",\"tenantId\":\"eb5d6308a7e64d6a813964534366a7ae\",\"active\":true,\"cdUserId\":\"94bf30e3-f590-4911-96d5-41e3dc309c69\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae\",\"username\":\"d4it2awsb588go5j9t00\",\"role\":\"TENANT_USER\"}";
         //user2
         OsisUser osisUser2 = new Gson().fromJson(user2,OsisUser.class);
 
@@ -156,7 +157,53 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfS3Credentials queryS3Credentials(long offset, long limit, String filter) {
-        throw new NotImplementedException();
+        return mockS3Credentials(offset, limit,"eb5d6308a7e64d6a813964534366a7ae", "UHZP0XA52MK171I3KHLIZVRC9R1CK1C9");
+    }
+
+    private PageOfS3Credentials mockS3Credentials(long offset, long limit, String tenantId, String userid) {
+
+        OsisS3Credential cred1 = new OsisS3Credential();
+        cred1.setUserId("UHZP0XA52MK171I3KHLIZVRC9R1CK1C9");
+        cred1.setCdUserId("5ef7c754-ba35-4058-9c3a-c36cce2796ad");
+        cred1.setSecretKey("W4Ya04LG=eq=PyWOeghEz/S7i+kWApq2WtlU+vbG");
+        cred1.setAccessKey("FCZQ6TQIQT21KAIE8FAE");
+        cred1.setActive(true);
+        cred1.setTenantId("eb5d6308a7e64d6a813964534366a7ae");
+        cred1.setCdTenantId("eb5d6308-a7e6-4d6a-8139-64534366a7");
+        cred1.setUsername("test");
+
+
+        OsisS3Credential cred2 = new OsisS3Credential();
+        cred2.setUserId("O4ROVPVTLYECFV3WS9DC0GH7DP4NI3RU");
+        cred2.setCdUserId("94bf30e3-f590-4911-96d5-41e3dc309c69");
+        cred2.setSecretKey("W4Ya04LG=eq=PyWOeghEz/S7i+kWApq2WtlU+vbG");
+        cred2.setAccessKey("FCZQ6TQIQT21KAIE8FAE");
+        cred2.setActive(true);
+        cred2.setTenantId("eb5d6308a7e64d6a813964534366a7ae");
+        cred2.setCdTenantId("eb5d6308-a7e6-4d6a-8139-64534366a7");
+        cred2.setUsername("d4it2awsb588go5j9t00");
+
+        List<OsisS3Credential> creds = new ArrayList<>();
+        creds.add(cred1);
+        creds.add(cred2);
+
+        if("eb5d6308a7e64d6a813964534366a7ae".equals(tenantId)){
+            if("UHZP0XA52MK171I3KHLIZVRC9R1CK1C9".equals(userid)){
+                creds.remove(cred2);
+            } else {
+                creds.remove(cred1);
+            }
+        }
+
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setLimit(limit);
+        pageInfo.setOffset(offset);
+        pageInfo.setTotal(2l);
+
+        PageOfS3Credentials pageOfS3Credentials = new PageOfS3Credentials();
+        pageOfS3Credentials.setItems(creds);
+        pageOfS3Credentials.setPageInfo(pageInfo);
+        return pageOfS3Credentials;
     }
 
     @Override
@@ -237,7 +284,7 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfS3Credentials listS3Credentials(String tenantId, String userId, Long offset, Long limit) {
-        throw new NotImplementedException();
+        return mockS3Credentials(offset,limit, tenantId,userId);
     }
 
     @Override
