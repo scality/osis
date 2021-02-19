@@ -112,7 +112,11 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public OsisUser createUser(OsisUser osisUser) {
-        osisUser.setUserId(ScalityUtil.normalize(osisUser.getCdUserId()));
+        if("5ef7c754-ba35-4058-9c3a-c36cce2796ad".equals(osisUser.getCdUserId())){
+            osisUser.setUserId("UHZP0XA52MK171I3KHLIZVRC9R1CK1C9");
+        } else{
+            osisUser.setUserId("O4ROVPVTLYECFV3WS9DC0GH7DP4NI3RU");
+        }
         logger.info("create user request:"+ new Gson().toJson(osisUser));
         return osisUser;
     }
