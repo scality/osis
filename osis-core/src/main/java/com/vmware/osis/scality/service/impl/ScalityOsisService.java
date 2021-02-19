@@ -265,13 +265,27 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public OsisUser getUser(String canonicalUserId) {
-        throw new NotImplementedException();
+        if("297d2c9f016bee81d6bed2539422e8adae9ebd2a597c041d494be0a32066bfbc".equals(canonicalUserId)) {
+            String user1 = "{\"userId\":\"UHZP0XA52MK171I3KHLIZVRC9R1CK1C9\",\"tenantId\":\"eb5d6308a7e64d6a813964534366a7ae\",\"active\":true,\"cdUserId\":\"5ef7c754-ba35-4058-9c3a-c36cce2796ad\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae\",\"username\":\"test\",\"role\":\"TENANT_USER\"}";
+            //user1
+            return new Gson().fromJson(user1, OsisUser.class);
+        }
+        return null;
     }
 
     @Override
     public OsisUser getUser(String tenantId, String userId) {
-        throw new NotImplementedException();
+       if("UHZP0XA52MK171I3KHLIZVRC9R1CK1C9".equals(userId)) {
+           String user1 = "{\"userId\":\"UHZP0XA52MK171I3KHLIZVRC9R1CK1C9\",\"tenantId\":\"eb5d6308a7e64d6a813964534366a7ae\",\"active\":true,\"cdUserId\":\"5ef7c754-ba35-4058-9c3a-c36cce2796ad\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae\",\"username\":\"test\",\"role\":\"TENANT_USER\"}";
+           //user1
+           return new Gson().fromJson(user1, OsisUser.class);
+       } else if("O4ROVPVTLYECFV3WS9DC0GH7DP4NI3RU".equals(userId)) {
 
+           String user2 = "{\"userId\":\"O4ROVPVTLYECFV3WS9DC0GH7DP4NI3RU\",\"tenantId\":\"eb5d6308a7e64d6a813964534366a7ae\",\"active\":true,\"cdUserId\":\"94bf30e3-f590-4911-96d5-41e3dc309c69\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae\",\"username\":\"d4it2awsb588go5j9t00\",\"role\":\"TENANT_USER\"}";
+           //user2
+           return new Gson().fromJson(user2, OsisUser.class);
+       }
+       return null;
     }
 
     @Override
