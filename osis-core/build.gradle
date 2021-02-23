@@ -1,6 +1,8 @@
 dependencies {
-    compile project(':platform-admin-client')
+    compile project(':vault-admin-client')
 }
 test {
     useJUnitPlatform()
 }
+group = 'com.scality'
+version '0.0.1-SNAPSHOT'
