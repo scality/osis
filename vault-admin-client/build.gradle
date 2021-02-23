@@ -22,9 +22,9 @@ dependencies {
     testCompile 'ch.qos.logback:logback-classic:1.2.1'
 }
 
-group = 'io.github.twonote'
-version = '2.0.3-snapshot'
-description = 'radosgw-admin4j'
+group = 'com.scality'
+version = '0.1.0-SNAPSHOT'
+description = 'osis-vault-admin'
 sourceCompatibility = '1.8'
 
 tasks.withType(JavaCompile) {
