@@ -1,4 +1,4 @@
-# Object Storage Extension Requirements
+# Milestone 1
 
 ## Context
 
@@ -10,7 +10,7 @@ integration (with S3C, and later on XDM).
 
 ## Requirements
 
-### Storie
+### Stories
 
 **As a** vCloud Director Administrator
 
