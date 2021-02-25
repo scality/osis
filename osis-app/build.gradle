@@ -9,3 +9,5 @@ dependencies {
     compile 'org.openapitools:jackson-databind-nullable:0.1.0'
 }
 jar.enabled(true)
+group = 'com.scality'
+version '0.1.0-SNAPSHOT'
