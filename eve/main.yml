@@ -11,12 +11,34 @@ models:
       VCS_COMMIT_ID: '%(prop:revision)s'
       VCS_BRANCH_NAME: '%(prop:branch)s'
       CI_BUILD_ID: '%(prop:bootstrap)s'
+  - env: &docker_env
+      DEVELOPMENT_DOCKER_IMAGE_NAME: 'registry.scality.com/%(prop:git_slug)s-dev/%(prop:git_slug)s'
+      PRODUCTION_DOCKER_IMAGE_NAME: 'registry.scality.com/%(prop:git_slug)s/%(prop:git_slug)s'
+  - ShellCommand: &docker_login
+      name: Login to docker registry
+      command: docker login -u "${HARBOR_LOGIN}" -p "${HARBOR_PASSWORD}" registry.scality.com
+      usePTY: true
+      env:
+        HARBOR_LOGIN: '%(secret:harbor_login)s'
+        HARBOR_PASSWORD: '%(secret:harbor_password)s'
+  - ShellCommand: &wait_docker_daemon
+      name: Wait for Docker daemon to be ready
+      command: |
+        bash -c '
+        for i in {1..150}
+        do
+          docker info &> /dev/null && exit
+          sleep 2
+        done
+        echo "Could not reach Docker daemon from buildbot worker" >&2
+        exit 1'
+      haltOnFailure: true
 
 stages:
   pre-merge:
     worker:
       type: kube_pod
-      path: eve/workers/pod.yaml
+      path: eve/workers/build/pod.yaml
       images:
         build: eve/workers/build
     steps:
@@ -29,6 +51,7 @@ stages:
       - ShellCommand:
           name: gradle build
           command: gradle build
+          haltOnFailure: true
       - ShellCommand:
           name: Copy secret key ring file
           command: echo "%(secret:signing_secret_key_ring_file)s" | base64 --decode > secring.gpg
@@ -55,3 +78,28 @@ stages:
             - 'pmd-lint/*.html' # this will create links to every .html files
             - 'spotbugs/*.html'
             - 'code-coverage/*.html'
+      - TriggerStages:
+          stage_names:
+            - docker-build
+  docker-build:
+    worker: &docker_worker
+      type: kube_pod
+      path: eve/workers/docker/pod.yaml
+      images:
+        worker: eve/workers/docker
+    steps:
+      - Git: *git_pull
+      - ShellCommand: *wait_docker_daemon
+      - ShellCommand: *docker_login
+      - ShellCommand:
+          name: docker build
+          command: >-
+            docker build .
+            --tag=${DEVELOPMENT_DOCKER_IMAGE_NAME}:%(prop:commit_short_revision)s
+          env: *docker_env
+          haltOnFailure: true
+      - ShellCommand:
+          name: push docker image into the development namespace
+          command: docker push ${DEVELOPMENT_DOCKER_IMAGE_NAME}
+          env: *docker_env
+          haltOnFailure: true
