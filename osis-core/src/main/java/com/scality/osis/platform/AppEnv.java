@@ -24,28 +24,28 @@ public class AppEnv {
     @Autowired
     private Environment env;
 
-    public String getPlatformEndpoint() {
-        return env.getProperty("osis.platform.admin.endpoint");
+    public String getVaultEndpoint() {
+        return env.getProperty("osis.scality.vault.endpoint");
     }
 
-    public String getPlatformAccessKey() {
-        return env.getProperty("osis.platform.admin.username");
+    public String getVaultAccessKey() {
+        return env.getProperty("osis.scality.vault.username");
     }
 
-    public String getPlatformSecretKey() {
-        return env.getProperty("osis.platform.admin.password");
+    public String getVaultSecretKey() {
+        return env.getProperty("osis.scality.vault.password");
     }
 
     public String getS3Endpoint() {
-        return env.getProperty("osis.platform.s3.endpoint");
+        return env.getProperty("osis.scality.s3.endpoint");
     }
 
     public String getConsoleEndpoint() {
-        return env.getProperty("osis.platform.console.endpoint");
+        return env.getProperty("osis.scality.console.endpoint");
     }
 
     public List<String> getStorageInfo() {
-        String storageInfo = env.getProperty("osis.platform.storage-classes");
+        String storageInfo = env.getProperty("osis.scality.storage-classes");
         if (StringUtils.isBlank(storageInfo)) {
             return Collections.singletonList("standard");
         }
@@ -54,7 +54,7 @@ public class AppEnv {
     }
 
     public List<String> getRegionInfo() {
-        String regionInfo = env.getProperty("osis.platform.region");
+        String regionInfo = env.getProperty("osis.scality.region");
         if (StringUtils.isBlank(regionInfo)) {
             return Collections.singletonList("default");
         }
@@ -63,11 +63,11 @@ public class AppEnv {
     }
 
     public String getPlatformName() {
-        return env.getProperty("osis.platform.name");
+        return env.getProperty("osis.scality.name");
     }
 
     public String getPlatformVersion() {
-        return env.getProperty("osis.platform.version");
+        return env.getProperty("osis.scality.version");
     }
 
     public String getApiVersion() {

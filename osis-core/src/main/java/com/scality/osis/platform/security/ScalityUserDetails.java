@@ -14,12 +14,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Collection;
 
-public class PlatformUserDetails implements UserDetails {
+public class ScalityUserDetails implements UserDetails {
 
     private final String username;
     private final String password;
 
-    public PlatformUserDetails(String username, String password) {
+    public ScalityUserDetails(String username, String password) {
         this.username = username;
         this.password = new BCryptPasswordEncoder().encode(password);
     }

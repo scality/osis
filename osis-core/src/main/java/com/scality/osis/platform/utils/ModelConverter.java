@@ -7,7 +7,7 @@
 package com.scality.osis.platform.utils;
 
 /**
- * Convert between OSIS and Platform models
+ * Convert between OSIS and Scality models
  */
 public final class ModelConverter {
 

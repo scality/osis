@@ -8,7 +8,7 @@ package com.scality.osis.security.jwt.login;
 
 import com.scality.osis.security.jwt.AuthConstants;
 import com.scality.osis.security.jwt.model.UserContext;
-import com.scality.osis.platform.security.PlatformUserDetailsService;
+import com.scality.osis.platform.security.ScalityUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -28,7 +28,7 @@ public class LoginAuthenticationProvider implements AuthenticationProvider {
     private final UserDetailsService userService;
 
     @Autowired
-    public LoginAuthenticationProvider(final PlatformUserDetailsService userService, final BCryptPasswordEncoder encoder) {
+    public LoginAuthenticationProvider(final ScalityUserDetailsService userService, final BCryptPasswordEncoder encoder) {
         this.userService = userService;
         this.encoder = encoder;
     }

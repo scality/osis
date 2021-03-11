@@ -7,7 +7,7 @@
 package com.scality.osis.security.jwt.endpoint;
 
 import com.scality.osis.platform.AppEnv;
-import com.scality.osis.platform.security.PlatformUserDetailsService;
+import com.scality.osis.platform.security.ScalityUserDetailsService;
 import com.scality.osis.security.jwt.AuthConstants;
 import com.scality.osis.security.jwt.JwtTokenFactory;
 import com.scality.osis.security.jwt.model.RawAccessToken;
@@ -36,7 +36,7 @@ public class RefreshTokenEndpoint {
     @Autowired
     private JwtTokenFactory tokenFactory;
     @Autowired
-    private PlatformUserDetailsService userService;
+    private ScalityUserDetailsService userService;
     @Autowired
     private JwtTokenVerifier tokenVerifier;
     @Autowired

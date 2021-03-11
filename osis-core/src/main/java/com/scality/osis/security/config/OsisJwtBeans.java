@@ -8,7 +8,7 @@ package com.scality.osis.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scality.osis.platform.AppEnv;
-import com.scality.osis.platform.security.PlatformUserDetailsService;
+import com.scality.osis.platform.security.ScalityUserDetailsService;
 import com.scality.osis.security.jwt.JwtAuthenticationProvider;
 import com.scality.osis.security.jwt.JwtTokenFactory;
 import com.scality.osis.security.jwt.login.LoginAuthenticationFailureHandler;
@@ -32,7 +32,7 @@ public class OsisJwtBeans {
     }
 
     @Bean
-    protected LoginAuthenticationProvider loginAuthenticationProvider(PlatformUserDetailsService userService, BCryptPasswordEncoder encoder) {
+    protected LoginAuthenticationProvider loginAuthenticationProvider(ScalityUserDetailsService userService, BCryptPasswordEncoder encoder) {
         return new LoginAuthenticationProvider(userService, encoder);
     }
 

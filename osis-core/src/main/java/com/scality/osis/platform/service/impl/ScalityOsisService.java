@@ -20,8 +20,8 @@ import java.util.Optional;
 
 
 @Service
-public class PlatformOsisService implements OsisService {
-    private static final Logger logger = LoggerFactory.getLogger(PlatformOsisService.class);
+public class ScalityOsisService implements OsisService {
+    private static final Logger logger = LoggerFactory.getLogger(ScalityOsisService.class);
     private static final String S3_CAPABILITIES_JSON = "s3capabilities.json";
 
     @Autowired

@@ -6,7 +6,7 @@
 
 package com.scality.osis.security.config;
 
-import com.scality.osis.platform.security.PlatformUserDetailsService;
+import com.scality.osis.platform.security.ScalityUserDetailsService;
 import com.scality.osis.security.basic.BasicAuthentication;
 import com.scality.osis.security.jwt.AuthConstants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,7 @@ public class OsisBasicWebSecurityConfigurerAdapter extends WebSecurityConfigurer
     private BasicAuthentication authentication;
 
     @Autowired
-    private PlatformUserDetailsService service;
+    private ScalityUserDetailsService service;
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {

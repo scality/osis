@@ -14,16 +14,16 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PlatformUserDetailsService implements UserDetailsService {
+public class ScalityUserDetailsService implements UserDetailsService {
 
     @Autowired
     private AppEnv appEnv;
 
     @Override
     public UserDetails loadUserByUsername(String username) {
-        if (username == null || !username.equals(appEnv.getPlatformAccessKey())) {
+        if (username == null || !username.equals(appEnv.getVaultAccessKey())) {
             throw new UsernameNotFoundException(username);
         }
-        return new PlatformUserDetails(appEnv.getPlatformAccessKey(), appEnv.getPlatformSecretKey());
+        return new ScalityUserDetails(appEnv.getVaultAccessKey(), appEnv.getVaultSecretKey());
     }
 }
