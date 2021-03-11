@@ -6,17 +6,17 @@ pmdMain {
         html.enabled = true
     }
     /*excluding original osis stub code from PMD scan*/
-    exclude '**/com/vmware/osis/resource/*.java',
-            "**/com/vmware/osis/resource/*.*",
-            "**/com/vmware/osis/model/**/*.*",
-            "**/com/vmware/osis/annotation/*.*",
-            "**/com/vmware/osis/security/**/*.*",
-            "**/com/vmware/osis/service/*.*",
-            "**/com/vmware/osis/validation/*.*",
+    exclude '**/com/scality/osis/resource/*.java',
+            "**/com/scality/osis/resource/*.*",
+            "**/com/scality/osis/model/**/*.*",
+            "**/com/scality/osis/annotation/*.*",
+            "**/com/scality/osis/security/**/*.*",
+            "**/com/scality/osis/service/*.*",
+            "**/com/scality/osis/validation/*.*",
 
             /*Temporarily adding below packages into exclusion. Needs to be removed*/
-            "**/com/vmware/osis/platform/**/*.*"
-            "**/com/vmware/osis/platform/*.*"
+            "**/com/scality/osis/platform/**/*.*"
+            "**/com/scality/osis/platform/*.*"
 }
 pmdTest {
     source ='src/test/java'
