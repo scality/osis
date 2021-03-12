@@ -12,11 +12,7 @@ pmdMain {
             "**/com/scality/osis/annotation/*.*",
             "**/com/scality/osis/security/**/*.*",
             "**/com/scality/osis/service/*.*",
-            "**/com/scality/osis/validation/*.*",
-
-            /*Temporarily adding below packages into exclusion. Needs to be removed*/
-            "**/com/scality/osis/platform/**/*.*"
-            "**/com/scality/osis/platform/*.*"
+            "**/com/scality/osis/validation/*.*"
 }
 pmdTest {
     source ='src/test/java'

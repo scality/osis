@@ -23,9 +23,12 @@ jacocoTestReport {
                     "**/com/scality/osis/resource/*.*",
                     "**/com/scality/osis/model/*.*",
                     "**/com/scality/osis/annotation/*.*",
-                    "**/com/scality/osis/security/*.*",
+                    "**/com/scality/osis/**/security/**/*.*",
                     "**/com/scality/osis/service/*.*",
-                    "**/com/scality/osis/validation/*.*"
+                    "**/com/scality/osis/validation/*.*",
+                    /*excluding testing not required files*/
+                    "**/com/scality/osis/platform/configuration/DocumentationConfig.*",
+                    "**/com/scality/osis/model/exception/*.*"
             ])
         }))
     }
@@ -40,9 +43,12 @@ jacocoTestCoverageVerification {
                     "**/com/scality/osis/resource/*.*",
                     "**/com/scality/osis/model/*.*",
                     "**/com/scality/osis/annotation/*.*",
-                    "**/com/scality/osis/security/*.*",
+                    "**/com/scality/osis/**/security/**/*.*",
                     "**/com/scality/osis/service/*.*",
-                    "**/com/scality/osis/validation/*.*"
+                    "**/com/scality/osis/validation/*.*",
+                    /*excluding testing not required files*/
+                    "**/com/scality/osis/platform/configuration/DocumentationConfig.*",
+                    "**/com/scality/osis/model/exception/*.*"
             ])
         }))
     }
