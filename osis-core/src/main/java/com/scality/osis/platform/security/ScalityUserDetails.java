@@ -15,7 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.util.Collection;
 
 public class ScalityUserDetails implements UserDetails {
-
+    private static final long serialVersionUID = 1L;
     private final String username;
     private final String password;
 

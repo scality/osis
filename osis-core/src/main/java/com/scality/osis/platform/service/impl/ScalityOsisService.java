@@ -6,11 +6,14 @@
 
 package com.scality.osis.platform.service.impl;
 
+import com.google.gson.Gson;
 import com.scality.osis.model.*;
 import com.scality.osis.model.exception.NotImplementedException;
-import com.scality.osis.platform.AppEnv;
+import com.scality.osis.platform.utils.ModelConverter;
 import com.scality.osis.service.OsisService;
-import com.scality.osis.resource.OsisCapsManager;
+import com.scality.vaultadmin.VaultAdmin;
+import com.scality.vaultclient.dto.CreateAccountRequestDTO;
+import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,22 +21,41 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-
 @Service
 public class ScalityOsisService implements OsisService {
     private static final Logger logger = LoggerFactory.getLogger(ScalityOsisService.class);
-    private static final String S3_CAPABILITIES_JSON = "s3capabilities.json";
 
     @Autowired
-    private AppEnv appEnv;
+    private VaultAdmin vaultAdmin;
 
-    @Autowired
-    private OsisCapsManager osisCapsManager;
+    public ScalityOsisService(){}
 
+    public ScalityOsisService(VaultAdmin vaultAdmin){
+        this.vaultAdmin = vaultAdmin;
+    }
 
+    /**
+     * Create a tenant in the platform
+     *
+     * @param osisTenant Tenant to create in the platform (required)
+     * @return A tenant is created
+     */
     @Override
     public OsisTenant createTenant(OsisTenant osisTenant) {
-        throw new NotImplementedException();
+        logger.info("Create Tenant request received:{}", new Gson().toJson(osisTenant));
+        CreateAccountRequestDTO accountRequest = ModelConverter.toScalityAccountRequest(osisTenant);
+
+        logger.info("[Vault]CreateAccount request:{}", new Gson().toJson(accountRequest));
+
+        CreateAccountResponseDTO accountResponse = vaultAdmin.createAccount(accountRequest);
+
+        logger.info("[Vault]CreateAccount response:{}", new Gson().toJson(accountResponse));
+
+        OsisTenant resOsisTenant = ModelConverter.toOsisTenant(accountResponse);
+
+        logger.info("Create Tenant response:{}", new Gson().toJson(resOsisTenant));
+
+        return resOsisTenant;
     }
 
     @Override
