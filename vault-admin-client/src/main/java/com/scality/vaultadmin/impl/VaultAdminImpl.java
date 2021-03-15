@@ -21,7 +21,7 @@ import com.scality.vaultadmin.VaultAdmin;
 @SuppressWarnings("deprecation")
 public class VaultAdminImpl implements VaultAdmin {
 
-  private final AccountServicesClient vaultAccountclient;
+  private final AccountServicesClient vaultAccountClient;
 
   /**
    * Create a Vault administrator implementation
@@ -31,20 +31,20 @@ public class VaultAdminImpl implements VaultAdmin {
    */
   public VaultAdminImpl(String accessKey, String secretKey, String endpoint) {
     validEndpoint(endpoint);
-    this.vaultAccountclient = new AccountServicesClient(
+    this.vaultAccountClient = new AccountServicesClient(
             new BasicAWSCredentials(accessKey, secretKey));
-    vaultAccountclient.setEndpoint(endpoint);
+    vaultAccountClient.setEndpoint(endpoint);
   }
 
   /**
    * Create a Vault administrator implementation
-   * @param vaultAccountclient Vault Account Service client.
+   * @param vaultAccountClient Vault Account Service client.
    * @param endpoint Vault admin API endpoint, e.g., http://127.0.0.1:80/admin
    */
-  public VaultAdminImpl(AccountServicesClient vaultAccountclient, String endpoint) {
+  public VaultAdminImpl(AccountServicesClient vaultAccountClient, String endpoint) {
     validEndpoint(endpoint);
-    this.vaultAccountclient = vaultAccountclient;
-    vaultAccountclient.setEndpoint(endpoint);
+    this.vaultAccountClient = vaultAccountClient;
+    vaultAccountClient.setEndpoint(endpoint);
   }
 
   /**
@@ -68,7 +68,7 @@ public class VaultAdminImpl implements VaultAdmin {
   @Override
   public CreateAccountResponseDTO createAccount(CreateAccountRequestDTO createAccountRequest) {
     try {
-      com.amazonaws.Response<CreateAccountResponseDTO> response = vaultAccountclient.createAccount(createAccountRequest);
+      com.amazonaws.Response<CreateAccountResponseDTO> response = vaultAccountClient.createAccount(createAccountRequest);
       if (null!= response.getHttpResponse() && ErrorUtils.isSuccessful(response.getHttpResponse().getStatusCode())) {
         return response.getAwsResponse();
       } else {
@@ -90,6 +90,6 @@ public class VaultAdminImpl implements VaultAdmin {
    */
   @Override
   public AccountServicesClient getVaultAccountclient() {
-    return vaultAccountclient;
+    return vaultAccountClient;
   }
 }
