@@ -45,11 +45,11 @@ public class ScalityOsisService implements OsisService {
         logger.info("Create Tenant request received:{}", new Gson().toJson(osisTenant));
         CreateAccountRequestDTO accountRequest = ModelConverter.toScalityAccountRequest(osisTenant);
 
-        logger.info("[Vault]CreateAccount request:{}", new Gson().toJson(accountRequest));
+        logger.debug("[Vault]CreateAccount request:{}", new Gson().toJson(accountRequest));
 
         CreateAccountResponseDTO accountResponse = vaultAdmin.createAccount(accountRequest);
 
-        logger.info("[Vault]CreateAccount response:{}", new Gson().toJson(accountResponse));
+        logger.debug("[Vault]CreateAccount response:{}", new Gson().toJson(accountResponse));
 
         OsisTenant resOsisTenant = ModelConverter.toOsisTenant(accountResponse);
 
