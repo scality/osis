@@ -62,7 +62,7 @@ This API creates a Tenant on Vault.
     * `cd_tenant_ids` list as part of the request to be stored as a property of the vault account.
     * Account ID to be sent back as storage tenant ID to OSE
 1. `generate-account-access-key` for the account using vaultclient.
-1. Create a role with
+1. Create a role using generated access key with
    1. Role name : `osis` (So role-arn can be generated in the format `arn:aws:iam::[account-id]:role/osis`
    1. Trust policy
    ```json
@@ -77,19 +77,37 @@ This API creates a Tenant on Vault.
             }]
     }
    ```
-1. `attach-role-policy` with s3 and iam full access to this role
+1. `attach-role-policy` with s3 and iam full access to this role using generated access key
 1. `delete-access-key` for the account.
 
 ### Create Tenant Example Activity Diagram
 ![Create Tenant](Design_Files/OSE-OSIS-Create-Tenant.png)
 
+### List Tenants
+This API will list tenants on Vault. 
+1. Vault `list-accounts` api will be called using vaultclient.
+   * This API can be called with following parameters:
+        * `offset`:  The start index of tenants to return (optional)
+        * `limit`: Maximum number of tenants to return (optional)
+    
+   **Scenarios:**
+    1. If `offset` and `limit` values are not passed in the request:
+        1. `list-accounts` api will be called with `max-items` with 1000 increments with each marker until `isTruncated` is `false` in the result. The consolidated Accounts list will be returned as Tenants list 
+    1. If only `offset` is passed and `limit` value is not passed in the request:
+       1. `list-accounts` api will be called with `max-items` with 1000 increments with each marker until `isTruncated` is `false` in the result. The sublist of the consolidated Accounts list from the provided `offset` will be returned as Tenants list
+   1. If only `limit` is passed and `offset` value is not passed in the request:
+      1. If `limit <= 1000`, `list-accounts` api will be called with `max-items` with `limit` value and the Accounts list will be returned as Tenants list.
+      1. If `limit > 1000`, `list-accounts` api will be called with `max-items` with 1000 increments with each marker until `limit` has reached or `isTruncated` is `false` in the results. The consolidated Accounts list will be returned as Tenants list
+    1. If both `offset` and `limit` values are passed in the request:
+        1. If `(limit + offset) <= 1000`, `list-accounts` api will be called with `max-items` with `(limit + offset)` value and the Accounts list from the provided `offset` will be returned as Tenants list
+        1. If `(limit + offset) > 1000`, `list-accounts` api will be called with `max-items` with 1000 increments with each marker until `(limit + offset)` has reached or `isTruncated` is `false` in the results. The sublist of the consolidated Accounts list from the provided `offset` will be returned as Tenants list.
+    
+
 ### Query Tenants
 This API will query tenants on Vault using a `filter` parameter.
-1. Vault `list-accounts` api will be called using vaultclient.
-1. Filter the result accounts using the `filter` parameter in the request
-
-### List Tenants
-This API will list tenants on Vault. Vault `list-accounts` api will be called using vaultclient.
+1. Call [List Tenants](#List-Tenants) by passing `limit` and `offset` parameters from the request.
+1. Filter the tenants from the result of step #1 using the `filter` parameter in the request
+    * Usually the OSE passes `cd_tenant_id` field with value under `filter` parameter 
 
 ### Get Tenant
 This API will return the tenant on Vault with `tenantID`.
@@ -107,7 +125,7 @@ This API will delete the tenant on Vault.
 1. Vault `delete-account` api will be called using vaultclient with the provided `tenantID` as `AccountID`.
 1. Return error if account is not empty.
 
-**Approach 2:** [suggested]
+**Approach 2:**
 1. Vault `delete-account` api will be called using vaultclient with the provided `tenantID` as `AccountID`.
    1. If error due to account not empty, execute all the APIs below using Assumed Role for the account _(See User APIs)_
         1. detach role policies 
@@ -119,12 +137,16 @@ This API will delete the tenant on Vault.
 **The final decision is yet to be concluded.**
 
 ### Update Tenant
-This API will enable or disable the tenant (HOLD the account? _Not implementing_)
+This API will enable or disable the tenant
 
+* HOLD the account option?
+* (or) Not implement this API
+
+**The final decision is yet to be concluded.**
 
 ## User APIs
 
-### Common behavior for all User APIs
+### Assume Role behavior for all User APIs
 * Use the tenant account credentials from the `assumeRoleCache` cache for the given account ID before each User API.
 * If the tenant account credentials were not found in `assumeRoleCache`, `AssumeRoleBackbeat` api needs to be called as Super Admin 
 * `assumeRoleCache` cache will be key-value pair of account_id and temporary credentials object respectively.
@@ -173,7 +195,7 @@ This API will enable or disable user on Vault.
 1. `updateAccessKey` api will be called using assumed role credentials to disable/enable access keys for the user.
 
 ## S3 Credential APIs
-### Common behavior for all S3 Credential APIs will be same as User APIs ([check here](#Common-behavior-for-all-User-APIs))
+### Common behavior for all S3 Credential APIs will be same as User APIs ([check here](#Assume-Role-behavior-for-all-User-APIs))
 
 
 ### Create S3 Credential
