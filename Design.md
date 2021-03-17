@@ -92,9 +92,9 @@ This API will list tenants on Vault.
     
    **Scenarios:**
     1. If `offset` and `limit` values are not passed in the request:
-        1. `list-accounts` api will be called with `max-items` with 1000 increments with each marker until `isTruncated` is `false` in the result. The consolidated Accounts list will be returned as Tenants list 
+        1. `list-accounts` api will be called with `max-items` with 1000 increments with each marker until `isTruncated` is `false` in the result. The consolidated Accounts list filtered with `cdTenantIdList` will be returned as Tenants list 
     1. If only `offset` is passed and `limit` value is not passed in the request:
-       1. `list-accounts` api will be called with `max-items` with 1000 increments with each marker until `isTruncated` is `false` in the result. The sublist of the consolidated Accounts list from the provided `offset` will be returned as Tenants list
+       1. `list-accounts` api will be called with `max-items` with 1000 increments with each marker until `isTruncated` is `false` in the result. The sublist of the consolidated Accounts list from the provided `offset` will be filtered with `cdTenantIdList` and returned as Tenants list
    1. If only `limit` is passed and `offset` value is not passed in the request:
       1. If `limit <= 1000`, `list-accounts` api will be called with `max-items` with `limit` value and the Accounts list will be returned as Tenants list.
       1. If `limit > 1000`, `list-accounts` api will be called with `max-items` with 1000 increments with each marker until `limit` has reached or `isTruncated` is `false` in the results. The consolidated Accounts list will be returned as Tenants list
