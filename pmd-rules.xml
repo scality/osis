@@ -16,7 +16,8 @@ http://pmd.sourceforge.net/ruleset/2.0.0 ">
     </rule>
 
     <rule ref="category/java/errorprone.xml">
-        <exclude name="BeanMembersShouldSerialize"/>
+        <exclude name="BeanMembersShouldSerialize"/> <!--  Excluding the outdated PMD rule -->
+        <exclude name="DataflowAnomalyAnalysis"/> <!--  Excluding the outdated PMD rule -->
     </rule>
 
     <rule ref="category/java/bestpractices.xml">
