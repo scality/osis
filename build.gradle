@@ -67,13 +67,13 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 bootJar {
-    mainClassName = 'com.vmware.osis.Application'
+    mainClassName = 'com.scality.osis.Application'
     enabled = true
 }
 
 jar {
     manifest {
-        attributes 'Main-Class': 'com.vmware.osis.Application'
+        attributes 'Main-Class': 'com.scality.osis.Application'
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }

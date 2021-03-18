@@ -13,10 +13,12 @@ pmdMain {
             "**/com/vmware/osis/security/**/*.*",
             "**/com/vmware/osis/service/*.*",
             "**/com/vmware/osis/validation/*.*",
+            "**/com/vmware/osis/platform/**/*.*",
+            "**/com/vmware/osis/platform/*.*",
+    
+    /*Temporarily adding below packages into exclusion. Needs to be removed*/
+            "**/com/scality/osis/**/*.*"
 
-            /*Temporarily adding below packages into exclusion. Needs to be removed*/
-            "**/com/vmware/osis/platform/**/*.*"
-            "**/com/vmware/osis/platform/*.*"
 }
 pmdTest {
     source ='src/test/java'
