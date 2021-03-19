@@ -42,7 +42,8 @@ public class ScalityOsisService implements OsisService {
 
     public ScalityOsisService(){}
 
-    public ScalityOsisService(VaultAdmin vaultAdmin){
+    public ScalityOsisService(AppEnv appEnv, VaultAdmin vaultAdmin){
+        this.appEnv = appEnv;
         this.vaultAdmin = vaultAdmin;
     }
 
@@ -103,12 +104,13 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public String getProviderConsoleUrl() {
-        throw new NotImplementedException();
+        return appEnv.getConsoleEndpoint();
     }
 
     @Override
     public String getTenantConsoleUrl(String tenantId) {
-        throw new NotImplementedException();
+        return appEnv.getConsoleEndpoint();
+        // TODO This has to be changed with S3C console URL in [S3C-3546]
     }
 
     @Override
