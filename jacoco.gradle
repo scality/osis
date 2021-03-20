@@ -21,11 +21,18 @@ jacocoTestReport {
             fileTree(dir: it, exclude: [
                     /*excluding original osis stub code*/
                     "**/com/vmware/osis/resource/*.*",
-                    "**/com/vmware/osis/model/*.*",
+                    "**/com/vmware/osis/model/**/*.*",
                     "**/com/vmware/osis/annotation/*.*",
-                    "**/com/vmware/osis/security/*.*",
+                    "**/com/vmware/osis/security/**/*.*",
                     "**/com/vmware/osis/service/*.*",
-                    "**/com/vmware/osis/validation/*.*"
+                    "**/com/vmware/osis/validation/*.*",
+                    "**/com/vmware/osis/platform/**/*.*",
+                    "**/com/vmware/osis/platform/*.*",
+
+                    /*Ignore config classes*/
+                    "**/com/scality/osis/configuration/*.*",
+                    "**/com/scality/osis/*.*",
+                    "**/com/scality/osis/security/**/*.*"
             ])
         }))
     }
@@ -38,11 +45,18 @@ jacocoTestCoverageVerification {
             fileTree(dir: it, exclude: [
                     /*excluding original osis stub code*/
                     "**/com/vmware/osis/resource/*.*",
-                    "**/com/vmware/osis/model/*.*",
+                    "**/com/vmware/osis/model/**/*.*",
                     "**/com/vmware/osis/annotation/*.*",
-                    "**/com/vmware/osis/security/*.*",
+                    "**/com/vmware/osis/security/**/*.*",
                     "**/com/vmware/osis/service/*.*",
-                    "**/com/vmware/osis/validation/*.*"
+                    "**/com/vmware/osis/validation/*.*",
+                    "**/com/vmware/osis/platform/**/*.*",
+                    "**/com/vmware/osis/platform/*.*",
+
+                    /*Ignore config classes*/
+                    "**/com/scality/osis/configuration/*.*",
+                    "**/com/scality/osis/*.*",
+                    "**/com/scality/osis/security/**/*.*"
             ])
         }))
     }
