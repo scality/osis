@@ -6,6 +6,11 @@
 
 package com.scality.osis.service.impl;
 
+import com.google.gson.Gson;
+import com.scality.osis.utils.ScalityModelConverter;
+import com.scality.osis.vaultadmin.VaultAdmin;
+import com.scality.vaultclient.dto.CreateAccountRequestDTO;
+import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.vmware.osis.platform.AppEnv;
 import com.vmware.osis.model.*;
 import com.vmware.osis.model.exception.NotImplementedException;
@@ -30,12 +35,39 @@ public class ScalityOsisService implements OsisService {
     private AppEnv appEnv;
 
     @Autowired
+    private VaultAdmin vaultAdmin;
+
+    @Autowired
     private OsisCapsManager osisCapsManager;
 
+    public ScalityOsisService(){}
 
+    public ScalityOsisService(VaultAdmin vaultAdmin){
+        this.vaultAdmin = vaultAdmin;
+    }
+
+    /**
+     * Create a tenant in the platform
+     *
+     * @param osisTenant Tenant to create in the platform (required)
+     * @return A tenant is created
+     */
     @Override
     public OsisTenant createTenant(OsisTenant osisTenant) {
-        throw new NotImplementedException();
+        logger.info("Create Tenant request received:{}", new Gson().toJson(osisTenant));
+        CreateAccountRequestDTO accountRequest = ScalityModelConverter.toScalityAccountRequest(osisTenant);
+
+        logger.debug("[Vault]CreateAccount request:{}", new Gson().toJson(accountRequest));
+
+        CreateAccountResponseDTO accountResponse = vaultAdmin.createAccount(accountRequest);
+
+        logger.debug("[Vault]CreateAccount response:{}", new Gson().toJson(accountResponse));
+
+        OsisTenant resOsisTenant = ScalityModelConverter.toOsisTenant(accountResponse);
+
+        logger.info("Create Tenant response:{}", new Gson().toJson(resOsisTenant));
+
+        return resOsisTenant;
     }
 
     @Override
