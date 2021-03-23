@@ -85,29 +85,34 @@ This API creates a Tenant on Vault.
 
 ### List Tenants
 This API will list tenants on Vault. 
-1. Vault `list-accounts` api will be called using vaultclient.
-   * This API can be called with following parameters:
-        * `offset`:  The start index of tenants to return (optional)
-        * `limit`: Maximum number of tenants to return (optional)
-    
-   **Scenarios:**
-    1. If `offset` and `limit` values are not passed in the request:
-        1. `list-accounts` api will be called with `max-items` with 1000 increments with each marker until `isTruncated` is `false` in the result. The consolidated Accounts list filtered with `cdTenantIdList` will be returned as Tenants list 
-    1. If only `offset` is passed and `limit` value is not passed in the request:
-       1. `list-accounts` api will be called with `max-items` with 1000 increments with each marker until `isTruncated` is `false` in the result. The sublist of the consolidated Accounts list from the provided `offset` will be filtered with `cdTenantIdList` and returned as Tenants list
-   1. If only `limit` is passed and `offset` value is not passed in the request:
-      1. If `limit <= 1000`, `list-accounts` api will be called with `max-items` with `limit` value and the Accounts list will be returned as Tenants list.
-      1. If `limit > 1000`, `list-accounts` api will be called with `max-items` with 1000 increments with each marker until `limit` has reached or `isTruncated` is `false` in the results. The consolidated Accounts list will be returned as Tenants list
-    1. If both `offset` and `limit` values are passed in the request:
-        1. If `(limit + offset) <= 1000`, `list-accounts` api will be called with `max-items` with `(limit + offset)` value and the Accounts list from the provided `offset` will be returned as Tenants list
-        1. If `(limit + offset) > 1000`, `list-accounts` api will be called with `max-items` with 1000 increments with each marker until `(limit + offset)` has reached or `isTruncated` is `false` in the results. The sublist of the consolidated Accounts list from the provided `offset` will be returned as Tenants list.
-    
+
+* `List Tenants` API can be called with following parameters:
+    * `offset`:  The start index of tenants to return (optional)
+    * `limit`: Maximum number of tenants to return (optional)
+
+* Vault `list-accounts` api will be called using vaultclient with parameters
+   1. `marker` (if exists from `markerCache`)
+   1. `max-limit`
+   1.  `filterKeyStartsWith=cd_tenant_id` (Only return the accounts with at least one `cd_tenant_id`)
+
+* <u>`markerCache`</u>
+    * Every time `List Accounts` API is called by the OSIS, if `isTruncated` is `true` in the response, then `marker` value will be stored in the `markerCache` with the key as `(max-limit +1)`
+    * Each entry in the `markerCache` will be short-lived (implement may be only with 60 seconds)
 
 ### Query Tenants
 This API will query tenants on Vault using a `filter` parameter.
-1. Call [List Tenants](#List-Tenants) by passing `limit` and `offset` parameters from the request.
-1. Filter the tenants from the result of step #1 using the `filter` parameter in the request
-    * Usually the OSE passes `cd_tenant_id` field with value under `filter` parameter 
+
+1. `Query Tenants` API can be called with following parameters:
+    * `offset`:  The start index of tenants to return (optional)
+    * `limit`: Maximum number of tenants to return (optional)
+    * `filter` parameter
+        * Usually the OSE passes only the `cd_tenant_id` field with a value under `filter` parameter
+    
+1. Vault `list-accounts` api will be called using vaultclient with parameters
+    1. `marker` (if exists from `markerCache`)
+    1. `max-limit`
+    1.  `filterKey=cd_tenant_id%3D%3D<uuid1>` (Always the `filter` value from OSE will be in the format of `cd_tenant_id%3D%3D<uuid1>`)
+
 
 ### Get Tenant
 This API will return the tenant on Vault with `tenantID`.
@@ -121,28 +126,15 @@ This API will check whether the tenant exists on Vault with `tenantID`.
 ### Delete Tenant
 This API will delete the tenant on Vault. 
 
-**Approach 1:**
 1. Vault `delete-account` api will be called using vaultclient with the provided `tenantID` as `AccountID`.
 1. Return error if account is not empty.
 
-**Approach 2:**
-1. Vault `delete-account` api will be called using vaultclient with the provided `tenantID` as `AccountID`.
-   1. If error due to account not empty, execute all the APIs below using Assumed Role for the account _(See User APIs)_
-        1. detach role policies 
-        1. delete roles
-        1. Remove users from groups
-        1. delete users
-        1. delete groups
-
-**The final decision is yet to be concluded.**
-
 ### Update Tenant
-This API will enable or disable the tenant
+This API will update the existing storage tenant with the provided `cd_tenant_id`. Input parameters are:
+* `tenantId`:   Tenant ID of the tenant to update
+* `tenant` object: Object that holds the new `cd_tenant_ids` along with original `tenant` properties.
 
-* HOLD the account option?
-* (or) Not implement this API
-
-**The final decision is yet to be concluded.**
+1. Vault `update-account` api will be called using vaultclient with the provided `tenantID` as `AccountID` and `tenant` properties
 
 ## User APIs
 
