@@ -201,6 +201,6 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public OsisUsage getOsisUsage(Optional<String> tenantId, Optional<String> userId) {
-        throw new NotImplementedException();
+        return new OsisUsage();
     }
 }
