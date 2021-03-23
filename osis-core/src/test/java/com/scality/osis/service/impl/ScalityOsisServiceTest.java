@@ -1,6 +1,7 @@
 package com.scality.osis.service.impl;
 
 import com.scality.osis.utils.ScalityTestUtils;
+import com.vmware.osis.model.Information;
 import com.vmware.osis.model.OsisCaps;
 import com.vmware.osis.model.OsisTenant;
 import com.vmware.osis.model.OsisUser;
@@ -9,6 +10,7 @@ import com.vmware.osis.model.PageOfTenants;
 import com.vmware.osis.model.exception.BadRequestException;
 import com.vmware.osis.model.exception.NotImplementedException;
 import com.vmware.osis.platform.AppEnv;
+import com.vmware.osis.resource.OsisCapsManager;
 import org.junit.jupiter.api.BeforeEach;
 import com.scality.vaultclient.dto.Account;
 import com.scality.vaultclient.dto.AccountData;
@@ -22,9 +24,12 @@ import org.mockito.stubbing.Answer;
 import com.scality.osis.vaultadmin.impl.VaultAdminImpl;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 
+import static com.scality.osis.utils.ScalityConstants.IAM_PREFIX;
 import static com.scality.osis.utils.ScalityTestUtils.SAMPLE_CD_TENANT_IDS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -38,6 +43,10 @@ public class ScalityOsisServiceTest {
     private static final String TEST_USER_ID ="userId";
     private static final String TEST_NAME ="name";
     private static final String TEST_CONSOLE_URL ="https://example.console.ose.scality.com";
+    private static final String TEST_S3_URL ="https://localhost:8443";
+    private static final String PLATFORM_NAME ="Scality";
+    private static final String PLATFORM_VERSION ="7.10";
+    private static final String API_VERSION ="1.0.0";
 
     //vault admin mock object
     private static VaultAdminImpl vaultAdminMock;
@@ -47,16 +56,27 @@ public class ScalityOsisServiceTest {
     @Mock
     private static AppEnv appEnvMock;
 
+    @Mock
+    private static OsisCapsManager osisCapsManagerMock;
+
     @BeforeEach
     private void init(){
         vaultAdminMock = mock(VaultAdminImpl.class);
         MockitoAnnotations.initMocks( this );
         initMocks();
-        scalityOsisServiceUnderTest = new ScalityOsisService(appEnvMock, vaultAdminMock);
+        scalityOsisServiceUnderTest = new ScalityOsisService(appEnvMock, vaultAdminMock, osisCapsManagerMock);
     }
 
     private void initMocks() {
         when(appEnvMock.getConsoleEndpoint()).thenReturn(TEST_CONSOLE_URL);
+        when(appEnvMock.isApiTokenEnabled()).thenReturn(false);
+        when(appEnvMock.getStorageInfo()).thenReturn(Collections.singletonList("standard"));
+        when(appEnvMock.getRegionInfo()).thenReturn(Collections.singletonList("default"));
+        when(appEnvMock.getPlatformName()).thenReturn(PLATFORM_NAME);
+        when(appEnvMock.getPlatformVersion()).thenReturn(PLATFORM_VERSION);
+        when(appEnvMock.getApiVersion()).thenReturn(API_VERSION);
+        when(appEnvMock.getS3Endpoint()).thenReturn(TEST_S3_URL);
+        when(osisCapsManagerMock.getNotImplements()).thenReturn(new ArrayList<>());
 
         //initialize mock create account response
         when(vaultAdminMock.createAccount(any(CreateAccountRequestDTO.class)))
@@ -477,13 +497,47 @@ public class ScalityOsisServiceTest {
     }
 
     @Test
-    public void testGetInformation() {
+    public void testGetInformationWithBasicAuth() {
         // Setup
+        String domain = "https://localhost:8443";
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getInformation("domain"), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        Information information = scalityOsisServiceUnderTest.getInformation(domain);
 
         // Verify the results
+        assertEquals(Information.AuthModesEnum.BASIC, information.getAuthModes().get(0), "Invalid AuthModes" );
+        assertNotNull(information.getStorageClasses(), NULL_ERR );
+        assertNotNull(information.getRegions(), NULL_ERR );
+        assertEquals(PLATFORM_NAME, information.getPlatformName(), "Invalid Platform name");
+        assertEquals(PLATFORM_VERSION, information.getPlatformVersion(), "Invalid Platform Version");
+        assertEquals(API_VERSION, information.getApiVersion(), "Invalid API Version");
+        assertEquals(Information.StatusEnum.NORMAL, information.getStatus(), "Invalid status");
+        assertEquals(TEST_S3_URL, information.getServices().getS3(), "Invalid S3 URL");
+        assertNotNull(information.getNotImplemented(), NULL_ERR);
+        assertEquals(domain + IAM_PREFIX,  information.getServices().getIam(), "Invalid IAM URL");
+
+    }
+
+    @Test
+    public void testGetInformationWithBearerAuth() {
+        // Setup
+        String domain = "https://localhost:8443";
+        when(appEnvMock.isApiTokenEnabled()).thenReturn(true);
+
+        // Run the test
+        Information information = scalityOsisServiceUnderTest.getInformation(domain);
+
+        // Verify the results
+        assertEquals(Information.AuthModesEnum.BEARER, information.getAuthModes().get(0), "Invalid AuthModes" );
+        assertNotNull(information.getStorageClasses(), NULL_ERR );
+        assertNotNull(information.getRegions(), NULL_ERR );
+        assertEquals(PLATFORM_NAME, information.getPlatformName(), "Invalid Platform name");
+        assertEquals(PLATFORM_VERSION, information.getPlatformVersion(), "Invalid Platform Version");
+        assertEquals(API_VERSION, information.getApiVersion(), "Invalid API Version");
+        assertEquals(Information.StatusEnum.NORMAL, information.getStatus(), "Invalid status");
+        assertEquals(TEST_S3_URL, information.getServices().getS3(), "Invalid S3 URL");
+        assertNotNull(information.getNotImplemented(), NULL_ERR);
+        assertEquals(domain + IAM_PREFIX,  information.getServices().getIam(), "Invalid IAM URL");
     }
 
     @Test

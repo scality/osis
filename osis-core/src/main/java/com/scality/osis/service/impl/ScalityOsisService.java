@@ -6,6 +6,7 @@
 
 package com.scality.osis.service.impl;
 
+import com.scality.osis.utils.ScalityUtils;
 import com.google.gson.Gson;
 import com.scality.osis.utils.ScalityModelConverter;
 import com.scality.osis.vaultadmin.VaultAdmin;
@@ -23,6 +24,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+
+import static com.scality.osis.utils.ScalityConstants.IAM_PREFIX;
 
 
 @Service
@@ -42,9 +45,10 @@ public class ScalityOsisService implements OsisService {
 
     public ScalityOsisService(){}
 
-    public ScalityOsisService(AppEnv appEnv, VaultAdmin vaultAdmin){
+    public ScalityOsisService(AppEnv appEnv, VaultAdmin vaultAdmin, OsisCapsManager osisCapsManager){
         this.appEnv = appEnv;
         this.vaultAdmin = vaultAdmin;
+        this.osisCapsManager = osisCapsManager;
     }
 
     /**
@@ -186,7 +190,17 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public Information getInformation(String domain) {
-        throw new NotImplementedException();
+        return new Information()
+                .addAuthModesItem(appEnv.isApiTokenEnabled() ? Information.AuthModesEnum.BEARER : Information.AuthModesEnum.BASIC)
+                .storageClasses(appEnv.getStorageInfo())
+                .regions(appEnv.getRegionInfo())
+                .platformName(appEnv.getPlatformName())
+                .platformVersion(appEnv.getPlatformVersion())
+                .apiVersion(appEnv.getApiVersion())
+                .notImplemented(osisCapsManager.getNotImplements())
+                .logoUri(ScalityUtils.getLogoUri(domain))
+                .services(new InformationServices().iam(domain + IAM_PREFIX).s3(appEnv.getS3Endpoint()))
+                .status(Information.StatusEnum.NORMAL);
     }
 
     @Override
