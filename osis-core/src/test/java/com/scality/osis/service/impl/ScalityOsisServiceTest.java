@@ -302,9 +302,8 @@ public class ScalityOsisServiceTest {
     @Test
     public void testGetS3Capabilities() {
         // Setup
-
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getS3Capabilities(), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        assertNotNull(scalityOsisServiceUnderTest.getS3Capabilities(), NULL_ERR);
 
         // Verify the results
     }
