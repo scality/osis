@@ -15,4 +15,8 @@ public final class ScalityConstants {
     public static final String CD_TENANT_ID_PREFIX = "cd_tenant_id%3D%3D";
 
     public static final String SEPARATOR = ".";
+
+    public static final String ICON_PATH = "/scalitylogo.png";
+
+    public static final String IAM_PREFIX = "/";
 }
