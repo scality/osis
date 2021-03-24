@@ -8,13 +8,16 @@ import com.vmware.osis.model.PageInfo;
 import com.vmware.osis.model.PageOfTenants;
 import com.vmware.osis.model.exception.BadRequestException;
 import com.vmware.osis.model.exception.NotImplementedException;
+import com.vmware.osis.platform.AppEnv;
+import org.junit.jupiter.api.BeforeEach;
 import com.scality.vaultclient.dto.Account;
 import com.scality.vaultclient.dto.AccountData;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 import com.scality.osis.vaultadmin.impl.VaultAdminImpl;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
@@ -30,22 +33,31 @@ public class ScalityOsisServiceTest {
     private static final String TEST_TENANT_ID ="tenantId";
     private static final String TEST_STR ="value";
     private static final String NOT_IMPLEMENTED_EXCEPTION_ERR ="expected NotImplementedException";
+    private static final String NULL_ERR ="Expected Value. Found Null";
+    private static final String INVALID_URL_URL ="Invalid URL";
     private static final String TEST_USER_ID ="userId";
     private static final String TEST_NAME ="name";
+    private static final String TEST_CONSOLE_URL ="https://example.console.ose.scality.com";
 
     //vault admin mock object
     private static VaultAdminImpl vaultAdminMock;
 
     private static ScalityOsisService scalityOsisServiceUnderTest;
 
-    @BeforeAll
-    private static void init(){
+    @Mock
+    private static AppEnv appEnvMock;
+
+    @BeforeEach
+    private void init(){
         vaultAdminMock = mock(VaultAdminImpl.class);
-        scalityOsisServiceUnderTest = new ScalityOsisService(vaultAdminMock);
+        MockitoAnnotations.initMocks( this );
         initMocks();
+        scalityOsisServiceUnderTest = new ScalityOsisService(appEnvMock, vaultAdminMock);
     }
 
-    private static void initMocks() {
+    private void initMocks() {
+        when(appEnvMock.getConsoleEndpoint()).thenReturn(TEST_CONSOLE_URL);
+
         //initialize mock create account response
         when(vaultAdminMock.createAccount(any(CreateAccountRequestDTO.class)))
                 .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
@@ -268,9 +280,10 @@ public class ScalityOsisServiceTest {
     @Test
     public void testGetProviderConsoleUrl() {
         // Setup
-
+        String consoleUrl = scalityOsisServiceUnderTest.getProviderConsoleUrl();
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getProviderConsoleUrl(), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        assertNotNull(consoleUrl, NULL_ERR);
+        assertEquals(TEST_CONSOLE_URL, consoleUrl, INVALID_URL_URL);
 
         // Verify the results
     }
@@ -278,9 +291,10 @@ public class ScalityOsisServiceTest {
     @Test
     public void testGetTenantConsoleUrl() {
         // Setup
-
+        String consoleUrl = scalityOsisServiceUnderTest.getTenantConsoleUrl(TEST_TENANT_ID);
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getTenantConsoleUrl(TEST_TENANT_ID), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        assertNotNull(consoleUrl, NULL_ERR);
+        assertEquals(TEST_CONSOLE_URL, consoleUrl, INVALID_URL_URL);
 
         // Verify the results
     }
