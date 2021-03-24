@@ -512,7 +512,7 @@ public class ScalityOsisServiceTest {
         // Setup
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getOsisUsage(Optional.of(TEST_STR), Optional.of(TEST_STR)), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        assertNotNull(scalityOsisServiceUnderTest.getOsisUsage(Optional.of(TEST_STR), Optional.of(TEST_STR)), NULL_ERR);
 
         // Verify the results
 
