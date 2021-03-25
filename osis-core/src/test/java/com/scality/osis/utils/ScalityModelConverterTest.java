@@ -31,7 +31,7 @@ public class ScalityModelConverterTest {
     }
 
     @Test
-    public void toScalityAccountRequestTest() throws Exception {
+    public void  toScalityCreateAccountRequestTest() throws Exception {
 
         OsisTenant osisTenant = new OsisTenant();
         osisTenant.tenantId(SAMPLE_TENANT_ID);
@@ -39,15 +39,15 @@ public class ScalityModelConverterTest {
         osisTenant.cdTenantIds(SAMPLE_CD_TENANT_IDS);
         osisTenant.active(true);
 
-        CreateAccountRequestDTO createAccountRequestDTO = ScalityModelConverter.toScalityAccountRequest(osisTenant);
+        CreateAccountRequestDTO createAccountRequestDTO = ScalityModelConverter.toScalityCreateAccountRequest(osisTenant);
 
-        assertEquals(SAMPLE_SCALITY_ACCOUNT_EMAIL, createAccountRequestDTO.getEmailAddress(), "failed toScalityAccountRequestTest:getEmailAddress()");
-        assertEquals(SAMPLE_TENANT_NAME, createAccountRequestDTO.getName(), "failed toScalityAccountRequestTest:getName()");
-        assertEquals(SAMPLE_TENANT_ID, createAccountRequestDTO.getExternalAccountId(), "failed toScalityAccountRequestTest:getExternalAccountId()");
+        assertEquals(SAMPLE_SCALITY_ACCOUNT_EMAIL, createAccountRequestDTO.getEmailAddress(), "failed  toScalityCreateAccountRequestTest:getEmailAddress()");
+        assertEquals(SAMPLE_TENANT_NAME, createAccountRequestDTO.getName(), "failed  toScalityCreateAccountRequestTest:getName()");
+        assertEquals(SAMPLE_TENANT_ID, createAccountRequestDTO.getExternalAccountId(), "failed  toScalityCreateAccountRequestTest:getExternalAccountId()");
     }
 
     @Test
-    public void toScalityAccountRequestNullTenantId() {
+    public void  toScalityCreateAccountRequestNullTenantId() {
 
         OsisTenant osisTenant = new OsisTenant();
         osisTenant.tenantId(null);
@@ -55,18 +55,18 @@ public class ScalityModelConverterTest {
         osisTenant.cdTenantIds(SAMPLE_CD_TENANT_IDS);
         osisTenant.active(true);
 
-        CreateAccountRequestDTO createAccountRequestDTO = ScalityModelConverter.toScalityAccountRequest(osisTenant);
+        CreateAccountRequestDTO createAccountRequestDTO = ScalityModelConverter.toScalityCreateAccountRequest(osisTenant);
 
-        assertNull(createAccountRequestDTO.getExternalAccountId(), "toScalityAccountRequestTest should throw Null Pointer :getExternalAccountId()");
+        assertNull(createAccountRequestDTO.getExternalAccountId(), "toScalityCreateAccountRequestTest should throw Null Pointer :getExternalAccountId()");
     }
 
     @Test
-    public void toScalityAccountRequestActiveErr(){
+    public void  toScalityCreateAccountRequestActiveErr(){
         OsisTenant osisTenant = new OsisTenant();
         osisTenant.active(false);
         assertThrows(BadRequestException.class, () -> {
-            ScalityModelConverter.toScalityAccountRequest(osisTenant);
-        }, "toScalityAccountRequestActiveErr should throw BadRequestException :toScalityAccountRequest()");
+            ScalityModelConverter.toScalityCreateAccountRequest(osisTenant);
+        }, " toScalityCreateAccountRequestActiveErr should throw BadRequestException :toScalityCreateAccountRequest()");
     }
 
     @Test

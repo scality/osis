@@ -10,6 +10,7 @@ import com.scality.osis.utils.ScalityUtils;
 import com.google.gson.Gson;
 import com.scality.osis.utils.ScalityModelConverter;
 import com.scality.osis.vaultadmin.VaultAdmin;
+import com.scality.osis.vaultadmin.impl.VaultServiceException;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -62,20 +64,25 @@ public class ScalityOsisService implements OsisService {
      */
     @Override
     public OsisTenant createTenant(OsisTenant osisTenant) {
-        logger.info("Create Tenant request received:{}", new Gson().toJson(osisTenant));
-        CreateAccountRequestDTO accountRequest = ScalityModelConverter.toScalityAccountRequest(osisTenant);
+        try {
+            logger.info("Create Tenant request received:{}", new Gson().toJson(osisTenant));
+            CreateAccountRequestDTO accountRequest = ScalityModelConverter.toScalityCreateAccountRequest(osisTenant);
 
-        logger.debug("[Vault]CreateAccount request:{}", new Gson().toJson(accountRequest));
+            logger.debug("[Vault]CreateAccount request:{}", new Gson().toJson(accountRequest));
 
-        CreateAccountResponseDTO accountResponse = vaultAdmin.createAccount(accountRequest);
+            CreateAccountResponseDTO accountResponse = vaultAdmin.createAccount(accountRequest);
 
-        logger.debug("[Vault]CreateAccount response:{}", new Gson().toJson(accountResponse));
+            logger.debug("[Vault]CreateAccount response:{}", new Gson().toJson(accountResponse));
 
-        OsisTenant resOsisTenant = ScalityModelConverter.toOsisTenant(accountResponse);
+            OsisTenant resOsisTenant = ScalityModelConverter.toOsisTenant(accountResponse);
 
-        logger.info("Create Tenant response:{}", new Gson().toJson(resOsisTenant));
+            logger.info("Create Tenant response:{}", new Gson().toJson(resOsisTenant));
 
-        return resOsisTenant;
+            return resOsisTenant;
+        } catch (VaultServiceException e){
+            // Create Tenant supports only 400:BAD_REQUEST error, change status code in the VaultServiceException
+            throw new VaultServiceException(HttpStatus.BAD_REQUEST.value(), e.getMessage(), e);
+        }
     }
 
     @Override

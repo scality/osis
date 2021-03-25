@@ -36,7 +36,7 @@ public final class ScalityModelConverter {
      *
      * @return the create account request dto
      */
-    public static CreateAccountRequestDTO toScalityAccountRequest(OsisTenant osisTenant) {
+    public static CreateAccountRequestDTO toScalityCreateAccountRequest(OsisTenant osisTenant) {
         if(!osisTenant.getActive()){
 //            Scality does not support inactive tenant creation
             throw new BadRequestException("Creating inactive tenant is not supported");

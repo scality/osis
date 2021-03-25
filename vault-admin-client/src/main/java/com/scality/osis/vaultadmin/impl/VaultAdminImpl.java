@@ -64,9 +64,10 @@ public class VaultAdminImpl implements VaultAdmin {
    *
    * @param createAccountRequest CreateAccountRequestDTO object with account name, account externalAccountId.
    * @return The created account response object.
+   * @throws VaultServiceException
    */
   @Override
-  public CreateAccountResponseDTO createAccount(CreateAccountRequestDTO createAccountRequest) {
+  public CreateAccountResponseDTO createAccount(CreateAccountRequestDTO createAccountRequest) throws VaultServiceException{
     try {
       com.amazonaws.Response<CreateAccountResponseDTO> response = vaultAccountClient.createAccount(createAccountRequest);
       if (null!= response.getHttpResponse() && ErrorUtils.isSuccessful(response.getHttpResponse().getStatusCode())) {
