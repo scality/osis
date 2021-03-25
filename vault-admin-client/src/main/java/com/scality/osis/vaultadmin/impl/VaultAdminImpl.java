@@ -9,7 +9,6 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
-import com.scality.vaultclient.services.VaultClientException;
 import okhttp3.*;
 import com.scality.osis.vaultadmin.VaultAdmin;
 
@@ -19,7 +18,7 @@ import com.scality.osis.vaultadmin.VaultAdmin;
  * <p>Created by saitharun on 12/16/20.
  */
 @SuppressWarnings("deprecation")
-public class VaultAdminImpl implements VaultAdmin {
+public class VaultAdminImpl implements VaultAdmin{
 
   private final AccountServicesClient vaultAccountClient;
 
@@ -68,20 +67,8 @@ public class VaultAdminImpl implements VaultAdmin {
    */
   @Override
   public CreateAccountResponseDTO createAccount(CreateAccountRequestDTO createAccountRequest) throws VaultServiceException{
-    try {
-      com.amazonaws.Response<CreateAccountResponseDTO> response = vaultAccountClient.createAccount(createAccountRequest);
-      if (null!= response.getHttpResponse() && ErrorUtils.isSuccessful(response.getHttpResponse().getStatusCode())) {
-        return response.getAwsResponse();
-      } else {
-        throw ErrorUtils.parseError(response.getHttpResponse());
-      }
-    } catch (VaultServiceException e) {
-      throw e;
-    }catch (VaultClientException e){
-      throw ErrorUtils.parseError(e);
-    } catch (Exception e) {
-      throw new VaultServiceException(500, "Exception", e);
-    }
+    return ExternalServiceFactory.executeVaultService(vaultAccountClient::createAccount, createAccountRequest);
+
   }
 
   /**
