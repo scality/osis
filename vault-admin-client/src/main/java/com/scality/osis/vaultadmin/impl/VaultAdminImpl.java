@@ -8,6 +8,8 @@ package com.scality.osis.vaultadmin.impl;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
+import com.scality.vaultclient.dto.ListAccountsRequestDTO;
+import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
 import okhttp3.*;
 import com.scality.osis.vaultadmin.VaultAdmin;
@@ -68,7 +70,6 @@ public class VaultAdminImpl implements VaultAdmin{
   @Override
   public CreateAccountResponseDTO createAccount(CreateAccountRequestDTO createAccountRequest) throws VaultServiceException{
     return ExternalServiceFactory.executeVaultService(vaultAccountClient::createAccount, createAccountRequest);
-
   }
 
   /**
@@ -79,5 +80,17 @@ public class VaultAdminImpl implements VaultAdmin{
   @Override
   public AccountServicesClient getVaultAccountclient() {
     return vaultAccountClient;
+  }
+
+  /**
+   * List accounts
+   * <p>This method will list the accounts from Vault.
+   *
+   * @param listAccountsRequest the list accounts request dto
+   * @return the list accounts response dto
+   */
+  @Override
+  public ListAccountsResponseDTO listAccounts(ListAccountsRequestDTO listAccountsRequest) {
+    return ExternalServiceFactory.executeVaultService(vaultAccountClient::listAccounts, listAccountsRequest);
   }
 }

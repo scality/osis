@@ -5,6 +5,8 @@ import com.amazonaws.http.HttpResponse;
 import com.scality.vaultclient.dto.AccountData;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
+import com.scality.vaultclient.dto.ListAccountsRequestDTO;
+import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
 import com.scality.vaultclient.services.VaultClientException;
 import okhttp3.OkHttpClient;
@@ -31,6 +33,10 @@ public class BaseTest {
   private static final String DEFAULT_TEST_ACCOUNT_ID = "001583654825";
 
   private static final String DEFAULT_TEST_ARN_STR = "\"arn:aws:iam::001583654825:/";
+
+  private static final String DEFAULT_TEST_ACCOUNT_NAME = "Account5425";
+
+  private static final String DEFAULT_TEST_EMAIL_ADDR = "xyz@scality.com";
 
   private static final String DEFAULT_TEST_CANONICAL_ID = "31e38bcfda3ab1887587669ee25a348cc89e6e2e87dc38088289b1b3c5329b30";
 
@@ -75,6 +81,73 @@ public class BaseTest {
       }
     });
 
+    //initialize mock list accounts response
+    when(accountServicesClient.listAccounts(any(ListAccountsRequestDTO.class)))
+            .thenAnswer(new Answer<Response<ListAccountsResponseDTO>>() {
+              @Override
+              public Response<ListAccountsResponseDTO> answer(InvocationOnMock invocation) {
+                ListAccountsRequestDTO request = invocation.getArgument(0);
+                String marker = request.getMarker();
+                int maxItems = request.getMaxItems();
+                String filterKey = request.getFilterKey();
+                String filterKeyStartsWith = request.getFilterKeyStartsWith();
+
+                Map<String, String> customAttributes1  = null ;
+                boolean withcdTenantId = false;
+
+                if(StringUtils.isNotBlank(filterKey)){
+                  maxItems = 1;
+                  customAttributes1 = new HashMap<>();
+                  customAttributes1.put(filterKey,"");
+                }
+
+                if(StringUtils.isNotBlank(filterKeyStartsWith)){
+                  withcdTenantId = true;
+                }
+
+                if(maxItems <= 0){
+                  maxItems = 5; // Test Accounts count DEFAULT
+                }
+
+                int i = 0;
+                int markerVal = 0;
+                if(StringUtils.isNotBlank(marker)){
+                  markerVal = Integer.parseInt(marker.substring(marker.length()-1));
+                  // extracting markerVal index at last character
+                }
+
+                List<AccountData> accounts = new ArrayList<>();
+                // Generate Accounts with ids (markerVal + i) to maxItems count
+                for(; i < maxItems; i++){
+                  AccountData data = new AccountData();
+                  data.setEmailAddress(DEFAULT_TEST_EMAIL_ADDR);
+                  data.setName(DEFAULT_TEST_ACCOUNT_NAME);
+                  data.setArn(DEFAULT_TEST_ARN_STR + DEFAULT_TEST_ACCOUNT_NAME +"/\"");
+                  data.setCreateDate(new Date());
+                  data.setId(DEFAULT_TEST_ACCOUNT_ID + (i + markerVal)); //setting ID with index
+                  data.setCanonicalId(DEFAULT_TEST_CANONICAL_ID);
+
+                  if(withcdTenantId){
+                    // if filterStartsWith generate customAttributes for all accounts
+                    Map<String, String> customAttributestemp  = new HashMap<>() ;
+                    customAttributestemp.put("cd_tenant_id%3D%3D" + UUID.randomUUID(), "");
+                    data.setCustomAttributes(customAttributestemp);
+                  } else {
+                    data.setCustomAttributes(customAttributes1);
+                  }
+
+                  accounts.add(data);
+                }
+
+                ListAccountsResponseDTO response = new ListAccountsResponseDTO();
+                response.setAccounts(accounts);
+
+                HttpResponse httpResponse = new HttpResponse(null, null);
+                httpResponse.setStatusCode(200);
+                httpResponse.setStatusText("OK");
+                return new Response<>(response,httpResponse);
+              }
+            });
 
     vaultAdminImpl = new VaultAdminImpl(accountServicesClient, adminEndpoint);
   }

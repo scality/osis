@@ -7,6 +7,8 @@ package com.scality.osis.vaultadmin;
 
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
+import com.scality.vaultclient.dto.ListAccountsRequestDTO;
+import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
 
 /**
@@ -37,4 +39,12 @@ public interface VaultAdmin {
    * @return The vault client object.
    */
   AccountServicesClient getVaultAccountclient();
+
+  /**
+   * List accounts
+   *
+   * @param listAccountsRequest the list accounts request dto
+   * @return the list accounts response dto
+   */
+  ListAccountsResponseDTO listAccounts(ListAccountsRequestDTO listAccountsRequest);
 }
