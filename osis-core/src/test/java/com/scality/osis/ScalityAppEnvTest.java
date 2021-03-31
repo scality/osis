@@ -41,7 +41,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetVaultEndpoint_EnvironmentReturnsNull() {
+    public void testGetVaultEndpointEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.vault.endpoint")).thenReturn(null);
 
@@ -65,7 +65,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetVaultAccessKey_EnvironmentReturnsNull() {
+    public void testGetVaultAccessKeyEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.vault.access-key")).thenReturn(null);
 
@@ -89,7 +89,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetVaultSecretKey_EnvironmentReturnsNull() {
+    public void testGetVaultSecretKeyEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.vault.secret-key")).thenReturn(null);
 
@@ -113,7 +113,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetS3Endpoint_EnvironmentReturnsNull() {
+    public void testGetS3EndpointEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.s3.endpoint")).thenReturn(null);
 
@@ -137,7 +137,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetConsoleEndpoint_EnvironmentReturnsNull() {
+    public void testGetConsoleEndpointEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.console.endpoint")).thenReturn(null);
 
@@ -161,7 +161,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetStorageInfo_EnvironmentReturnsNull() {
+    public void testGetStorageInfoEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.storage-classes")).thenReturn(null);
 
@@ -169,7 +169,7 @@ public class ScalityAppEnvTest {
         final List<String> result = appEnvUnderTest.getStorageInfo();
 
         // Verify the results
-        assertEquals(result, Arrays.asList("standard"), "testGetStorageInfo_EnvironmentReturnsNull failed");
+        assertEquals(result, Arrays.asList("standard"), "testGetStorageInfoEnvironmentReturnsNull failed");
     }
 
     @Test
@@ -185,7 +185,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetRegionInfo_EnvironmentReturnsNull() {
+    public void testGetRegionInfoEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.region")).thenReturn(null);
 
@@ -193,7 +193,7 @@ public class ScalityAppEnvTest {
         final List<String> result = appEnvUnderTest.getRegionInfo();
 
         // Verify the results
-        assertEquals(result, Arrays.asList("default"), "testGetRegionInfo_EnvironmentReturnsNull failed");
+        assertEquals(result, Arrays.asList("default"), "testGetRegionInfoEnvironmentReturnsNull failed");
     }
 
     @Test
@@ -209,7 +209,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetPlatformName_EnvironmentReturnsNull() {
+    public void testGetPlatformNameEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.name")).thenReturn(null);
 
@@ -233,7 +233,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetPlatformVersion_EnvironmentReturnsNull() {
+    public void testGetPlatformVersionEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.version")).thenReturn(null);
 
@@ -257,7 +257,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetApiVersion_EnvironmentReturnsNull() {
+    public void testGetApiVersionEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.api.version")).thenReturn(null);
 
@@ -281,7 +281,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testIsApiTokenEnabled_EnvironmentReturnsNull() {
+    public void testIsApiTokenEnabledEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("security.jwt.enabled")).thenReturn(null);
 
@@ -289,7 +289,7 @@ public class ScalityAppEnvTest {
         final boolean result = appEnvUnderTest.isApiTokenEnabled();
 
         // Verify the results
-        assertFalse(result, "testIsApiTokenEnabled_EnvironmentReturnsNull failed");
+        assertFalse(result, "testIsApiTokenEnabledEnvironmentReturnsNull failed");
     }
 
     @Test
@@ -305,7 +305,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetTokenIssuer_EnvironmentReturnsNull() {
+    public void testGetTokenIssuerEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("security.jwt.token-issuer")).thenReturn(null);
 
@@ -329,13 +329,13 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetAccessTokenExpirationTime_EnvironmentReturnsNull() {
+    public void testGetAccessTokenExpirationTimeEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("security.jwt.access-token-expiration-time")).thenReturn(null);
 
         // Run the test
         // Verify the results
-        assertThrows(NumberFormatException.class, ()->appEnvUnderTest.getAccessTokenExpirationTime(), "testGetAccessTokenExpirationTime_EnvironmentReturnsNull should throw NumberFormatException");
+        assertThrows(NumberFormatException.class, ()->appEnvUnderTest.getAccessTokenExpirationTime(), "testGetAccessTokenExpirationTimeEnvironmentReturnsNull should throw NumberFormatException");
     }
 
     @Test
@@ -351,7 +351,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetTokenSigningKey_EnvironmentReturnsNull() {
+    public void testGetTokenSigningKeyEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("security.jwt.token-signing-key")).thenReturn(null);
 
@@ -375,12 +375,12 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetRefreshTokenExpirationTime_EnvironmentReturnsNull() {
+    public void testGetRefreshTokenExpirationTimeEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("security.jwt.refresh_token_expiration_time")).thenReturn(null);
 
         // Run the test
         // Verify the results
-        assertThrows(NumberFormatException.class, ()->appEnvUnderTest.getRefreshTokenExpirationTime(), "testGetRefreshTokenExpirationTime_EnvironmentReturnsNull should throw NumberFormatException");
+        assertThrows(NumberFormatException.class, ()->appEnvUnderTest.getRefreshTokenExpirationTime(), "testGetRefreshTokenExpirationTimeEnvironmentReturnsNull should throw NumberFormatException");
     }
 }

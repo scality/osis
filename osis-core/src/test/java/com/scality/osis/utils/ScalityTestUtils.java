@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ScalityTestUtils {
+public final class ScalityTestUtils {
 
     public static final String SAMPLE_TENANT_ID = "12313265465789";
     public static final String SAMPLE_ID = "bfc0d4a51e06481cbc917e9d96e52d81";
@@ -38,9 +38,12 @@ public class ScalityTestUtils {
     public static final String SAMPLE_SCALITY_ACCOUNT_NAME ="tenant.name";
 
 
+    private ScalityTestUtils(){
+
+    }
 
     public static OsisTenant createSampleOsisTenantObj(){
-        OsisTenant osisTenantReq = new OsisTenant();
+        final OsisTenant osisTenantReq = new OsisTenant();
         osisTenantReq.tenantId(SAMPLE_ID);
         osisTenantReq.name(SAMPLE_TENANT_NAME);
         osisTenantReq.cdTenantIds(SAMPLE_CD_TENANT_IDS);

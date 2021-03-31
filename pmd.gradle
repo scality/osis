@@ -30,7 +30,7 @@ pmdTest {
 
 pmd {
     consoleOutput = true
-    toolVersion = "6.21.0"
+    toolVersion = "6.33.0"
     rulePriority = 5
     ignoreFailures = false
     reportsDir = file("$rootDir/reports/pmd-lint")

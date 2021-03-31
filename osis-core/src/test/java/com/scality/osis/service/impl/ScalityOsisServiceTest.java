@@ -1,12 +1,7 @@
 package com.scality.osis.service.impl;
 
 import com.scality.osis.utils.ScalityTestUtils;
-import com.vmware.osis.model.Information;
-import com.vmware.osis.model.OsisCaps;
-import com.vmware.osis.model.OsisTenant;
-import com.vmware.osis.model.OsisUser;
-import com.vmware.osis.model.PageInfo;
-import com.vmware.osis.model.PageOfTenants;
+import com.vmware.osis.model.*;
 import com.vmware.osis.model.exception.BadRequestException;
 import com.vmware.osis.model.exception.NotImplementedException;
 import com.vmware.osis.platform.AppEnv;
@@ -81,8 +76,8 @@ public class ScalityOsisServiceTest {
         //initialize mock create account response
         when(vaultAdminMock.createAccount(any(CreateAccountRequestDTO.class)))
                 .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
-                    CreateAccountRequestDTO request = invocation.getArgument(0);
-                    AccountData data = new AccountData();
+                    final CreateAccountRequestDTO request = invocation.getArgument(0);
+                    final AccountData data = new AccountData();
                     data.setEmailAddress(request.getEmailAddress());
                     data.setName(request.getName());
                     if(StringUtils.isEmpty(request.getExternalAccountId())){
@@ -91,9 +86,9 @@ public class ScalityOsisServiceTest {
                         data.setId(request.getExternalAccountId());
                     }
                     data.setCustomAttributes(request.getCustomAttributes());
-                    Account account = new Account();
+                    final Account account = new Account();
                     account.setData(data);
-                    CreateAccountResponseDTO response = new CreateAccountResponseDTO();
+                    final CreateAccountResponseDTO response = new CreateAccountResponseDTO();
                     response.setAccount(account);
 
                     return response;
@@ -104,7 +99,7 @@ public class ScalityOsisServiceTest {
     public void testCreateTenant(){
 
         // Call Scality Osis service to create a tenant
-        OsisTenant osisTenantRes = scalityOsisServiceUnderTest.createTenant(ScalityTestUtils.createSampleOsisTenantObj());
+        final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.createTenant(ScalityTestUtils.createSampleOsisTenantObj());
 
         assertEquals(ScalityTestUtils.SAMPLE_ID, osisTenantRes.getTenantId());
         assertEquals(ScalityTestUtils.SAMPLE_TENANT_NAME, osisTenantRes.getName());
@@ -115,7 +110,7 @@ public class ScalityOsisServiceTest {
 
     @Test
     public void testCreateTenantInactive(){
-        OsisTenant osisTenantReq = ScalityTestUtils.createSampleOsisTenantObj();
+        final OsisTenant osisTenantReq = ScalityTestUtils.createSampleOsisTenantObj();
         osisTenantReq.active(false);
 
         // Call Scality Osis service to create a tenant
@@ -300,7 +295,7 @@ public class ScalityOsisServiceTest {
     @Test
     public void testGetProviderConsoleUrl() {
         // Setup
-        String consoleUrl = scalityOsisServiceUnderTest.getProviderConsoleUrl();
+        final String consoleUrl = scalityOsisServiceUnderTest.getProviderConsoleUrl();
         // Run the test
         assertNotNull(consoleUrl, NULL_ERR);
         assertEquals(TEST_CONSOLE_URL, consoleUrl, INVALID_URL_URL);
@@ -311,7 +306,7 @@ public class ScalityOsisServiceTest {
     @Test
     public void testGetTenantConsoleUrl() {
         // Setup
-        String consoleUrl = scalityOsisServiceUnderTest.getTenantConsoleUrl(TEST_TENANT_ID);
+        final String consoleUrl = scalityOsisServiceUnderTest.getTenantConsoleUrl(TEST_TENANT_ID);
         // Run the test
         assertNotNull(consoleUrl, NULL_ERR);
         assertEquals(TEST_CONSOLE_URL, consoleUrl, INVALID_URL_URL);
@@ -498,10 +493,10 @@ public class ScalityOsisServiceTest {
     @Test
     public void testGetInformationWithBasicAuth() {
         // Setup
-        String domain = "https://localhost:8443";
+        final String domain = "https://localhost:8443";
 
         // Run the test
-        Information information = scalityOsisServiceUnderTest.getInformation(domain);
+        final Information information = scalityOsisServiceUnderTest.getInformation(domain);
 
         // Verify the results
         assertEquals(Information.AuthModesEnum.BASIC, information.getAuthModes().get(0), "Invalid AuthModes" );
@@ -520,11 +515,11 @@ public class ScalityOsisServiceTest {
     @Test
     public void testGetInformationWithBearerAuth() {
         // Setup
-        String domain = "https://localhost:8443";
+        final String domain = "https://localhost:8443";
         when(appEnvMock.isApiTokenEnabled()).thenReturn(true);
 
         // Run the test
-        Information information = scalityOsisServiceUnderTest.getInformation(domain);
+        final Information information = scalityOsisServiceUnderTest.getInformation(domain);
 
         // Verify the results
         assertEquals(Information.AuthModesEnum.BEARER, information.getAuthModes().get(0), "Invalid AuthModes" );

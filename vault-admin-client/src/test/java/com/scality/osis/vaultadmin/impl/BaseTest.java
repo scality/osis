@@ -51,46 +51,56 @@ public class BaseTest {
   protected void initMocks() {
     accountServicesClient = mock(AccountServicesClient.class);
 
+    initCreateAccountMocks();
+    initListAccountsMocks();
+
+    vaultAdminImpl = new VaultAdminImpl(accountServicesClient, adminEndpoint);
+  }
+
+  private void initCreateAccountMocks() {
     //initialize mock create account response
     when(accountServicesClient.createAccount(any(CreateAccountRequestDTO.class)))
-    .thenAnswer(new Answer<Response<CreateAccountResponseDTO>>() {
-      @Override
-      public Response<CreateAccountResponseDTO> answer(InvocationOnMock invocation) {
-        CreateAccountRequestDTO request = invocation.getArgument(0);
-        AccountData data = new AccountData();
-        data.setEmailAddress(request.getEmailAddress());
-        data.setName(request.getName());
-        data.setArn(DEFAULT_TEST_ARN_STR + request.getName() +"/\"");
-        data.setCreateDate(new Date());
-        if(request.getExternalAccountId() == null) {
-          data.setId(DEFAULT_TEST_ACCOUNT_ID);
-        } else {
-          data.setId(request.getExternalAccountId());
-        }
-        data.setCanonicalId(DEFAULT_TEST_CANONICAL_ID);
-        data.setQuotaMax(request.getQuotaMax());
-        com.scality.vaultclient.dto.Account account = new com.scality.vaultclient.dto.Account();
-        account.setData(data);
-        CreateAccountResponseDTO response = new CreateAccountResponseDTO();
-        response.setAccount(account);
+            .thenAnswer(new Answer<Response<CreateAccountResponseDTO>>() {
+              @Override
+              public Response<CreateAccountResponseDTO> answer(final InvocationOnMock invocation) {
+                final CreateAccountRequestDTO request = invocation.getArgument(0);
+                final AccountData data = new AccountData();
+                data.setEmailAddress(request.getEmailAddress());
+                data.setName(request.getName());
+                data.setArn(DEFAULT_TEST_ARN_STR + request.getName() +"/\"");
+                data.setCreateDate(new Date());
+                if(request.getExternalAccountId() == null) {
+                  data.setId(DEFAULT_TEST_ACCOUNT_ID);
+                } else {
+                  data.setId(request.getExternalAccountId());
+                }
+                data.setCanonicalId(DEFAULT_TEST_CANONICAL_ID);
+                data.setQuotaMax(request.getQuotaMax());
+                final com.scality.vaultclient.dto.Account account = new com.scality.vaultclient.dto.Account();
+                account.setData(data);
+                final CreateAccountResponseDTO response = new CreateAccountResponseDTO();
+                response.setAccount(account);
 
-        HttpResponse httpResponse = new HttpResponse(null, null);
-        httpResponse.setStatusCode(201);
-        httpResponse.setStatusText("Created");
-        return new Response<>(response,httpResponse);
-      }
-    });
+                final HttpResponse httpResponse = new HttpResponse(null, null);
+                httpResponse.setStatusCode(201);
+                httpResponse.setStatusText("Created");
+                return new Response<>(response,httpResponse);
+              }
+            });
+  }
+
+  private void initListAccountsMocks() {
 
     //initialize mock list accounts response
     when(accountServicesClient.listAccounts(any(ListAccountsRequestDTO.class)))
             .thenAnswer(new Answer<Response<ListAccountsResponseDTO>>() {
               @Override
-              public Response<ListAccountsResponseDTO> answer(InvocationOnMock invocation) {
-                ListAccountsRequestDTO request = invocation.getArgument(0);
-                String marker = request.getMarker();
+              public Response<ListAccountsResponseDTO> answer(final InvocationOnMock invocation) {
+                final ListAccountsRequestDTO request = invocation.getArgument(0);
+                final String marker = request.getMarker();
                 int maxItems = request.getMaxItems();
-                String filterKey = request.getFilterKey();
-                String filterKeyStartsWith = request.getFilterKeyStartsWith();
+                final String filterKey = request.getFilterKey();
+                final String filterKeyStartsWith = request.getFilterKeyStartsWith();
 
                 Map<String, String> customAttributes1  = null ;
                 boolean withcdTenantId = false;
@@ -109,27 +119,27 @@ public class BaseTest {
                   maxItems = 5; // Test Accounts count DEFAULT
                 }
 
-                int i = 0;
+                int index = 0;
                 int markerVal = 0;
                 if(StringUtils.isNotBlank(marker)){
                   markerVal = Integer.parseInt(marker.substring(marker.length()-1));
                   // extracting markerVal index at last character
                 }
 
-                List<AccountData> accounts = new ArrayList<>();
+                final List<AccountData> accounts = new ArrayList<>();
                 // Generate Accounts with ids (markerVal + i) to maxItems count
-                for(; i < maxItems; i++){
-                  AccountData data = new AccountData();
+                for(; index < maxItems; index++){
+                  final AccountData data = new AccountData();
                   data.setEmailAddress(DEFAULT_TEST_EMAIL_ADDR);
                   data.setName(DEFAULT_TEST_ACCOUNT_NAME);
                   data.setArn(DEFAULT_TEST_ARN_STR + DEFAULT_TEST_ACCOUNT_NAME +"/\"");
                   data.setCreateDate(new Date());
-                  data.setId(DEFAULT_TEST_ACCOUNT_ID + (i + markerVal)); //setting ID with index
+                  data.setId(DEFAULT_TEST_ACCOUNT_ID + (index + markerVal)); //setting ID with index
                   data.setCanonicalId(DEFAULT_TEST_CANONICAL_ID);
 
                   if(withcdTenantId){
                     // if filterStartsWith generate customAttributes for all accounts
-                    Map<String, String> customAttributestemp  = new HashMap<>() ;
+                    final Map<String, String> customAttributestemp  = new HashMap<>() ;
                     customAttributestemp.put("cd_tenant_id%3D%3D" + UUID.randomUUID(), "");
                     data.setCustomAttributes(customAttributestemp);
                   } else {
@@ -139,17 +149,15 @@ public class BaseTest {
                   accounts.add(data);
                 }
 
-                ListAccountsResponseDTO response = new ListAccountsResponseDTO();
+                final ListAccountsResponseDTO response = new ListAccountsResponseDTO();
                 response.setAccounts(accounts);
 
-                HttpResponse httpResponse = new HttpResponse(null, null);
+                final HttpResponse httpResponse = new HttpResponse(null, null);
                 httpResponse.setStatusCode(200);
                 httpResponse.setStatusText("OK");
                 return new Response<>(response,httpResponse);
               }
             });
-
-    vaultAdminImpl = new VaultAdminImpl(accountServicesClient, adminEndpoint);
   }
 
   protected void loadExistingAccountErrorMocks() {
@@ -157,13 +165,13 @@ public class BaseTest {
     when(accountServicesClient.createAccount(any(CreateAccountRequestDTO.class)))
             .thenAnswer(new Answer<Response<CreateAccountResponseDTO>>() {
               @Override
-              public Response<CreateAccountResponseDTO> answer(InvocationOnMock invocation) {
-                  VaultClientException e = new VaultClientException("EntityAlreadyExists");
-                  e.setErrorCode("EntityAlreadyExists");
-                  e.setErrorMessage(ENTITY_EXISTS_ERR);
-                  e.setStatusCode(409);
-                  e.setServiceName("Vault");
-                  throw e;
+              public Response<CreateAccountResponseDTO> answer(final InvocationOnMock invocation) {
+                  final VaultClientException exception = new VaultClientException("EntityAlreadyExists");
+                  exception.setErrorCode("EntityAlreadyExists");
+                  exception.setErrorMessage(ENTITY_EXISTS_ERR);
+                  exception.setStatusCode(409);
+                  exception.setServiceName("Vault");
+                  throw exception;
                 }
             });
   }
@@ -173,7 +181,7 @@ public class BaseTest {
     if (!StringUtils.isBlank(env)) {
       env = "." + env;
     }
-    Properties properties = new Properties();
+    final Properties properties = new Properties();
     properties.load(VaultAdminImplTest.class.getResourceAsStream("/vaultadmin.properties" + env));
 
     adminUserId = properties.getProperty("vault.adminId");
