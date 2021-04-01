@@ -97,7 +97,7 @@ sourceSets {
     }
 }
 
-configure(allprojects.findAll { it.name != 'vault-admin-client' }) {
+configure(allprojects) {
     ext {
         springBootVersion = '2.2.4.RELEASE'
     }

@@ -6,6 +6,7 @@
 package com.scality.osis.vaultadmin.impl;
 
 import com.amazonaws.Response;
+import com.scality.osis.vaultadmin.utils.ErrorUtils;
 import com.scality.vaultclient.services.VaultClientException;
 
 import java.util.function.Function;

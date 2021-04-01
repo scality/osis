@@ -3,19 +3,23 @@
  * SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.scality.osis.vaultadmin.impl;
+package com.scality.osis.vaultadmin.utils;
 
+import com.scality.osis.vaultadmin.impl.VaultServiceException;
 import com.scality.vaultclient.services.VaultClientException;
 import com.amazonaws.http.HttpResponse;
 
-class ErrorUtils {
+public final class ErrorUtils {
+  private ErrorUtils(){
 
-  static VaultServiceException parseError(HttpResponse response) {
+  }
+
+  public static VaultServiceException parseError(HttpResponse response) {
       return new VaultServiceException(
               response.getStatusCode(), response.getStatusText());
   }
 
-  static VaultServiceException parseError(VaultClientException vaultClientException) {
+  public static VaultServiceException parseError(VaultClientException vaultClientException) {
       return new VaultServiceException(
               vaultClientException.getStatusCode(), vaultClientException.getErrorCode());
   }

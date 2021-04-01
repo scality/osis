@@ -31,6 +31,7 @@ http://pmd.sourceforge.net/ruleset/2.0.0 ">
 
     <rule ref="category/java/codestyle.xml">
         <exclude name="AtLeastOneConstructor"/>
+        <exclude name="UseUnderscoresInNumericLiterals"/>
     </rule>
     <rule ref="category/java/codestyle.xml/LongVariable">
         <properties>
