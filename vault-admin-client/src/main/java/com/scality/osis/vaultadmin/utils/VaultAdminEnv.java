@@ -45,4 +45,14 @@ public class VaultAdminEnv {
                 ? null : Integer.parseInt(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_MAX_CAPACITY));
     }
 
+    /**
+     * Get list accounts cache expiration time.
+     *
+     * @return the integer
+     */
+    public Long getListAccountsExpiration(){
+        return StringUtils.isEmpty(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_EXPIRATION))
+                ? null : Long.parseLong(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_EXPIRATION));
+    }
+
 }

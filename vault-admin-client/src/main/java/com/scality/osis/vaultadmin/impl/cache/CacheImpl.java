@@ -28,6 +28,10 @@ public class CacheImpl<K, V> implements Cache<K,V> {
      * Maximum capacity of the cache
      */
     private final int maxCapacity;
+    /**
+     * expiration time for each entrant of the cache
+     */
+    private long expirationTime;
     private final Map<K, V> internalCache;
     private final Queue<K> trackingQueue;
 
@@ -41,11 +45,16 @@ public class CacheImpl<K, V> implements Cache<K,V> {
     private final ScheduledExecutorService scheduledExecutorService;
 
     public CacheImpl(int maxCapacity){
-        if (maxCapacity < 0) {
+        this(maxCapacity, DEFAULT_EXPIRY_TIME_IN_MS);
+    }
+
+    public CacheImpl(int maxCapacity, long expirationTime){
+        if (maxCapacity < 0 || expirationTime < 0L) {
             throw new IllegalArgumentException("Illegal max capacity: " + maxCapacity);
         }
 
         this.maxCapacity = maxCapacity;
+        this.expirationTime = expirationTime;
         internalCache = new ConcurrentHashMap<>(maxCapacity);
         trackingQueue = new ConcurrentLinkedQueue<>();
         scheduledExecutorService = Executors.newScheduledThreadPool(DEFAULT_SCHEDULED_THREAD_POOL_SIZE);
@@ -82,19 +91,7 @@ public class CacheImpl<K, V> implements Cache<K,V> {
      */
     @Override
     public V put(K key, V value) {
-        return put(key, value, DEFAULT_EXPIRY_TIME_IN_MS);
-    }
-
-    /**
-     * @param key Key
-     * @param value Value
-     * @param expireTime
-     *            Read and write lock with ConcurrentHashMap and
-     *            ConcurrentLinkedQueue to implement concurrent Lru Cache. Entry
-     *            with key k and value v is added to the Cache.
-     */
-    @Override
-    public V put(K key, V value, long expireTime) {
+//        return put(key, value, DEFAULT_EXPIRY_TIME_IN_MS);
         // add write lock
         writeLock.lock();
         try {
@@ -114,8 +111,8 @@ public class CacheImpl<K, V> implements Cache<K,V> {
             internalCache.put(key, value);
             trackingQueue.add(key);
 
-            if (expireTime > 0) {
-                removeAfterExpireTime(key, expireTime);
+            if (expirationTime > 0) {
+                removeAfterExpireTime(key, expirationTime);
             }
         } finally {
             writeLock.unlock();
@@ -172,16 +169,6 @@ public class CacheImpl<K, V> implements Cache<K,V> {
             internalCache.remove(key);
             trackingQueue.remove(key);
         }, expireTime, TimeUnit.MILLISECONDS);
-    }
-
-    /**
-     * Returns true if the Cache has a value associated with the specified key, else returns false;
-     * @param key The key to be checked
-     * @return true if the cache has a value mapped to the given key.
-     * */
-    @Override
-    public boolean containsKey(K key) {
-        return internalCache.containsKey(key);
     }
 
     @Override

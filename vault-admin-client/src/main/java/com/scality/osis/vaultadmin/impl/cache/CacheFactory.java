@@ -44,7 +44,10 @@ public class CacheFactory {
         if(!env.isListAccountsCacheDisabled()) {
             int maxCapacity = env.getListAccountsMaxCapacity() !=null
                     ? env.getListAccountsMaxCapacity() : DEFAULT_CACHE_MAX_CAPACITY;
-            listAccountsMarkerCache = new CacheImpl<>(maxCapacity);
+
+            long expirationTime = env.getListAccountsExpiration() !=null
+                    ? env.getListAccountsExpiration() : DEFAULT_CACHE_MAX_CAPACITY;
+            listAccountsMarkerCache = new CacheImpl<>(maxCapacity, expirationTime);
         }
     }
 

@@ -11,7 +11,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CacheImplTest {
@@ -20,12 +19,12 @@ public class CacheImplTest {
 
     @BeforeAll
     public static void setUp() {
-        cacheImplUnderTest = new CacheImpl<>(3);
+        cacheImplUnderTest = new CacheImpl<>(1, 30000L);
     }
 
     @Test
     @Order(1)
-    public void testPut1() {
+    public void testPut() {
         // Setup
         final String key = "Key1";
         final String value = "Value";
@@ -39,20 +38,6 @@ public class CacheImplTest {
 
     @Test
     @Order(2)
-    public void testPutWithExpiry() {
-        // Setup
-        final String key = "Key2";
-        final String value = "Value2";
-
-        // Run the test
-        final String result = cacheImplUnderTest.put(key, value, 30L);
-
-        // Verify the results
-        assertEquals(value, result);
-    }
-
-    @Test
-    @Order(3)
     public void testGet() {
         // Setup
         final String key = "Key1";
@@ -65,39 +50,42 @@ public class CacheImplTest {
     }
 
     @Test
-    @Order(4)
+    @Order(3)
     public void testPutWithQuickExpiry() throws InterruptedException {
         // Setup
         final String key = "Key3";
         final String value = "Value3";
 
+        final CacheImpl<String, String> cacheImplUnderTest1 = new CacheImpl<>(1, 200);
         // Run the test
-        final String result = cacheImplUnderTest.put(key, value, 1);
+        final String result = cacheImplUnderTest1.put(key, value);
 
         // Verify the results
-        Thread.sleep(1);
+        Thread.sleep(205);
         assertEquals(value, result);
-        assertNull(cacheImplUnderTest.get(key));
+        assertNull(cacheImplUnderTest1.get(key));
     }
 
     @Test
-    @Order(5)
+    @Order(4)
     public void testRemove() {
         // Setup
-        final String key = "Key2";
+        final String key = "Key1";
 
         // Run the test
         final String result = cacheImplUnderTest.remove(key);
 
         // Verify the results
-        assertEquals("Value2", result);
+        assertEquals("Value", result);
     }
 
     @Test
-    @Order(6)
+    @Order(5)
     public void testSize() {
         // Setup
 
+        // Run the test
+        cacheImplUnderTest.put("Key1", "Value");
         // Run the test
         final long result = cacheImplUnderTest.size();
 
@@ -106,20 +94,7 @@ public class CacheImplTest {
     }
 
     @Test
-    @Order(7)
-    public void testContainsKey() {
-        // Setup
-        final String key = "Key1";
-
-        // Run the test
-        final boolean result = cacheImplUnderTest.containsKey(key);
-
-        // Verify the results
-        assertTrue(result);
-    }
-
-    @Test
-    @Order(8)
+    @Order(6)
     public void testToString() {
         // Setup
 
@@ -131,7 +106,7 @@ public class CacheImplTest {
     }
 
     @Test
-    @Order(9)
+    @Order(7)
     public void testClear() {
         // Setup
 
@@ -165,14 +140,24 @@ public class CacheImplTest {
     }
 
     @Test
+    public void testIllegalExpirationTime() {
+        // Setup
+        // Run the test
+        // Verify the results
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CacheImpl<>(1, -100L);
+        });
+    }
+
+    @Test
     public void testPutExistingKey() {
         // Setup
         final String key = "Key2";
         final String value = "Value2";
 
         // Run the test
-        final String value1 = cacheImplUnderTest.put(key, value, 30L);
-        final String result = cacheImplUnderTest.put(key, value, 30L);
+        final String value1 = cacheImplUnderTest.put(key, value);
+        final String result = cacheImplUnderTest.put(key, value);
 
         // Verify the results
         assertEquals(value1, result);
@@ -189,11 +174,11 @@ public class CacheImplTest {
 
         final CacheImpl<String, String> cacheImplUnderTest2 = new CacheImpl<>(maxCapacity);
         for(int index=0; index< maxCapacity; index++){
-            cacheImplUnderTest2.put(key + index, value, 30000);
+            cacheImplUnderTest2.put(key + index, value);
         }
 
         // Insert extra value higher than maxCapacity
-        cacheImplUnderTest2.put("newKey", value, 30L);
+        cacheImplUnderTest2.put("newKey", value);
 
         // Verify the results
         assertEquals(maxCapacity, cacheImplUnderTest2.size());
