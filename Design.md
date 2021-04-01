@@ -61,24 +61,7 @@ This API creates a Tenant on Vault.
     * Tenant Name is stored as Account Name  
     * `cd_tenant_ids` list as part of the request to be stored as a property of the vault account.
     * Account ID to be sent back as storage tenant ID to OSE
-1. `generate-account-access-key` for the account using vaultclient.
-1. Create a role using generated access key with
-   1. Role name : `osis` (So role-arn can be generated in the format `arn:aws:iam::[account-id]:role/osis`
-   1. Trust policy
-   ```json
-    {
-        "Version": "2012-10-17",
-        "Statement": [{
-            "Effect": "Allow",
-            "Principal": {
-                "Service": "service-name"
-            },
-            "Action": "sts:AssumeRole"
-            }]
-    }
-   ```
-1. `attach-role-policy` with s3 and iam full access to this role using generated access key
-1. `delete-access-key` for the account.
+1. [F00] will trigger an asynchronous thread to invoke the `SetupAssumeRole` subroutine. For more, see [SetupAssumeRole-subroutine](#SetupAssumeRole-subroutine).
 
 ### Create Tenant Example Activity Diagram
 ![Create Tenant](Design_Files/OSE-OSIS-Create-Tenant.png)
@@ -97,7 +80,8 @@ This API will list tenants on Vault.
 
 * <u>`markerCache`</u>
     * Every time `List Accounts` API is called by the OSIS, if `isTruncated` is `true` in the response, then `marker` value will be stored in the `markerCache` with the key as `(max-limit +1)`
-    * Each entry in the `markerCache` will be short-lived (implement may be only with 60 seconds)
+    * Each entry in the `markerCache` will be short-lived (implementation is for no more than 60 seconds).
+    * See [Cache-Design](#Cache-Design) for more information. 
 
 ### Query Tenants
 This API will query tenants on Vault using a `filter` parameter.
@@ -111,8 +95,9 @@ This API will query tenants on Vault using a `filter` parameter.
 1. Vault `list-accounts` api will be called using vaultclient with parameters
     1. `marker` (if exists from `markerCache`)
     1. `max-limit`
-    1.  `filterKey=cd_tenant_id%3D%3D<uuid1>` (Always the `filter` value from OSE will be in the format of `cd_tenant_id%3D%3D<uuid1>`)
-
+    1. `filterKey=cd_tenant_id%3D%3D<uuid1>` (The `filter` value from OSE will always be in the `cd_tenant_id%3D%3D<uuid1>` format).
+        * Cache design can be found [here](#Cache-Design).
+    
 
 ### Get Tenant
 This API will return the tenant on Vault with `tenantID`.
@@ -136,46 +121,97 @@ This API will update the existing storage tenant with the provided `cd_tenant_id
 
 1. Vault `update-account` api will be called using vaultclient with the provided `tenantID` as `AccountID` and `tenant` properties
 
+### `SetupAssumeRole` subroutine
+1. Use vaultclient to call `generate-account-access-key` with `durationSeconds` for the account.
+1. Create a role using the generated access key with:
+    1. Role name: `osis` (So role-arn can be generated in the format `arn:aws:iam::[account-id]:role/osis`)
+    1. Trust policy:
+   ```json
+    {
+        "Version": "2012-10-17",
+        "Statement": [{
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "service-name"
+            },
+            "Action": "sts:AssumeRole"
+            }]
+    }
+   ```
+    * **Note:** 
+        *  This role is visible to and modifiable by the root account user or by
+           an IAM user with correct permissions (iam:list-roles,
+           iam:deleteRoles...). _Do not edit this role._ If this role has been 
+           edited, delete it. It will be automatically repopulated (See
+           [Assume-Role](#Assume-Role) for more).
+        
+1. Create an IAM managed policy `adminPolicy@[account-id]` with full S3 and IAM access using the generated access key.
+1. Invoke `attach-role-policy` to attach the policy `adminPolicy@[account-id]` to the `osis` role using the generated access key.
+1. Use `delete-access-key` to delete the account's access key.
+
 ## User APIs
 
-### Assume Role behavior for all User APIs
-* Use the tenant account credentials from the `assumeRoleCache` cache for the given account ID before each User API.
-* If the tenant account credentials were not found in `assumeRoleCache`, `AssumeRoleBackbeat` api needs to be called as Super Admin 
-* `assumeRoleCache` cache will be key-value pair of account_id and temporary credentials object respectively.
-    * `assumeRoleCache` cache will have TTL.
-    * Refresh the credentials periodically on the cache (AWS SDK `refresh()` will be used)
-    * _[ A detailed cache design needs to be added ]_
+### Common Behavior for All User APIs
+* Invoke the [Assume Role flow](#Assume-Role) before accessing any user APIs. 
+* If any user API returns an `Access Denied` error with the message: 
+  `user [RoleArn] don't have any policies, denied access`,  then invoke the 
+  `SetupAssumeRolePolicy` flow (See [Setup-Assume-Role-Policy](#Set-up-assume-role-policy).
 
+### Set Up Assume Role Policy
+1. Generate an access key for the account by using vaultclient to call `generate-account-access-key` with `durationSeconds`.
+1. Invoke IAM `get-policy` API for policy `adminPolicy@[account-id]` using the generated access key.
+1. If no policy is returned, use the generated access key to create an IAM managed policy `adminPolicy@[account-id]` with full s3 and iam access (`{ s3:*, iam:* }`).
+1. Invoke `attach-role-policy` to attach the policy `adminPolicy@[account-id]` to the `osis` role using the generated access key.
+1. `delete-access-key` for the account.
+
+### Assume Role
+* Before invoking a User API, you must call the `AssumeRole` flow. Use the tenant account credentials from `assumeRoleCache` for the given account ID before each User API.
+* If the tenant account credentials were not found in `assumeRoleCache`, the `AssumeRoleBackbeat` API must be called as superadmin and added to the `assumeRoleCache` cache.
+* If the `AssumeRoleBackbeat` API returns a `NoSuchEntity` error with a `Role does not exist` description, use vaultclient to invoke `get-account` with `accountID` to retrieve the `accountName` and then invoke the [`SetupAssumeRole` subroutine](#SetupAssumeRole-subroutine)).
+* `assumeRoleCache` cache will be a **[key, value]** pair of **[Role_Arn, Temporary_Credentials]** respectively.
+    * Each `assumeRoleCache` entry will have a 50-minute TTL (its session token is valid only for 60 minutes).
+    * When accessing credentials on the cache, refresh the credentials as well as `needsRefresh` (using AWS SDK `refresh()`), as they are subject to expiration.
+    * Cache design can be found [here](#Cache-Design).
+    
 ### Create User
 This API creates a user on Vault.
 1. `create-user` api will be called using assumed role credentials.
-    * `cd_user_id` is stored as username.
-1. `attach-policy` for the new user will be called using the assumed role credentials with full S3 and IAM access permissions.
+    * The tenant user's `cdUserId` is stored as `username` in the corresponding Vault user.
+    * The tenant user's `username`, `role` enum value, `emailAddress` and `cdTenantID` are stored in the Vault user path as `/<tenantUsername>/<roleEnumValue>/<email>/<cdTenantID>/`.
+1. The `get-policy` API will be called with the `userPolicy@[account-id]` policy name using assumed role credentials
+1. If the `get-policy` API does not return any policy, using the assumed role credentials creates an IAM managed policy with the `userPolicy@[account-id]` policy name with full S3 access.
+1. `attach-policy` for the new user will be called using the assumed role credentials and the policy arn formatted as `arn:aws:iam::[account-id]:policy/userPolicy@[account-id]`.
 1. `create-s3credentials` api will be called using assumed role credentials
 
 ### Create User Example Activity Diagram
 ![Create User](Design_Files/OSE-OSIS-Create-User.png)
 
-### Query Users
-This API will query users on Vault using a `filter` parameter.
-1. `list-users` api will be called using assumed role credentials.
-1. Filter the result users using the `filter` parameter in the request
-
 ### List Users
 This API will list users on Vault.
+1. The `list-users` API can be called with following parameters:
+    * `offset`: The start index of tenants to return (optional)
+    * `limit`: The maximum number of tenants to return (optional)
 1. `list-users` api will be called using assumed role credentials.
+    * If `offset` is present, return the `list-users` result by providing the `offset` value as the `marker` parameter.
 
-### Get User w/ userid
-This API will return the user.
-1. `get-user` api will be called using assumed role credentials with cd_user_id as username.
+### Query Users
+This API will query users on Vault using a `filter` parameter with the filters of `cd_tenant_id` and `display_name`.
+1. Extract the `cd_tenant_id` filter from the `filter` parameter to call `list-accounts` using vaultclient to retrieve the `accountID`.
+1. Use `accountID` to generate assumed role credentials for that particular account.
+1. Extract the `displayname` value from the `filter` parameter.
+1. The `list-users` API will be called using assumed role credentials with the `path-prefix` as `/<display_name>/`.
 
-### Get User w/ canonical ID
+### Get User with User ID
 This API will return the user.
-1. `get-user` api will be called using assumed role credentials with canonical_id as canonical_user_id?
+1. The `get-user` API will be called using assumed role credentials, with the tenant user's user ID as the username.
+
+### Get User with Canonical ID
+This API will return the user.
+1. The `get-user` API will be called using assumed role credentials with canonical_id as username
 
 ### Head User
 This API will return if user exists or not.
-1. `get-user` api will be called using assumed role credentials with cd_user_id as username.
+1. The `get-user` API will be called using assumed-role credentials, with the tenant user's user ID as the username.
 1. Return `true` or `false` if result is returned or not respectively.
 
 ### Delete User
@@ -187,7 +223,7 @@ This API will enable or disable user on Vault.
 1. `updateAccessKey` api will be called using assumed role credentials to disable/enable access keys for the user.
 
 ## S3 Credential APIs
-### Common behavior for all S3 Credential APIs will be same as User APIs ([check here](#Assume-Role-behavior-for-all-User-APIs))
+### S3 Credential APIs Have Common Behavior with [User APIs](#Common-behavior-for-all-User-APIs)
 
 
 ### Create S3 Credential
@@ -253,3 +289,23 @@ Get the platform usage of global (without query parameter), tenant (with tenant_
 ## S3 Operations Example Activity Diagram
 ![S3 Object operations](Design_Files/OSE-OSIS-Object-operations.png)
 
+## Cache Design
+
+1. Implement caches using the following principles:
+    1. The cache must have a maximum capacity.
+    1. The cache must have a Least Recently Used (LRU) eviction policy.
+    1. Each cache entry must have an expiration time (TTL). 
+        1. Cache `put` call must include `ttl` for the entry.
+        1. Use `ScheduledFuture` in Java for cache entry removal after TTL.
+    1. Caches must handle concurrency.
+        1. Use `Read locks` for `get` calls and `write locks` for `put` calls.
+    1. Caches can be configured using the following properties in `application.properties`:
+       1. `ttl` for invalidating cache entries
+       1. `maxCapacity` for maximum number of entries in the cache 
+       1. A flag to enable or disable the cache
+
+1. Implement the following caches for this project:
+    1. `ListAccountsMarkerCache` for the `List Tenants` and `Query Tenants` APIs
+        * `key` : `offset` and `value` : `marker`
+    1. `AssumeRoleCache` for all the `User` and `S3 Credential` APIs
+        * `key` : `RoleArn` and `value` : `Credentials`
