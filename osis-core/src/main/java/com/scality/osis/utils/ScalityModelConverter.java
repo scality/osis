@@ -73,6 +73,19 @@ public final class ScalityModelConverter {
     }
 
     /**
+     * Created Vault List Accounts request for Query Tenants
+     * @param limit the max number of items
+     *
+     * @return the create account request dto
+     */
+    public static ListAccountsRequestDTO toScalityListAccountsRequest(long limit, String filter) {
+        return ListAccountsRequestDTO.builder()
+                .maxItems((int) limit)
+                .filterKey(filter)
+                .build();
+    }
+
+    /**
      * Generates tenant email string using tenant name.
      *  example email address: tenant.name@osis.scality.com
      *

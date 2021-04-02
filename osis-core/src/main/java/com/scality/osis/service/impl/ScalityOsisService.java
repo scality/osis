@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Optional;
 
+import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
 import static com.scality.osis.utils.ScalityConstants.IAM_PREFIX;
 
 
@@ -89,7 +90,37 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfTenants queryTenants(long offset, long limit, String filter) {
-        throw new NotImplementedException();
+        if(filter.contains(CD_TENANT_ID_PREFIX)) {
+            try {//cd_tenant_id==e7ecb16e-f6b7-4d34-ad4e-5da5d2c83009
+                logger.info("Query Tenants request received: offset={}, limit={}, filter ={}", offset, limit, filter);
+                ListAccountsRequestDTO listAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit, filter);
+
+                logger.debug("[Vault] List Accounts Request:{}", new Gson().toJson(listAccountsRequest));
+                ListAccountsResponseDTO listAccountsResponseDTO = vaultAdmin.listAccounts(offset, listAccountsRequest);
+
+                logger.debug("[Vault] List Accounts response:{}", new Gson().toJson(listAccountsResponseDTO));
+
+                PageOfTenants pageOfTenants = ScalityModelConverter.toPageOfTenants(listAccountsResponseDTO, offset, limit);
+
+                logger.info("Query Tenants response:{}", new Gson().toJson(pageOfTenants));
+
+                return pageOfTenants;
+
+            } catch (VaultServiceException e) {
+                // For errors, List Tenants should return empty PageOfTenants
+                PageInfo pageInfo = new PageInfo();
+                pageInfo.setLimit(limit);
+                pageInfo.setOffset(offset);
+                pageInfo.setTotal(0L);
+
+                PageOfTenants pageOfTenants = new PageOfTenants();
+                pageOfTenants.setPageInfo(pageInfo);
+                return pageOfTenants;
+            }
+        } else {
+            // Returning all the tenants with given offset and limit as filter is not with `cd_tenant_id`
+            return listTenants(offset, limit);
+        }
     }
 
     @Override
