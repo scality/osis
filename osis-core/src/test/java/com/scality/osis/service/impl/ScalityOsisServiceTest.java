@@ -21,6 +21,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.*;
 
+import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
 import static com.scality.osis.utils.ScalityConstants.IAM_PREFIX;
 import static com.scality.osis.utils.ScalityTestUtils.SAMPLE_CD_TENANT_IDS;
 import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.DEFAULT_CACHE_MAX_CAPACITY;
@@ -109,6 +110,7 @@ public class ScalityOsisServiceTest {
                     final ListAccountsRequestDTO request = invocation.getArgument(1);
                     final int maxItems = request.getMaxItems();
                     final List<AccountData> accounts = new ArrayList<>();
+
                     // Generate Accounts with ids (markerVal + i) to maxItems count
                     for( int index = 0; index < maxItems; index++){
                         final AccountData data = new AccountData();
@@ -118,9 +120,16 @@ public class ScalityOsisServiceTest {
 
                         // if filterStartsWith generate customAttributes for all accounts
                         final Map<String, String> customAttributestemp  = new HashMap<>() ;
-                        customAttributestemp.put("cd_tenant_id==" + UUID.randomUUID(), "");
                         data.setCustomAttributes(customAttributestemp);
                         accounts.add(data);
+
+                        if(!StringUtils.isEmpty(request.getFilterKey()) && request.getFilterKey().startsWith(CD_TENANT_ID_PREFIX)) {
+                            // If filter key exists mock only one account in the response with filterKey as customAttributestemp
+                            customAttributestemp.put(request.getFilterKey(), "");
+                            break;
+                        } else {
+                            customAttributestemp.put(CD_TENANT_ID_PREFIX + UUID.randomUUID(), "");
+                        }
                     }
 
                     final ListAccountsResponseDTO response = new ListAccountsResponseDTO();
@@ -196,51 +205,6 @@ public class ScalityOsisServiceTest {
     }
 
     @Test
-    public void testQueryTenants() {
-        // Setup
-        final PageOfTenants expectedResult = new PageOfTenants();
-        final OsisTenant osisTenant = new OsisTenant();
-        osisTenant.active(false);
-        osisTenant.name(TEST_NAME);
-        osisTenant.setName(TEST_NAME);
-        osisTenant.tenantId(TEST_TENANT_ID);
-        osisTenant.setTenantId(TEST_TENANT_ID);
-        osisTenant.cdTenantIds(Arrays.asList(TEST_STR));
-        osisTenant.setCdTenantIds(Arrays.asList(TEST_STR));
-        expectedResult.items(Arrays.asList(osisTenant));
-        final OsisTenant osisTenant1 = new OsisTenant();
-        osisTenant1.active(false);
-        osisTenant1.name(TEST_NAME);
-        osisTenant1.setName(TEST_NAME);
-        osisTenant1.tenantId(TEST_TENANT_ID);
-        osisTenant1.setTenantId(TEST_TENANT_ID);
-        osisTenant1.cdTenantIds(Arrays.asList(TEST_STR));
-        osisTenant1.setCdTenantIds(Arrays.asList(TEST_STR));
-        expectedResult.setItems(Arrays.asList(osisTenant1));
-        final PageInfo pageInfo = new PageInfo();
-        pageInfo.limit(0L);
-        pageInfo.setLimit(0L);
-        pageInfo.offset(0L);
-        pageInfo.setOffset(0L);
-        pageInfo.total(0L);
-        pageInfo.setTotal(0L);
-        expectedResult.pageInfo(pageInfo);
-        final PageInfo pageInfo1 = new PageInfo();
-        pageInfo1.limit(0L);
-        pageInfo1.setLimit(0L);
-        pageInfo1.offset(0L);
-        pageInfo1.setOffset(0L);
-        pageInfo1.total(0L);
-        pageInfo1.setTotal(0L);
-        expectedResult.setPageInfo(pageInfo1);
-
-        // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.queryTenants(0L, 0L, "filter"), NOT_IMPLEMENTED_EXCEPTION_ERR);
-
-        // Verify the results
-    }
-
-    @Test
     public void testListTenants() {
         // Setup
         final long offset = 0L;
@@ -291,7 +255,86 @@ public class ScalityOsisServiceTest {
         assertEquals(0L, response.getPageInfo().getTotal());
         assertEquals(offset, response.getPageInfo().getOffset());
         assertEquals(limit, response.getPageInfo().getLimit());
-        assertNull(response.getItems());
+        assertEquals(0L, response.getItems().size());
+
+    }
+
+    @Test
+    public void testQueryTenants() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        final String filter = CD_TENANT_ID_PREFIX + TEST_STR;
+
+        // Run the test
+        // Call Scality Osis service to query tenants
+        final PageOfTenants response = scalityOsisServiceUnderTest.queryTenants(offset, limit, filter);
+
+        // Verify the results
+        assertEquals(1, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(1, response.getItems().size());
+        assertEquals(TEST_STR, response.getItems().get(0).getCdTenantIds().get(0));
+    }
+
+    @Test
+    public void testQueryTenantsOffset() {
+        // Setup
+        final long offset = 2000L;
+        final long limit = 1000L;
+        final String filter = CD_TENANT_ID_PREFIX + TEST_STR;
+        // Run the test
+        // Call Scality Osis service to list tenants
+        final PageOfTenants response = scalityOsisServiceUnderTest.queryTenants(offset, limit, filter);
+
+
+        // Verify the results
+        assertEquals(1, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(1, response.getItems().size());
+        assertEquals(TEST_STR, response.getItems().get(0).getCdTenantIds().get(0));
+    }
+
+    @Test
+    public void testQueryTenantsNoFilter() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        final String filter = "";
+
+        // Run the test
+        // Call Scality Osis service to query tenants
+        final PageOfTenants response = scalityOsisServiceUnderTest.queryTenants(offset, limit, filter);
+
+        // Should return the response as list tenants
+        assertEquals(limit, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals((int)limit, response.getItems().size());
+        assertNotNull(response.getItems().get(0).getCdTenantIds());
+    }
+
+    @Test
+    public void testQueryTenantsErr() {
+        // Setup
+        final long offset = 3000L;
+        final long limit = 1000L;
+        final String filter = CD_TENANT_ID_PREFIX + TEST_STR;
+
+        when(vaultAdminMock.listAccounts(anyLong(),any(ListAccountsRequestDTO.class)))
+                .thenAnswer((Answer<ListAccountsResponseDTO>) invocation -> {
+                    throw new VaultServiceException(400, "Requested offset is outside the total available items");
+                });
+
+        final PageOfTenants response = scalityOsisServiceUnderTest.queryTenants(offset, limit, filter);
+
+        // Verify the results
+        assertEquals(0L, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(0L, response.getItems().size());
 
     }
 

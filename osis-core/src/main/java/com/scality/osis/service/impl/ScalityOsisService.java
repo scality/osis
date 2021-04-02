@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
@@ -91,7 +92,7 @@ public class ScalityOsisService implements OsisService {
     @Override
     public PageOfTenants queryTenants(long offset, long limit, String filter) {
         if(filter.contains(CD_TENANT_ID_PREFIX)) {
-            try {//cd_tenant_id==e7ecb16e-f6b7-4d34-ad4e-5da5d2c83009
+            try {
                 logger.info("Query Tenants request received: offset={}, limit={}, filter ={}", offset, limit, filter);
                 ListAccountsRequestDTO listAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit, filter);
 
@@ -114,6 +115,7 @@ public class ScalityOsisService implements OsisService {
                 pageInfo.setTotal(0L);
 
                 PageOfTenants pageOfTenants = new PageOfTenants();
+                pageOfTenants.setItems(new ArrayList<>());
                 pageOfTenants.setPageInfo(pageInfo);
                 return pageOfTenants;
             }
@@ -148,6 +150,7 @@ public class ScalityOsisService implements OsisService {
             pageInfo.setTotal(0L);
 
             PageOfTenants pageOfTenants = new PageOfTenants();
+            pageOfTenants.setItems(new ArrayList<>());
             pageOfTenants.setPageInfo(pageInfo);
             return pageOfTenants;
         }

@@ -16,6 +16,8 @@ import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
 import okhttp3.*;
 import com.scality.osis.vaultadmin.VaultAdmin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -25,6 +27,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @SuppressWarnings("deprecation")
 public class VaultAdminImpl implements VaultAdmin{
+  private static final Logger logger = LoggerFactory.getLogger(VaultAdminImpl.class);
+
+  public static final String CD_TENANT_ID_PREFIX = "cd_tenant_id";
 
   private final AccountServicesClient vaultAccountClient;
 
@@ -123,7 +128,8 @@ public class VaultAdminImpl implements VaultAdmin{
   @Override
   public ListAccountsResponseDTO listAccounts(long offset, ListAccountsRequestDTO listAccountsRequest) throws VaultServiceException {
     if(offset > 0) {
-      String marker = getAccountsMarker((int)offset, listAccountsRequest.getFilterKeyStartsWith());
+      String marker = getAccountsMarker((int)offset, CD_TENANT_ID_PREFIX);
+      logger.debug("List Accounts called with marker:{}", marker);
       listAccountsRequest.setMarker(marker);
     }
     ListAccountsResponseDTO listAccountsResponse = listAccounts(listAccountsRequest);
