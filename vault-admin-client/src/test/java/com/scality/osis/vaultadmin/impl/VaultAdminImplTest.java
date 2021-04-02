@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 public class VaultAdminImplTest extends BaseTest {
 
 
-    public static final String CD_TENANT_ID_PREFIX = "cd_tenant_id%3D%3D";
+    public static final String CD_TENANT_ID_PREFIX = "cd_tenant_id";
     @Test
     public void createAccount() {
 

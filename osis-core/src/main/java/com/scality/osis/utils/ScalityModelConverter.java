@@ -60,7 +60,7 @@ public final class ScalityModelConverter {
     }
 
     /**
-     * Created Vault List Accounts request
+     * Created Vault List Accounts request for List Tenants
      * @param limit the max number of items
      *
      * @return the create account request dto
@@ -88,8 +88,8 @@ public final class ScalityModelConverter {
      *
      * @param cdTenantIds the cd tenant ids list. Example:<code>["9b7e3259-aace-414c-bfd8-94daa0efefaf","7b7e3259-aace-414c-bfd8-94daa0efefaf"]</code>
      * @return the customAttributes map.
-     *          Example: <code>{("cd_tenant_id%3D%3D9b7e3259-aace-414c-bfd8-94daa0efefaf", ""),
-     *                          ("cd_tenant_id%3D%3D7b7e3259-aace-414c-bfd8-94daa0efefaf", "")}</code>
+     *          Example: <code>{("cd_tenant_id==9b7e3259-aace-414c-bfd8-94daa0efefaf", ""),
+     *                          ("cd_tenant_id==7b7e3259-aace-414c-bfd8-94daa0efefaf", "")}</code>
      */
     public static Map<String,String> toScalityCustomAttributes(List<String> cdTenantIds) {
         return cdTenantIds.stream()
@@ -126,8 +126,8 @@ public final class ScalityModelConverter {
      * Converts Vault Account customAttributes Map Format to OSIS cdTenantIDs list.
      *
      * @param customAttributes the customAttributes map.
-     *      *          Example: <code>{("cd_tenant_id%3D%3D9b7e3259-aace-414c-bfd8-94daa0efefaf", ""),
-     *      *                          ("cd_tenant_id%3D%3D7b7e3259-aace-414c-bfd8-94daa0efefaf", "")}</code>
+     *      *          Example: <code>{("cd_tenant_id==9b7e3259-aace-414c-bfd8-94daa0efefaf", ""),
+     *      *                          ("cd_tenant_id==7b7e3259-aace-414c-bfd8-94daa0efefaf", "")}</code>
      * @return the cd tenant ids list. Example:<code>["9b7e3259-aace-414c-bfd8-94daa0efefaf","7b7e3259-aace-414c-bfd8-94daa0efefaf"]</code>
      */
     public static List<String> toOsisCDTenantIds(Map<String,String> customAttributes) {

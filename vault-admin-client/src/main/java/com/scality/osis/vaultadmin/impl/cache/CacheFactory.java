@@ -9,6 +9,8 @@ import com.scality.osis.vaultadmin.utils.VaultAdminEnv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+
 import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.*;
 
 /**
@@ -24,8 +26,6 @@ public class CacheFactory {
 
     private CacheFactory(){
 
-        initListAccountsMarkerCache();
-
     }
 
     /**
@@ -39,6 +39,7 @@ public class CacheFactory {
 
     }
 
+    @PostConstruct
     private void initListAccountsMarkerCache() {
         // if listAccount cache not disabled
         if(!env.isListAccountsCacheDisabled()) {

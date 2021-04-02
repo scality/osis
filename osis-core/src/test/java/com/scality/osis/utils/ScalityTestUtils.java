@@ -23,12 +23,12 @@ public final class ScalityTestUtils {
 
     public static final Map<String, String> SAMPLE_CUSTOM_ATTRIBUTES  = new HashMap<>() ;
     static {
-        SAMPLE_CUSTOM_ATTRIBUTES.put("cd_tenant_id%3D%3D9b7e3259-aace-414c-bfd8-94daa0efefaf", "");
-        SAMPLE_CUSTOM_ATTRIBUTES.put("cd_tenant_id%3D%3D7b7e3259-aace-414c-bfd8-94daa0efefaf", "");
-        SAMPLE_CUSTOM_ATTRIBUTES.put("cd_tenant_id%3D%3D5b7e3259-aace-414c-bfd8-94daa0efefaf", "");
-        SAMPLE_CUSTOM_ATTRIBUTES.put("cd_tenant_id%3D%3D6b7e3259-aace-414c-bfd8-94daa0efefaf", "");
-        SAMPLE_CUSTOM_ATTRIBUTES.put("cd_tenant_id%3D%3D4b7e3259-aace-414c-bfd8-94daa0efefaf", "");
-        SAMPLE_CUSTOM_ATTRIBUTES.put("cd_tenant_id%3D%3D3b7e3259-aace-414c-bfd8-94daa0efefaf", "");
+        SAMPLE_CUSTOM_ATTRIBUTES.put("cd_tenant_id==9b7e3259-aace-414c-bfd8-94daa0efefaf", "");
+        SAMPLE_CUSTOM_ATTRIBUTES.put("cd_tenant_id==7b7e3259-aace-414c-bfd8-94daa0efefaf", "");
+        SAMPLE_CUSTOM_ATTRIBUTES.put("cd_tenant_id==5b7e3259-aace-414c-bfd8-94daa0efefaf", "");
+        SAMPLE_CUSTOM_ATTRIBUTES.put("cd_tenant_id==6b7e3259-aace-414c-bfd8-94daa0efefaf", "");
+        SAMPLE_CUSTOM_ATTRIBUTES.put("cd_tenant_id==4b7e3259-aace-414c-bfd8-94daa0efefaf", "");
+        SAMPLE_CUSTOM_ATTRIBUTES.put("cd_tenant_id==3b7e3259-aace-414c-bfd8-94daa0efefaf", "");
     }
 
 

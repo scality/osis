@@ -118,7 +118,7 @@ public class ScalityOsisServiceTest {
 
                         // if filterStartsWith generate customAttributes for all accounts
                         final Map<String, String> customAttributestemp  = new HashMap<>() ;
-                        customAttributestemp.put("cd_tenant_id%3D%3D" + UUID.randomUUID(), "");
+                        customAttributestemp.put("cd_tenant_id==" + UUID.randomUUID(), "");
                         data.setCustomAttributes(customAttributestemp);
                         accounts.add(data);
                     }
