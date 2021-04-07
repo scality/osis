@@ -7,7 +7,9 @@ import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 
 import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.DEFAULT_CACHE_MAX_CAPACITY;
+import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.DEFAULT_EXPIRY_TIME_IN_MS;
 import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.ENV_LIST_ACCOUNT_DISABLED;
+import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.ENV_LIST_ACCOUNT_EXPIRATION;
 import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.ENV_LIST_ACCOUNT_MAX_CAPACITY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -43,5 +45,14 @@ public class VaultAdminEnvTest {
 
         // Run the test
         assertEquals(DEFAULT_CACHE_MAX_CAPACITY, vaultAdminEnv.getListAccountsMaxCapacity());
+    }
+
+    @Test
+    public void testGetListAccountsExpiration() {
+        // Setup
+        when(envMock.getProperty(ENV_LIST_ACCOUNT_EXPIRATION)).thenReturn((int)DEFAULT_EXPIRY_TIME_IN_MS + "");
+
+        // Run the test
+        assertEquals((int)DEFAULT_EXPIRY_TIME_IN_MS, vaultAdminEnv.getListAccountsExpiration());
     }
 }

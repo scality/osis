@@ -46,11 +46,7 @@ http://pmd.sourceforge.net/ruleset/2.0.0 ">
 
     <rule ref="category/java/design.xml">
         <exclude name="LawOfDemeter"/>
-    </rule>
-    <rule ref="category/java/design.xml/TooManyMethods">
-        <properties>
-            <property name="maxmethods" value="35" />
-        </properties>
+        <exclude name="TooManyMethods"/>
     </rule>
 
 </ruleset>

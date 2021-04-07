@@ -1,16 +1,15 @@
 package com.scality.osis.service.impl;
 
 import com.scality.osis.utils.ScalityTestUtils;
+import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
+import com.scality.osis.vaultadmin.impl.cache.CacheImpl;
 import com.vmware.osis.model.*;
 import com.vmware.osis.model.exception.BadRequestException;
 import com.vmware.osis.model.exception.NotImplementedException;
 import com.vmware.osis.platform.AppEnv;
 import com.vmware.osis.resource.OsisCapsManager;
 import org.junit.jupiter.api.BeforeEach;
-import com.scality.vaultclient.dto.Account;
-import com.scality.vaultclient.dto.AccountData;
-import com.scality.vaultclient.dto.CreateAccountRequestDTO;
-import com.scality.vaultclient.dto.CreateAccountResponseDTO;
+import com.scality.vaultclient.dto.*;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -18,14 +17,14 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 import com.scality.osis.vaultadmin.impl.VaultAdminImpl;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 
 import static com.scality.osis.utils.ScalityConstants.IAM_PREFIX;
 import static com.scality.osis.utils.ScalityTestUtils.SAMPLE_CD_TENANT_IDS;
+import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.DEFAULT_CACHE_MAX_CAPACITY;
+import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.NAME_LIST_ACCOUNTS_CACHE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -73,6 +72,12 @@ public class ScalityOsisServiceTest {
         when(appEnvMock.getS3Endpoint()).thenReturn(TEST_S3_URL);
         when(osisCapsManagerMock.getNotImplements()).thenReturn(new ArrayList<>());
 
+        initCreateTenantMocks();
+        initListTenantMocks();
+        initCaches();
+    }
+
+    private void initCreateTenantMocks() {
         //initialize mock create account response
         when(vaultAdminMock.createAccount(any(CreateAccountRequestDTO.class)))
                 .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
@@ -93,6 +98,45 @@ public class ScalityOsisServiceTest {
 
                     return response;
                 });
+    }
+
+    private void initListTenantMocks() {
+
+        //initialize mock list accounts response
+        when(vaultAdminMock.listAccounts(anyLong(),any(ListAccountsRequestDTO.class)))
+                .thenAnswer((Answer<ListAccountsResponseDTO>) invocation -> {
+                    final long offset = invocation.getArgument(0);
+                    final ListAccountsRequestDTO request = invocation.getArgument(1);
+                    final int maxItems = request.getMaxItems();
+                    final List<AccountData> accounts = new ArrayList<>();
+                    // Generate Accounts with ids (markerVal + i) to maxItems count
+                    for( int index = 0; index < maxItems; index++){
+                        final AccountData data = new AccountData();
+                        data.setEmailAddress("xyz@scality.com");
+                        data.setName(TEST_NAME);
+                        data.setId(ScalityTestUtils.SAMPLE_TENANT_ID + (index + offset)); //setting ID with index
+
+                        // if filterStartsWith generate customAttributes for all accounts
+                        final Map<String, String> customAttributestemp  = new HashMap<>() ;
+                        customAttributestemp.put("cd_tenant_id%3D%3D" + UUID.randomUUID(), "");
+                        data.setCustomAttributes(customAttributestemp);
+                        accounts.add(data);
+                    }
+
+                    final ListAccountsResponseDTO response = new ListAccountsResponseDTO();
+                    response.setAccounts(accounts);
+                    response.setMarker("M"+(offset+maxItems));
+                    response.setTruncated(true);
+                    return response;
+                });
+    }
+
+    private void initCaches() {
+        final CacheFactory cacheFactoryMock = mock(CacheFactory.class);
+        when(cacheFactoryMock.getCache(NAME_LIST_ACCOUNTS_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
+
+        ReflectionTestUtils.setField(vaultAdminMock, "cacheFactory", cacheFactoryMock);
+        vaultAdminMock.initCaches();
     }
 
     @Test
@@ -199,46 +243,56 @@ public class ScalityOsisServiceTest {
     @Test
     public void testListTenants() {
         // Setup
-        final PageOfTenants expectedResult = new PageOfTenants();
-        final OsisTenant osisTenant = new OsisTenant();
-        osisTenant.active(false);
-        osisTenant.name(TEST_NAME);
-        osisTenant.setName(TEST_NAME);
-        osisTenant.tenantId(TEST_TENANT_ID);
-        osisTenant.setTenantId(TEST_TENANT_ID);
-        osisTenant.cdTenantIds(Arrays.asList(TEST_STR));
-        osisTenant.setCdTenantIds(Arrays.asList(TEST_STR));
-        expectedResult.items(Arrays.asList(osisTenant));
-        final OsisTenant osisTenant1 = new OsisTenant();
-        osisTenant1.active(false);
-        osisTenant1.name(TEST_NAME);
-        osisTenant1.setName(TEST_NAME);
-        osisTenant1.tenantId(TEST_TENANT_ID);
-        osisTenant1.setTenantId(TEST_TENANT_ID);
-        osisTenant1.cdTenantIds(Arrays.asList(TEST_STR));
-        osisTenant1.setCdTenantIds(Arrays.asList(TEST_STR));
-        expectedResult.setItems(Arrays.asList(osisTenant1));
-        final PageInfo pageInfo = new PageInfo();
-        pageInfo.limit(0L);
-        pageInfo.setLimit(0L);
-        pageInfo.offset(0L);
-        pageInfo.setOffset(0L);
-        pageInfo.total(0L);
-        pageInfo.setTotal(0L);
-        expectedResult.pageInfo(pageInfo);
-        final PageInfo pageInfo1 = new PageInfo();
-        pageInfo1.limit(0L);
-        pageInfo1.setLimit(0L);
-        pageInfo1.offset(0L);
-        pageInfo1.setOffset(0L);
-        pageInfo1.total(0L);
-        pageInfo1.setTotal(0L);
-        expectedResult.setPageInfo(pageInfo1);
-
+        final long offset = 0L;
+        final long limit = 1000L;
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.listTenants(0L, 0L), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        // Call Scality Osis service to list tenants
+        final PageOfTenants response = scalityOsisServiceUnderTest.listTenants(offset, limit);
 
         // Verify the results
+        assertEquals(limit, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals((int)limit, response.getItems().size());
+        assertNotNull(response.getItems().get(0).getCdTenantIds());
+    }
+
+    @Test
+    public void testListTenantsOffset() {
+        // Setup
+        final long offset = 2000L;
+        final long limit = 1000L;
+        // Run the test
+        // Call Scality Osis service to list tenants
+        final PageOfTenants response = scalityOsisServiceUnderTest.listTenants(offset, limit);
+
+
+        // Verify the results
+        assertEquals(limit, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals((int)limit, response.getItems().size());
+        assertNotNull(response.getItems().get(0).getCdTenantIds());
+    }
+
+    @Test
+    public void testListTenantsErr() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        when(vaultAdminMock.listAccounts(anyLong(),any(ListAccountsRequestDTO.class)))
+                .thenAnswer((Answer<ListAccountsResponseDTO>) invocation -> {
+                    throw new VaultServiceException(400, "Requested offset is outside the total available items");
+                });
+
+        final PageOfTenants response = scalityOsisServiceUnderTest.listTenants(offset, limit);
+
+        // Verify the results
+        assertEquals(0L, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertNull(response.getItems());
+
     }
 
     @Test

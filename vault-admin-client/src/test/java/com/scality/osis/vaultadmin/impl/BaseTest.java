@@ -122,7 +122,7 @@ public class BaseTest {
                 int index = 0;
                 int markerVal = 0;
                 if(StringUtils.isNotBlank(marker)){
-                  markerVal = Integer.parseInt(marker.substring(marker.length()-1));
+                  markerVal = Integer.parseInt(marker.substring(marker.indexOf("M")+1));
                   // extracting markerVal index at last character
                 }
 
@@ -150,6 +150,8 @@ public class BaseTest {
                 }
 
                 final ListAccountsResponseDTO response = new ListAccountsResponseDTO();
+                response.setMarker("M"+(markerVal+maxItems));
+                response.setTruncated(true);
                 response.setAccounts(accounts);
 
                 final HttpResponse httpResponse = new HttpResponse(null, null);
