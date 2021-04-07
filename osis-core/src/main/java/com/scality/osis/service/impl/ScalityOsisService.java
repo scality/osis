@@ -14,6 +14,8 @@ import com.scality.osis.vaultadmin.impl.VaultServiceException;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scality.vaultclient.dto.ListAccountsRequestDTO;
+import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.vmware.osis.platform.AppEnv;
 import com.vmware.osis.model.*;
 import com.vmware.osis.model.exception.NotImplementedException;
@@ -92,7 +94,32 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfTenants listTenants(long offset, long limit) {
-        throw new NotImplementedException();
+        try {
+            logger.info("List Tenants request received: offset={}, limit={}", offset, limit);
+            ListAccountsRequestDTO listAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit);
+
+            logger.debug("[Vault] List Accounts Request:{}", new Gson().toJson(listAccountsRequest));
+            ListAccountsResponseDTO listAccountsResponseDTO = vaultAdmin.listAccounts(offset, listAccountsRequest);
+
+            logger.debug("[Vault] List Accounts response:{}", new Gson().toJson(listAccountsResponseDTO));
+
+            PageOfTenants pageOfTenants = ScalityModelConverter.toPageOfTenants(listAccountsResponseDTO, offset, limit);
+
+            logger.info("List Tenants response:{}", new Gson().toJson(pageOfTenants));
+
+            return pageOfTenants;
+
+        } catch (VaultServiceException e){
+            // For errors, List Tenants should return empty PageOfTenants
+            PageInfo pageInfo = new PageInfo();
+            pageInfo.setLimit(limit);
+            pageInfo.setOffset(offset);
+            pageInfo.setTotal(0L);
+
+            PageOfTenants pageOfTenants = new PageOfTenants();
+            pageOfTenants.setPageInfo(pageInfo);
+            return pageOfTenants;
+        }
     }
 
     @Override

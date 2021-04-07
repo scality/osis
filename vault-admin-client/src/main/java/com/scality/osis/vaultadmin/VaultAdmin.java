@@ -47,4 +47,13 @@ public interface VaultAdmin {
    * @return the list accounts response dto
    */
   ListAccountsResponseDTO listAccounts(ListAccountsRequestDTO listAccountsRequest);
+
+  /**
+   * List accounts
+   *
+   * @param offset the start index of accounts to return
+   * @param listAccountsRequest the list accounts request dto
+   * @return the list accounts response dto
+   */
+  ListAccountsResponseDTO listAccounts(long offset, ListAccountsRequestDTO listAccountsRequest);
 }

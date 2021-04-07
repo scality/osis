@@ -5,7 +5,11 @@
 
 package com.scality.osis.utils;
 
+import com.scality.vaultclient.dto.ListAccountsRequestDTO;
+import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.vmware.osis.model.OsisTenant;
+import com.vmware.osis.model.PageInfo;
+import com.vmware.osis.model.PageOfTenants;
 import com.vmware.osis.model.exception.BadRequestException;
 import com.scality.vaultclient.dto.AccountData;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
@@ -56,6 +60,19 @@ public final class ScalityModelConverter {
     }
 
     /**
+     * Created Vault List Accounts request
+     * @param limit the max number of items
+     *
+     * @return the create account request dto
+     */
+    public static ListAccountsRequestDTO toScalityListAccountsRequest(long limit) {
+        return ListAccountsRequestDTO.builder()
+                .maxItems((int) limit)
+                .filterKeyStartsWith(CD_TENANT_ID_PREFIX)
+                .build();
+    }
+
+    /**
      * Generates tenant email string using tenant name.
      *  example email address: tenant.name@osis.scality.com
      *
@@ -89,6 +106,15 @@ public final class ScalityModelConverter {
      */
     public static OsisTenant toOsisTenant(CreateAccountResponseDTO accountResponse) {
         AccountData account = accountResponse.getAccount().getData();
+        return toOsisTenant(account);
+    }
+
+    /**
+     * Converts Vault AccountData object to OSIS Tenant object
+     *
+     * @return the osis tenant
+     */
+    private static OsisTenant toOsisTenant(AccountData account) {
         return new OsisTenant()
                 .name(account.getName())
                 .active(true)
@@ -111,5 +137,31 @@ public final class ScalityModelConverter {
         List<String> cdTenantIds = new ArrayList<String>(customAttributes.keySet()).stream().collect(Collectors.toList());
         cdTenantIds.replaceAll(x -> StringUtils.removeStart(x, CD_TENANT_ID_PREFIX));
         return cdTenantIds;
+    }
+
+    /**
+     * Converts Vault List Accounts response to OSIS page of tenants
+     *
+     * @param listAccountsResponseDTO the list accounts response dto
+     * @param offset
+     * @param limit
+     * @return the page of tenants
+     */
+    public static PageOfTenants toPageOfTenants(ListAccountsResponseDTO listAccountsResponseDTO, long offset, long limit) {
+        List<OsisTenant> tenantItems = new ArrayList<>();
+
+        for(AccountData account: listAccountsResponseDTO.getAccounts()){
+            tenantItems.add(toOsisTenant(account));
+        }
+
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setLimit(limit);
+        pageInfo.setOffset(offset);
+        pageInfo.setTotal((long) tenantItems.size());
+
+        PageOfTenants pageOfTenants = new PageOfTenants();
+        pageOfTenants.items(tenantItems);
+        pageOfTenants.setPageInfo(pageInfo);
+        return pageOfTenants;
     }
 }

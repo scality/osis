@@ -6,6 +6,9 @@
 package com.scality.osis.vaultadmin.impl;
 
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.scality.osis.vaultadmin.impl.cache.Cache;
+import com.scality.osis.vaultadmin.impl.cache.CacheConstants;
+import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
@@ -13,6 +16,7 @@ import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
 import okhttp3.*;
 import com.scality.osis.vaultadmin.VaultAdmin;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Vault administrator implementation
@@ -23,6 +27,11 @@ import com.scality.osis.vaultadmin.VaultAdmin;
 public class VaultAdminImpl implements VaultAdmin{
 
   private final AccountServicesClient vaultAccountClient;
+
+  @Autowired
+  private CacheFactory cacheFactory;
+
+  private Cache<Integer, String> listAccountsMarkerCache;
 
   /**
    * Create a Vault administrator implementation
@@ -35,6 +44,8 @@ public class VaultAdminImpl implements VaultAdmin{
     this.vaultAccountClient = new AccountServicesClient(
             new BasicAWSCredentials(accessKey, secretKey));
     vaultAccountClient.setEndpoint(endpoint);
+
+    initCaches();
   }
 
   /**
@@ -46,6 +57,13 @@ public class VaultAdminImpl implements VaultAdmin{
     validEndpoint(endpoint);
     this.vaultAccountClient = vaultAccountClient;
     vaultAccountClient.setEndpoint(endpoint);
+    initCaches();
+  }
+
+  public void initCaches() {
+    if(cacheFactory !=null) {
+      listAccountsMarkerCache = cacheFactory.getCache(CacheConstants.NAME_LIST_ACCOUNTS_CACHE);
+    }
   }
 
   /**
@@ -92,5 +110,89 @@ public class VaultAdminImpl implements VaultAdmin{
   @Override
   public ListAccountsResponseDTO listAccounts(ListAccountsRequestDTO listAccountsRequest) {
     return ExternalServiceFactory.executeVaultService(vaultAccountClient::listAccounts, listAccountsRequest);
+  }
+
+  /**
+   * List accounts with offset value
+   * <p>This method will list the accounts from Vault by computing the marker using the provided offset.
+   *
+   * @param offset The start index of accounts to return
+   * @param listAccountsRequest the list accounts request dto
+   * @return the list accounts response dto
+   */
+  @Override
+  public ListAccountsResponseDTO listAccounts(long offset, ListAccountsRequestDTO listAccountsRequest) throws VaultServiceException {
+    if(offset > 0) {
+      String marker = getAccountsMarker((int)offset, listAccountsRequest.getFilterKeyStartsWith());
+      listAccountsRequest.setMarker(marker);
+    }
+    ListAccountsResponseDTO listAccountsResponse = listAccounts(listAccountsRequest);
+    if(listAccountsResponse.isTruncated()) {
+      // Store (offset + listAccountsResponse.getAccounts().size()) as key for the received marker
+      cacheListAccountsMarker((int) (offset + listAccountsResponse.getAccounts().size()), listAccountsResponse.getMarker());
+    }
+    return listAccountsResponse;
+  }
+
+  /**
+   * Returns account marker
+   * <p>This method will return the accounts marker for the provided offset.
+   *
+   * @param offset The start index of accounts to return
+   * @param filterKey the filterkey will for filterKeyStartsWith
+   * @return the marker string
+   */
+  public String getAccountsMarker(int offset, String filterKey) throws VaultServiceException {
+
+    String marker = null;
+    if(listAccountsMarkerCache != null){
+      marker = listAccountsMarkerCache.get(offset);
+    }
+
+    // If marker available in cache
+    if(marker  == null){
+
+        // Move index 0 to offset and capture all missing markers
+        int index = 0;
+        for(;index < offset; index += 1000){
+
+          int maxItems = (offset < 1000) ? offset : 1000;
+          int nextOffset = index + maxItems;
+
+          if(listAccountsMarkerCache != null && listAccountsMarkerCache.get(nextOffset) !=null){
+            marker = listAccountsMarkerCache.get(nextOffset);
+            continue;
+          }
+
+          ListAccountsRequestDTO listAccountsRequest = ListAccountsRequestDTO.builder()
+                  .maxItems(maxItems)
+                  .filterKeyStartsWith(filterKey)
+                  .build();
+
+          if(marker != null) {
+            listAccountsRequest.setMarker(marker);
+          }
+
+          ListAccountsResponseDTO listAccountsResponse = listAccounts(listAccountsRequest);
+
+          if(listAccountsResponse.isTruncated()) {
+
+            marker = listAccountsResponse.getMarker();
+            cacheListAccountsMarker(listAccountsResponse.getAccounts().size(), marker);
+
+          } else{
+            throw new VaultServiceException(400, "Requested offset is outside the total available items");
+          }
+
+        }
+
+    }
+    return marker;
+  }
+
+  private void cacheListAccountsMarker(int key, String marker) {
+    if(listAccountsMarkerCache != null) {
+        listAccountsMarkerCache.put(key, marker);
+    }
   }
 }

@@ -64,4 +64,8 @@ public class CacheFactory {
         return null;
     }
 
+    public VaultAdminEnv getEnvironmentVariables(){
+        return env;
+    }
+
 }
