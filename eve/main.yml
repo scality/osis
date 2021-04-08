@@ -103,3 +103,31 @@ stages:
           command: docker push ${DEVELOPMENT_DOCKER_IMAGE_NAME}
           env: *docker_env
           haltOnFailure: true
+  release:
+    worker:
+      type: local
+    steps:
+      - TriggerStages:
+          stage_names:
+            - docker-release
+  docker-release:
+    worker: *docker_worker
+    steps:
+      - Git: *git_pull
+      - ShellCommand: *wait_docker_daemon
+      - ShellCommand: *docker_login
+      - EvePropertyFromCommand:
+          name: get tag short revision
+          property: tag_revision
+          command: |
+            git checkout refs/tags/%(prop:tag)s 2&> /dev/null
+            git rev-parse --short HEAD
+          haltOnFailure: true
+      - ShellCommand:
+          name: publish docker image to Scality Production OCI registry
+          command: |
+            docker pull ${DEVELOPMENT_DOCKER_IMAGE_NAME}:%(prop:tag_revision)s
+            docker tag ${DEVELOPMENT_DOCKER_IMAGE_NAME}:%(prop:tag_revision)s ${PRODUCTION_DOCKER_IMAGE_NAME}:%(prop:tag)s
+            docker push ${PRODUCTION_DOCKER_IMAGE_NAME}:%(prop:tag)s
+          env: *docker_env
+          haltOnFailure: true
