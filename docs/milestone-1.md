@@ -2,11 +2,11 @@
 
 ## Context
 
-VMWare's Cloud Director product has a feature called
-**Object Storage Extension**(OSE) which allows to work with S3-compatible object
-storage from the Cloud Director interfaces. Currently, ECS, AWS and Cloudian
-have integrations for this extension, and Scality decided to work on such
-integration (with S3C, and later on XDM).
+VMWare's Cloud Director product has a feature called **Object Storage
+Extension** (OSE), which allows you to work with S3-compatible object storage
+from the Cloud Director interfaces. Currently, ECS, AWS and Cloudian have
+integrations for this extension, and Scality decided to work on such integration
+(with S3C, and later on XDM).
 
 ## Requirements
 
@@ -14,63 +14,66 @@ integration (with S3C, and later on XDM).
 
 **As a** vCloud Director Administrator
 
-**I want** to provision a Storage Tenant to a VMware Cloud Director tenant
+**I want** to provision a storage tenant to a VMware Cloud Director tenant
 organizations using vCloud Director UI
 
-**So that** I can provide object storage to VMware Cloud Director tenants
+**So that** I can provide object storage to VMware Cloud Director tenants.
 
-### Acceptance criteria
+### Acceptance Criteria
 
 The acceptance criteria are:
 
-- The CI produces a docker image and stores it in the Scality registry
-- The image can be run and contain the OSE
-- The OSE can be integrated with a vault instance
-- The OSE integration with a vault instance is documented
-- The OSE can be integrated with a vCloud Director instance
-- The OSE integration with a vCloud Director instance is documented
+- The CI produces a Docker image and stores it in the Scality registry.
+- The image can be run and can contain the OSE.
+- The OSE can be integrated with a Vault instance.
+- The OSE integration with a Vault instance is documented.
+- The OSE can be integrated with a vCloud Director instance.
+- The OSE integration with a vCloud Director instance is documented.
 - The OSE allows a vCloud Director Administrator to provision a
-  Storage Tenant, mapped with Vault Account, to a VMware Cloud Director
-  tenant organization
+  Storage Tenant, mapped with a Vault Account, to a VMware Cloud Director
+  tenant organization.
 
 ## Milestone-1 Validation
 
-* Scality Object Storage Interoperability Service (for short, **Scality OSIS**)
-* VMware Cloud Director Object Storage Extension (for short, **vCloud Director OSE**)
+* Scality Object Storage Interoperability Service (**Scality OSIS**)
+* VMware Cloud Director Object Storage Extension (**vCloud Director OSE**)
 
 ### Prerequisites
 
 1. Run Vault (check [How to Run Vault](https://github.com/scality/Vault/blob/development/7.10/TESTING.md#how-to-run-1))
 
-1. Run Cloudserver (check [running Cloudserver here](https://github.com/scality/cloudserver/tree/development/7.10#installation)) with env variable: `S3VAULT=scality` so that it can use vault as auth backend.
+1. Run CloudServer (check [running CloudServer here](https://github.com/scality/cloudserver/tree/development/7.10#installation)) with env variable: `S3VAULT=scality` so that it can use Vault as an auth backend.
 
-1. Update environment file `application.properties` with Vault target URL (before starting Scality OSIS application)
-    * Vault URL should be set at property `osis.scality.vault.endpoint` (Refer Sample `application.properties` [here](../src/main/resources/application.properties))
-    * Vault Super admin credentials should be updated at properties `osis.scality.vault.access-key` and `osis.scality.vault.secret-key`
+1. Update the `application.properties` environment file with the Vault target URL (before starting the Scality OSIS application)
+    * Set the Vault URL in the `osis.scality.vault.endpoint` property (see `application.properties` [here](../src/main/resources/application.properties))
+    * Update the Vault super-admin credentials in the `osis.scality.vault.access-key` and `osis.scality.vault.secret-key` properties.
 
 1. Run the Scality OSIS application (Refer [here](../README.md#running-the-application)). Milestone-1 release tag `0.1.0-SNAPSHOT`
 
-1. On OSE machine, vCloud Director OSE and OSE UI should be installed and running successfully.
+1. vCloud Director OSE and OSE UI must be installed and running on the OSE machine.
 
-1. On OSE machine, integrate Scality OSIS with vCloud Director OSE. (Refer [here](#OSIS-integration-with-vCloud-Director-OSE))
+1. Integrate Scality OSIS with vCloud Director OSE on the OSE machine. (Refer [here](#OSIS-integration-with-vCloud-Director-OSE))
 
 ### Validation Steps
 
-1. Login as a vCloud Director Administrator on vCloud Director UI
-1. Navigate to `Resources` tab.
-1. Create a new `Organization` (a.k.a vCloud Director tenant) with required fields.
-1. Navigate to `Object Storage` tab.
-1. `Tenants` pane should be activated and should list all the vCloud Director tenants with associated `Storage Tenant ID` (if exists)
-1. Click on the Tenant name that is created in step 2 under `Tenants` pane.
-1. Enable toggle button beside the Tenant name.
-1. Click `Enable`. (This step will create a Vault Account in the background)
-1. A `Storage Tenant ID` should be generated on the UI which is also the associated Vault Account's Account ID.
+1. Log in as a vCloud Director Administrator on vCloud Director UI.
+1. Navigate to the `Resources` tab.
+1. Create a new `Organization` (vCloud Director tenant) with required fields.
+1. Navigate to the `Object Storage` tab.
+1. The `Tenants` pane is activated and lists all the vCloud Director tenants with an associated `Storage Tenant ID` (if any exist).
+1. Click the tenant name created in the `Tenants` pane.
+1. Enable the toggle button beside the Tenant name.
+1. Click `Enable`. (This creates a Vault account in the background)
+1. A storage tenant ID, which is also the associated Vault Account's Account ID, is generated on the UI.
 
-### OSIS integration with vCloud Director OSE:
+### OSIS Integration with vCloud Director OSE:
+
 To integrate vCloud Director OSE and the Scality OSIS application:
+
 1. Configure a connection between vCloud Director OSE and the **admin** service of the Scality OSIS instance.
-  * Provide OSIS URL with port number when prompted for admin URL.
-  * Enter Vault Super admin credentials when prompted for credentials.
+  * When prompted for admin URL, provide OSIS URL with port number.
+  * When prompted for credentials, enter Vault superadmin credentials.
+  
 ```shell
 [root@vcdose centos]# ose osis admin set
 OSIS Compliant Platform Name : Scality
@@ -102,7 +105,7 @@ cloudian                         : [ N ]
 ecs                              : [ N ]
 Please restart OSE service to take effect.
 ```
-4. Restart `voss-keeper`
+4. Restart `voss-keeper`.
 ```shell  
  [root@vcdose centos]# systemctl restart voss-keeper 
 ```
@@ -113,7 +116,7 @@ Stop OSE middleware successfully
 Start OSE Service:    16s [====================================================================] 100%
 Started OSE middleware successfully!
 ```
-6. Validate the configuration of vCloud Director OSE to check if **Scality** platform is enabled and running.
+6. Validate the configuration of vCloud Director OSE to check if the **Scality** platform is enabled and running.
 ```shell
 [root@vcdose centos]# ose config validate
 +-----------------------+-------------+-----------------+-----------+
