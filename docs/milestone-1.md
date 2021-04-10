@@ -61,10 +61,10 @@ The acceptance criteria are:
 1. Create a new `Organization` (vCloud Director tenant) with required fields.
 1. Navigate to the `Object Storage` tab.
 1. The `Tenants` pane is activated and lists all the vCloud Director tenants with an associated `Storage Tenant ID` (if any exist).
-1. Click the tenant name created in the `Tenants` pane.
+1. Click the newly created tenant's name in the `Tenants` pane.
 1. Enable the toggle button beside the Tenant name.
 1. Click `Enable`. (This creates a Vault account in the background)
-1. A storage tenant ID, which is also the associated Vault Account's Account ID, is generated on the UI.
+1. `Storage Tenant ID`, which is also the associated Vault Account's Account ID, is generated on the UI.
 
 ### OSIS Integration with vCloud Director OSE:
 
