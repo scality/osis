@@ -95,4 +95,8 @@ public class ScalityAppEnv extends AppEnv {
     public int getRefreshTokenExpirationTime() {
         return Integer.parseInt(env.getProperty("security.jwt.refresh_token_expiration_time"));
     }
+
+    public String getAssumeRoleName() {
+        return env.getProperty("osis.scality.vault.role.name");
+    }
 }

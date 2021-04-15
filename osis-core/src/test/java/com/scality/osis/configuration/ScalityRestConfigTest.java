@@ -34,6 +34,7 @@ public class ScalityRestConfigTest {
         ReflectionTestUtils.setField(scalityRestConfigUnderTest, "vaultAccessKey", "accesskey");
         ReflectionTestUtils.setField(scalityRestConfigUnderTest, "vaultSecretKey", "secretkey");
         ReflectionTestUtils.setField(scalityRestConfigUnderTest, "vaultEndpoint", "http://127.0.0.1");
+        ReflectionTestUtils.setField(scalityRestConfigUnderTest, "s3Endpoint", "http://127.0.0.1");
         // Run the test
         final VaultAdmin result = scalityRestConfigUnderTest.getVaultAdmin();
 

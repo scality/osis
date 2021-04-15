@@ -383,4 +383,16 @@ public class ScalityAppEnvTest {
         // Verify the results
         assertThrows(NumberFormatException.class, ()->appEnvUnderTest.getRefreshTokenExpirationTime(), "testGetRefreshTokenExpirationTimeEnvironmentReturnsNull should throw NumberFormatException");
     }
+
+    @Test
+    public void testGetAssumeRoleName() {
+        // Setup
+        when(mockEnv.getProperty("osis.scality.vault.role.name")).thenReturn("osis");
+
+        // Run the test
+        final String result = appEnvUnderTest.getAssumeRoleName();
+
+        // Verify the results
+        assertEquals(result, "osis", "testGetAssumeRoleName failed");
+    }
 }

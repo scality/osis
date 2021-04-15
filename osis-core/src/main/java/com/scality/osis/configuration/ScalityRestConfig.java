@@ -28,6 +28,9 @@ public class ScalityRestConfig {
     @Value("${osis.scality.vault.endpoint}")
     private String vaultEndpoint;
 
+    @Value("${osis.scality.s3.endpoint}")
+    private String s3Endpoint;
+
     @Bean
     public ClientHttpRequestFactory simpleClientHttpRequestFactory() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
@@ -42,6 +45,7 @@ public class ScalityRestConfig {
                 .setAccessKey(vaultAccessKey)
                 .setSecretKey(vaultSecretKey)
                 .setEndpoint(vaultEndpoint)
+                .setS3Endpoint(s3Endpoint)
                 .build();
     }
 }

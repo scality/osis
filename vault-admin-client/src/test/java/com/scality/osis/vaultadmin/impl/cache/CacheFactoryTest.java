@@ -30,7 +30,7 @@ public class CacheFactoryTest {
 
         envMock = Mockito.mock(VaultAdminEnv.class);
         // Setup
-        when(envMock.getListAccountsMaxCapacity()).thenReturn(DEFAULT_CACHE_MAX_CAPACITY);
+        when(envMock.getListAccountsCacheMaxCapacity()).thenReturn(DEFAULT_CACHE_MAX_CAPACITY);
         when(envMock.isListAccountsCacheDisabled()).thenReturn(false);
     }
 

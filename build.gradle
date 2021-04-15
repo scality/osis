@@ -23,7 +23,7 @@ plugins {
 }
 
 group = 'com.scality'
-version '0.1.0-SNAPSHOT'
+version '0.2.0-SNAPSHOT'
 description = 'osis.scality'
 sourceCompatibility = '1.8'
 
@@ -122,8 +122,9 @@ configure(allprojects) {
         compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
         compile 'io.jsonwebtoken:jjwt:0.9.1'
         implementation 'org.springframework.plugin:spring-plugin-core:1.2.0.RELEASE'
-        implementation 'com.scality:vaultclient:0.2.0-SNAPSHOT'
+        implementation 'com.scality:vaultclient:0.3.0-SNAPSHOT'
         implementation 'com.amazonaws:aws-java-sdk-s3:1.11.914'
+        implementation 'com.amazonaws:aws-java-sdk-sts:1.11.914'
         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     }
 }
@@ -149,7 +150,7 @@ publishing {
         mavenJava(MavenPublication) {
             groupId 'com.scality'
             artifactId 'osis'
-            version '0.1.0-SNAPSHOT'
+            version '0.2.0-SNAPSHOT'
 
             from components.java
 

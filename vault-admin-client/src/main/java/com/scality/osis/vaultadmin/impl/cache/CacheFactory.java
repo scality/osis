@@ -5,6 +5,7 @@
 
 package com.scality.osis.vaultadmin.impl.cache;
 
+import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.osis.vaultadmin.utils.VaultAdminEnv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,8 @@ public class CacheFactory {
 
     private Cache<Integer, String> listAccountsMarkerCache;
 
+    private Cache<String, Credentials> assumeRoleCache;
+
     private CacheFactory(){
 
     }
@@ -36,20 +39,30 @@ public class CacheFactory {
     public CacheFactory(VaultAdminEnv env){
         this.env =env;
         initListAccountsMarkerCache();
-
+        initAssumeRoleCache();
     }
 
     @PostConstruct
     private void initListAccountsMarkerCache() {
         // if listAccount cache not disabled
         if(!env.isListAccountsCacheDisabled()) {
-            int maxCapacity = env.getListAccountsMaxCapacity() !=null
-                    ? env.getListAccountsMaxCapacity() : DEFAULT_CACHE_MAX_CAPACITY;
+            int maxCapacity = env.getListAccountsCacheMaxCapacity() !=null
+                    ? env.getListAccountsCacheMaxCapacity() : DEFAULT_CACHE_MAX_CAPACITY;
 
-            long expirationTime = env.getListAccountsExpiration() !=null
-                    ? env.getListAccountsExpiration() : DEFAULT_CACHE_MAX_CAPACITY;
+            long expirationTime = env.getListAccountsCacheExpiration() !=null
+                    ? env.getListAccountsCacheExpiration() : DEFAULT_CACHE_MAX_CAPACITY;
             listAccountsMarkerCache = new CacheImpl<>(maxCapacity, expirationTime);
         }
+    }
+
+    @PostConstruct
+    private void initAssumeRoleCache() {
+        int maxCapacity = env.getAssumeRoleCacheMaxCapacity() !=null
+                ? env.getAssumeRoleCacheMaxCapacity() : DEFAULT_CACHE_MAX_CAPACITY;
+
+        long expirationTime = env.getAssumeRoleCacheExpiration() !=null
+                ? env.getAssumeRoleCacheExpiration() : DEFAULT_CACHE_MAX_CAPACITY;
+        assumeRoleCache = new CacheImpl<>(maxCapacity, expirationTime);
     }
 
     /**
@@ -61,6 +74,7 @@ public class CacheFactory {
     public Cache getCache(String cacheName){
         switch(cacheName){
             case NAME_LIST_ACCOUNTS_CACHE : return listAccountsMarkerCache;
+            case NAME_ASSUME_ROLE_CACHE : return assumeRoleCache;
         }
         return null;
     }
