@@ -38,8 +38,8 @@ public class ScalityAppEnv extends AppEnv {
         return env.getProperty("osis.scality.vault.secret-key");
     }
 
-    public String getS3Endpoint() {
-        return env.getProperty("osis.scality.s3.endpoint");
+    public String getS3InterfaceEndpoint() {
+        return env.getProperty("osis.scality.vaultS3Interface.endpoint");
     }
 
     public String getConsoleEndpoint() {

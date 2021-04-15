@@ -1,12 +1,12 @@
 package com.scality.osis.service.impl;
 
+import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.utils.ScalityTestUtils;
 import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
 import com.scality.osis.vaultadmin.impl.cache.CacheImpl;
 import com.vmware.osis.model.*;
 import com.vmware.osis.model.exception.BadRequestException;
 import com.vmware.osis.model.exception.NotImplementedException;
-import com.vmware.osis.platform.AppEnv;
 import com.vmware.osis.resource.OsisCapsManager;
 import org.junit.jupiter.api.BeforeEach;
 import com.scality.vaultclient.dto.*;
@@ -38,7 +38,7 @@ public class ScalityOsisServiceTest {
     private static final String TEST_USER_ID ="userId";
     private static final String TEST_NAME ="name";
     private static final String TEST_CONSOLE_URL ="https://example.console.ose.scality.com";
-    private static final String TEST_S3_URL ="https://localhost:8443";
+    private static final String TEST_S3_INTERFACE_URL ="https://localhost:8443";
     private static final String PLATFORM_NAME ="Scality";
     private static final String PLATFORM_VERSION ="7.10";
     private static final String API_VERSION ="1.0.0";
@@ -49,7 +49,7 @@ public class ScalityOsisServiceTest {
     private static ScalityOsisService scalityOsisServiceUnderTest;
 
     @Mock
-    private static AppEnv appEnvMock;
+    private static ScalityAppEnv appEnvMock;
 
     @Mock
     private static OsisCapsManager osisCapsManagerMock;
@@ -70,7 +70,7 @@ public class ScalityOsisServiceTest {
         when(appEnvMock.getPlatformName()).thenReturn(PLATFORM_NAME);
         when(appEnvMock.getPlatformVersion()).thenReturn(PLATFORM_VERSION);
         when(appEnvMock.getApiVersion()).thenReturn(API_VERSION);
-        when(appEnvMock.getS3Endpoint()).thenReturn(TEST_S3_URL);
+        when(appEnvMock.getS3InterfaceEndpoint()).thenReturn(TEST_S3_INTERFACE_URL);
         when(osisCapsManagerMock.getNotImplements()).thenReturn(new ArrayList<>());
 
         initCreateTenantMocks();
@@ -603,7 +603,7 @@ public class ScalityOsisServiceTest {
         assertEquals(PLATFORM_VERSION, information.getPlatformVersion(), "Invalid Platform Version");
         assertEquals(API_VERSION, information.getApiVersion(), "Invalid API Version");
         assertEquals(Information.StatusEnum.NORMAL, information.getStatus(), "Invalid status");
-        assertEquals(TEST_S3_URL, information.getServices().getS3(), "Invalid S3 URL");
+        assertEquals(TEST_S3_INTERFACE_URL, information.getServices().getS3(), "Invalid S3 URL");
         assertNotNull(information.getNotImplemented(), NULL_ERR);
         assertEquals(domain + IAM_PREFIX,  information.getServices().getIam(), "Invalid IAM URL");
 
@@ -626,7 +626,7 @@ public class ScalityOsisServiceTest {
         assertEquals(PLATFORM_VERSION, information.getPlatformVersion(), "Invalid Platform Version");
         assertEquals(API_VERSION, information.getApiVersion(), "Invalid API Version");
         assertEquals(Information.StatusEnum.NORMAL, information.getStatus(), "Invalid status");
-        assertEquals(TEST_S3_URL, information.getServices().getS3(), "Invalid S3 URL");
+        assertEquals(TEST_S3_INTERFACE_URL, information.getServices().getS3(), "Invalid S3 URL");
         assertNotNull(information.getNotImplemented(), NULL_ERR);
         assertEquals(domain + IAM_PREFIX,  information.getServices().getIam(), "Invalid IAM URL");
     }

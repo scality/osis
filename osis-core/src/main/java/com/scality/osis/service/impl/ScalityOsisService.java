@@ -6,6 +6,7 @@
 
 package com.scality.osis.service.impl;
 
+import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.utils.ScalityUtils;
 import com.google.gson.Gson;
 import com.scality.osis.utils.ScalityModelConverter;
@@ -16,7 +17,6 @@ import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
-import com.vmware.osis.platform.AppEnv;
 import com.vmware.osis.model.*;
 import com.vmware.osis.model.exception.NotImplementedException;
 import com.vmware.osis.resource.OsisCapsManager;
@@ -44,7 +44,7 @@ public class ScalityOsisService implements OsisService {
     private static final String S3_CAPABILITIES_JSON = "s3capabilities.json";
 
     @Autowired
-    private AppEnv appEnv;
+    private ScalityAppEnv appEnv;
 
     @Autowired
     private VaultAdmin vaultAdmin;
@@ -54,7 +54,7 @@ public class ScalityOsisService implements OsisService {
 
     public ScalityOsisService(){}
 
-    public ScalityOsisService(AppEnv appEnv, VaultAdmin vaultAdmin, OsisCapsManager osisCapsManager){
+    public ScalityOsisService(ScalityAppEnv appEnv, VaultAdmin vaultAdmin, OsisCapsManager osisCapsManager){
         this.appEnv = appEnv;
         this.vaultAdmin = vaultAdmin;
         this.osisCapsManager = osisCapsManager;
@@ -278,7 +278,7 @@ public class ScalityOsisService implements OsisService {
                 .apiVersion(appEnv.getApiVersion())
                 .notImplemented(osisCapsManager.getNotImplements())
                 .logoUri(ScalityUtils.getLogoUri(domain))
-                .services(new InformationServices().iam(domain + IAM_PREFIX).s3(appEnv.getS3Endpoint()))
+                .services(new InformationServices().iam(domain + IAM_PREFIX).s3(appEnv.getS3InterfaceEndpoint()))
                 .status(Information.StatusEnum.NORMAL);
     }
 

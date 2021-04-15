@@ -2,8 +2,11 @@ package com.scality.osis.vaultadmin.impl;
 
 import com.amazonaws.Response;
 import com.amazonaws.http.HttpResponse;
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
 import com.scality.osis.vaultadmin.impl.cache.CacheImpl;
+import com.scality.vaultclient.dto.AssumeRoleResult;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
@@ -11,13 +14,13 @@ import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import java.io.IOException;
+import java.util.Date;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.DEFAULT_CACHE_MAX_CAPACITY;
-import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.NAME_LIST_ACCOUNTS_CACHE;
+import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -208,7 +211,7 @@ public class VaultAdminImplTest extends BaseTest {
     @Test
     public void testVaultAdminImplInvalidEndpoint() {
         assertThrows(IllegalArgumentException.class,
-                () -> new VaultAdminImpl(accountServicesClient, "dummy_endpoint"),
+                () -> new VaultAdminImpl(accountServicesClient, stsClient, "dummy_vault_admin_endpoint", s3InterfaceEndpoint),
                 "VaultAdminImpl constructor should throw IllegalArgumentException for null endpoint");
     }
 
@@ -333,5 +336,110 @@ public class VaultAdminImplTest extends BaseTest {
                 .getCustomAttributes().keySet()
                 .stream().findFirst().get()
                 .startsWith(CD_TENANT_ID_PREFIX));
+    }
+
+    @Test
+    public void testGetTempAccountCredentialsEmptyCache() {
+
+        final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
+        when(cacheFactoryMock.getCache(NAME_ASSUME_ROLE_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
+
+        ReflectionTestUtils.setField(vaultAdminImpl, "cacheFactory", cacheFactoryMock);
+        vaultAdminImpl.initCaches();
+
+        final AssumeRoleRequest assumeRoleRequest = new AssumeRoleRequest();
+        assumeRoleRequest.setRoleArn(TEST_ROLE_ARN);
+        assumeRoleRequest.setRoleSessionName(TEST_SESSION_NAME);
+
+        final Credentials response = vaultAdminImpl.getTempAccountCredentials(assumeRoleRequest);
+        assertEquals(TEST_ACCESS_KEY, response.getAccessKeyId());
+        assertEquals(TEST_SECRET_KEY, response.getSecretAccessKey());
+        assertEquals(TEST_SESSION_TOKEN, response.getSessionToken());
+    }
+
+    @Test
+    public void testGetTempAccountCredentialsWithCache() {
+
+        final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
+
+        final CacheImpl<String, Credentials> cache = new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY);
+
+        final Credentials credentials = new Credentials();
+        credentials.setAccessKeyId(TEST_ACCESS_KEY);
+        credentials.setSecretAccessKey(TEST_SECRET_KEY);
+        credentials.setExpiration(new Date());
+        credentials.setSessionToken(TEST_SESSION_TOKEN);
+        cache.put(TEST_ROLE_ARN, credentials);
+
+        when(cacheFactoryMock.getCache(NAME_ASSUME_ROLE_CACHE)).thenReturn(cache);
+
+        ReflectionTestUtils.setField(vaultAdminImpl, "cacheFactory", cacheFactoryMock);
+        vaultAdminImpl.initCaches();
+
+        final AssumeRoleRequest assumeRoleRequest = new AssumeRoleRequest()
+                                                        .withRoleArn(TEST_ROLE_ARN)
+                                                        .withRoleSessionName(TEST_SESSION_NAME);
+
+        final Credentials response = vaultAdminImpl.getTempAccountCredentials(assumeRoleRequest);
+        assertEquals(TEST_ACCESS_KEY, response.getAccessKeyId());
+        assertEquals(TEST_SECRET_KEY, response.getSecretAccessKey());
+        assertEquals(TEST_SESSION_TOKEN, response.getSessionToken());
+    }
+
+    @Test
+    public void assumeRoleBackbeat400ServiceResponse() {
+
+        final AssumeRoleRequest assumeRoleRequest = new AssumeRoleRequest()
+                .withRoleArn(TEST_ROLE_ARN)
+                .withRoleSessionName(TEST_SESSION_NAME);
+
+        when(stsClient.assumeRoleBackbeat(any(AssumeRoleRequest.class)))
+                .thenAnswer((Answer<Response<AssumeRoleResult>>) invocation -> {
+                    final HttpResponse   httpResponse = new HttpResponse(null, null);
+                    httpResponse.setStatusCode(400);
+                    httpResponse.setStatusText("WrongFormat");
+                    return new Response<>(null,httpResponse);
+                });
+
+        final VaultServiceException exception = assertThrows(VaultServiceException.class, () -> {
+            vaultAdminImpl.getTempAccountCredentials(assumeRoleRequest);
+        });
+        assertEquals(400, exception.status());
+        assertEquals("WrongFormat", exception.getMessage());
+
+        //reinit the default mocks
+        initMocks();
+    }
+
+    @Test
+    public void assumeRoleBackbeat500ServiceResponse() {
+
+        final AssumeRoleRequest assumeRoleRequest = new AssumeRoleRequest()
+                .withRoleArn(TEST_ROLE_ARN)
+                .withRoleSessionName(TEST_SESSION_NAME);
+
+        when(stsClient.assumeRoleBackbeat(any(AssumeRoleRequest.class)))
+                .thenAnswer((Answer<Response<AssumeRoleResult>>) invocation -> {
+                    final HttpResponse   httpResponse = new HttpResponse(null, null);
+                    httpResponse.setStatusCode(500);
+                    httpResponse.setStatusText("ServiceFailure");
+                    return new Response<>(null,httpResponse);
+                });
+
+        final VaultServiceException exception = assertThrows(VaultServiceException.class, () -> {
+            vaultAdminImpl.getTempAccountCredentials(assumeRoleRequest);
+        });
+        assertEquals(500, exception.status());
+        assertEquals("ServiceFailure", exception.getMessage());
+
+        //reinit the default mocks
+        initMocks();
+    }
+
+    @Test
+    public void testVaultAdminImplInvalidS3InterfaceEndpoint() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new VaultAdminImpl(accountServicesClient, stsClient, vaultAdminEndpoint, "dummy_endpoint"),
+                "VaultAdminImpl constructor should throw IllegalArgumentException for null endpoint");
     }
 }

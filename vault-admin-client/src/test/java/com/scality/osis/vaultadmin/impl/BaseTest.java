@@ -2,12 +2,16 @@ package com.scality.osis.vaultadmin.impl;
 
 import com.amazonaws.Response;
 import com.amazonaws.http.HttpResponse;
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.vaultclient.dto.AccountData;
+import com.scality.vaultclient.dto.AssumeRoleResult;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
+import com.scality.vaultclient.services.SecurityTokenServicesClient;
 import com.scality.vaultclient.services.VaultClientException;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,12 +27,13 @@ import java.util.*;
 public class BaseTest {
   protected VaultAdminImpl vaultAdminImpl;
   protected static AccountServicesClient accountServicesClient;
+  protected static SecurityTokenServicesClient stsClient;
   protected static OkHttpClient okHttpClient;
   protected static String adminUserId;
   protected static String adminAccessKey;
   protected static String adminSecretKey;
-  protected static String s3Endpoint;
-  protected static String adminEndpoint;
+  protected static String s3InterfaceEndpoint;
+  protected static String vaultAdminEndpoint;
 
   private static final String DEFAULT_TEST_ACCOUNT_ID = "001583654825";
 
@@ -42,6 +47,13 @@ public class BaseTest {
 
   protected static final String ENTITY_EXISTS_ERR = "The request was rejected because it attempted to create a resource that already exists.";
 
+  public static final String TEST_ACCESS_KEY = "access_key";
+  public static final String TEST_SECRET_KEY = "secret_key";
+  public static final String TEST_SESSION_TOKEN = "session_token";
+  public static final String TEST_SESSION_NAME = "session";
+  public static final String TEST_ROLE_ARN = "arn:aws:iam::123123123123:role/osis";
+  public static final String TEST_ASSUMED_USER_ARN = "arn:aws:sts::123123123123:assumed-role/osis/session1";
+
   @BeforeEach
   public void init() throws IOException {
     initProps();
@@ -50,11 +62,13 @@ public class BaseTest {
 
   protected void initMocks() {
     accountServicesClient = mock(AccountServicesClient.class);
+    stsClient = mock(SecurityTokenServicesClient.class);
 
     initCreateAccountMocks();
     initListAccountsMocks();
+    initAssumeRoleMocks();
 
-    vaultAdminImpl = new VaultAdminImpl(accountServicesClient, adminEndpoint);
+    vaultAdminImpl = new VaultAdminImpl(accountServicesClient, stsClient, vaultAdminEndpoint, s3InterfaceEndpoint);
   }
 
   private void initCreateAccountMocks() {
@@ -162,6 +176,30 @@ public class BaseTest {
             });
   }
 
+  private void initAssumeRoleMocks() {
+    //initialize mock assumerolebackbeat response
+    when(stsClient.assumeRoleBackbeat(any(AssumeRoleRequest.class)))
+            .thenAnswer(new Answer<Response<AssumeRoleResult>>() {
+              @Override
+              public Response<AssumeRoleResult> answer(final InvocationOnMock invocation) {
+                final Credentials credentials = new Credentials();
+                credentials.setAccessKeyId(TEST_ACCESS_KEY);
+                credentials.setSecretAccessKey(TEST_SECRET_KEY);
+                credentials.setExpiration(new Date());
+                credentials.setSessionToken(TEST_SESSION_TOKEN);
+
+                final AssumeRoleResult response = new AssumeRoleResult();
+                response.setCredentials(credentials);
+                response.setAssumedRoleUser(TEST_ASSUMED_USER_ARN);
+
+                final HttpResponse httpResponse = new HttpResponse(null, null);
+                httpResponse.setStatusCode(200);
+                httpResponse.setStatusText("OK");
+                return new Response<>(response,httpResponse);
+              }
+    });
+  }
+
   protected void loadExistingAccountErrorMocks() {
     //initialize mock create account response
     when(accountServicesClient.createAccount(any(CreateAccountRequestDTO.class)))
@@ -189,7 +227,7 @@ public class BaseTest {
     adminUserId = properties.getProperty("vault.adminId");
     adminAccessKey = properties.getProperty("vault.adminAccessKey");
     adminSecretKey = properties.getProperty("vault.adminSecretKey");
-    s3Endpoint = properties.getProperty("vault.endpoint");
-    adminEndpoint = properties.getProperty("vault.adminEndpoint");
+    s3InterfaceEndpoint = properties.getProperty("vault.endpoint");
+    vaultAdminEndpoint = properties.getProperty("vault.adminEndpoint");
   }
 }

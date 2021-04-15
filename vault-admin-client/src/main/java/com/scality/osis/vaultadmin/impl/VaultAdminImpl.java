@@ -6,26 +6,30 @@
 package com.scality.osis.vaultadmin.impl;
 
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.scality.osis.vaultadmin.impl.cache.Cache;
 import com.scality.osis.vaultadmin.impl.cache.CacheConstants;
 import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
+import com.scality.vaultclient.dto.AssumeRoleResult;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
-import okhttp3.*;
+import com.scality.vaultclient.services.SecurityTokenServicesClient;
 import com.scality.osis.vaultadmin.VaultAdmin;
+import okhttp3.HttpUrl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.amazonaws.services.securitytoken.model.Credentials;
 
 /**
  * Vault administrator implementation
  *
  * <p>Created by saitharun on 12/16/20.
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings({"deprecation", "unchecked"})
 public class VaultAdminImpl implements VaultAdmin{
   private static final Logger logger = LoggerFactory.getLogger(VaultAdminImpl.class);
 
@@ -33,22 +37,32 @@ public class VaultAdminImpl implements VaultAdmin{
 
   private final AccountServicesClient vaultAccountClient;
 
+  private final SecurityTokenServicesClient vaultSTSClient;
+
   @Autowired
   private CacheFactory cacheFactory;
 
   private Cache<Integer, String> listAccountsMarkerCache;
 
+  private Cache<String, Credentials> assumeRoleCache;
+
   /**
    * Create a Vault administrator implementation
    *  @param accessKey Access key of the admin who have proper administrative capabilities.
    * @param secretKey Secret key of the admin who have proper administrative capabilities.
-   * @param endpoint Vault admin API endpoint, e.g., http://127.0.0.1:80/admin
+   * @param adminEndpoint Vault admin API endpoint, e.g., https://127.0.0.1:8600
+   * @param s3InterfaceEndpoint Vault S3 Interface endpoint, e.g., https://127.0.0.1:8500
    */
-  public VaultAdminImpl(String accessKey, String secretKey, String endpoint) {
-    validEndpoint(endpoint);
+  public VaultAdminImpl(String accessKey, String secretKey, String adminEndpoint, String s3InterfaceEndpoint) {
+    validEndpoint(adminEndpoint);
     this.vaultAccountClient = new AccountServicesClient(
             new BasicAWSCredentials(accessKey, secretKey));
-    vaultAccountClient.setEndpoint(endpoint);
+    vaultAccountClient.setEndpoint(adminEndpoint);
+
+
+    this.vaultSTSClient = new SecurityTokenServicesClient(
+            new BasicAWSCredentials(accessKey, secretKey));
+    vaultSTSClient.setEndpoint(s3InterfaceEndpoint);
 
     initCaches();
   }
@@ -56,18 +70,26 @@ public class VaultAdminImpl implements VaultAdmin{
   /**
    * Create a Vault administrator implementation
    * @param vaultAccountClient Vault Account Service client.
-   * @param endpoint Vault admin API endpoint, e.g., http://127.0.0.1:80/admin
+   * @param adminEndpoint Vault admin API endpoint, e.g., https://127.0.0.1:8600
+   * @param s3InterfaceEndpoint Vault S3 Interface endpoint, e.g., https://127.0.0.1:8500
    */
-  public VaultAdminImpl(AccountServicesClient vaultAccountClient, String endpoint) {
-    validEndpoint(endpoint);
+  public VaultAdminImpl(AccountServicesClient vaultAccountClient, SecurityTokenServicesClient vaultSTSClient,
+                        String adminEndpoint, String s3InterfaceEndpoint) {
+    validEndpoint(adminEndpoint);
     this.vaultAccountClient = vaultAccountClient;
-    vaultAccountClient.setEndpoint(endpoint);
+    vaultAccountClient.setEndpoint(adminEndpoint);
+
+    validEndpoint(s3InterfaceEndpoint);
+    this.vaultSTSClient = vaultSTSClient;
+    vaultSTSClient.setEndpoint(s3InterfaceEndpoint);
+
     initCaches();
   }
 
   public void initCaches() {
     if(cacheFactory !=null) {
       listAccountsMarkerCache = cacheFactory.getCache(CacheConstants.NAME_LIST_ACCOUNTS_CACHE);
+      assumeRoleCache = cacheFactory.getCache(CacheConstants.NAME_ASSUME_ROLE_CACHE);
     }
   }
 
@@ -103,6 +125,16 @@ public class VaultAdminImpl implements VaultAdmin{
   @Override
   public AccountServicesClient getVaultAccountclient() {
     return vaultAccountClient;
+  }
+
+  /**
+   * Returns the vault client to invoke STS services
+   *
+   * @return The vault client object.
+   */
+  @Override
+  public SecurityTokenServicesClient getVaultSTSclient() {
+    return vaultSTSClient;
   }
 
   /**
@@ -200,5 +232,26 @@ public class VaultAdminImpl implements VaultAdmin{
     if(listAccountsMarkerCache != null) {
         listAccountsMarkerCache.put(key, marker);
     }
+  }
+
+  private void cacheAssumeRoleCredentials(String roleArn, Credentials credentials) {
+    if(assumeRoleCache != null) {
+      assumeRoleCache.put(roleArn, credentials);
+    }
+  }
+
+  @Override
+  public Credentials getTempAccountCredentials(AssumeRoleRequest assumeRoleRequest) {
+    Credentials credentials = (assumeRoleCache != null) ? assumeRoleCache.get(assumeRoleRequest.getRoleArn()) : null;
+
+    if(credentials == null) {
+      AssumeRoleResult assumeRoleResult = ExternalServiceFactory.executeVaultService(vaultSTSClient::assumeRoleBackbeat, assumeRoleRequest);
+
+      credentials = assumeRoleResult.getCredentials();
+
+      cacheAssumeRoleCredentials(assumeRoleRequest.getRoleArn(), credentials);
+    }
+
+    return credentials;
   }
 }

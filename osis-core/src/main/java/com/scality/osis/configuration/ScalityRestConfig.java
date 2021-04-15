@@ -28,8 +28,8 @@ public class ScalityRestConfig {
     @Value("${osis.scality.vault.endpoint}")
     private String vaultEndpoint;
 
-    @Value("${osis.scality.s3.endpoint}")
-    private String s3Endpoint;
+    @Value("${osis.scality.vaultS3Interface.endpoint}")
+    private String s3InterfaceEndpoint;
 
     @Bean
     public ClientHttpRequestFactory simpleClientHttpRequestFactory() {
@@ -44,8 +44,8 @@ public class ScalityRestConfig {
         return new VaultAdminBuilder()
                 .setAccessKey(vaultAccessKey)
                 .setSecretKey(vaultSecretKey)
-                .setEndpoint(vaultEndpoint)
-                .setS3Endpoint(s3Endpoint)
+                .setAdminEndpoint(vaultEndpoint)
+                .setS3InterfaceEndpoint(s3InterfaceEndpoint)
                 .build();
     }
 }

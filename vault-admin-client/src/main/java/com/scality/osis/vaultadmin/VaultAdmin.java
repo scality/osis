@@ -5,11 +5,14 @@
 
 package com.scality.osis.vaultadmin;
 
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
+import com.scality.vaultclient.services.SecurityTokenServicesClient;
 
 /**
  * Vault administrator
@@ -39,6 +42,12 @@ public interface VaultAdmin {
    * @return The vault client object.
    */
   AccountServicesClient getVaultAccountclient();
+  /**
+   * Returns the vault client to invoke account services
+   *
+   * @return The vault client object.
+   */
+  SecurityTokenServicesClient getVaultSTSclient();
 
   /**
    * List accounts
@@ -56,4 +65,12 @@ public interface VaultAdmin {
    * @return the list accounts response dto
    */
   ListAccountsResponseDTO listAccounts(long offset, ListAccountsRequestDTO listAccountsRequest);
+
+  /**
+   * Returns the temporary account credentials
+   *
+   * @param assumeRoleRequest the assumeRoleRequest dto with a role arn
+   * @return the credentials object with temporary access key and secret key of the account
+   */
+  Credentials getTempAccountCredentials(AssumeRoleRequest assumeRoleRequest);
 }

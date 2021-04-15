@@ -19,7 +19,8 @@ import java.util.Arrays;
 public class VaultAdminBuilder {
   private String accessKey;
   private String secretKey;
-  private String endpoint;
+  private String adminEndpoint;
+  private String s3InterfaceEndpoint;
 
   /**
    * Sets the access key to be used by the client.
@@ -58,11 +59,26 @@ public class VaultAdminBuilder {
    *
    * <p>Note that the admin API in the corresponding Radosgw should be enabled.
    *
+   * @param adminEndpoint Endpoint to use.
+   * @return This object for method chaining.
+   */
+  public VaultAdminBuilder setAdminEndpoint(String adminEndpoint) {
+    this.adminEndpoint = adminEndpoint;
+    return this;
+  }
+
+  /**
+   * Sets the endpoint to be used for requests.
+   *
+   * <p>For example: http://127.0.0.1:80/admin
+   *
+   * <p>Note that the admin API in the corresponding Radosgw should be enabled.
+   *
    * @param endpoint Endpoint to use.
    * @return This object for method chaining.
    */
-  public VaultAdminBuilder setEndpoint(String endpoint) {
-    this.endpoint = endpoint;
+  public VaultAdminBuilder setS3InterfaceEndpoint(String s3InterfaceEndpoint) {
+    this.s3InterfaceEndpoint = s3InterfaceEndpoint;
     return this;
   }
 
@@ -72,9 +88,9 @@ public class VaultAdminBuilder {
    * @return Client instance to make API calls with.
    */
   public VaultAdmin build() {
-    if (Arrays.asList(accessKey, secretKey, endpoint).stream().anyMatch(Strings::isNullOrEmpty)) {
+    if (Arrays.asList(accessKey, secretKey, adminEndpoint, s3InterfaceEndpoint).stream().anyMatch(Strings::isNullOrEmpty)) {
       throw new IllegalArgumentException("Missing required parameter to build the instance.");
     }
-    return new VaultAdminImpl(accessKey, secretKey, endpoint);
+    return new VaultAdminImpl(accessKey, secretKey, adminEndpoint, s3InterfaceEndpoint);
   }
 }

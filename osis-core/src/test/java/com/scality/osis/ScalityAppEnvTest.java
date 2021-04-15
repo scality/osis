@@ -101,24 +101,24 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetS3Endpoint() {
+    public void testGetS3InterfaceEndpoint() {
         // Setup
-        when(mockEnv.getProperty("osis.scality.s3.endpoint")).thenReturn(TEST_RESULT);
+        when(mockEnv.getProperty("osis.scality.vaultS3Interface.endpoint")).thenReturn(TEST_RESULT);
 
         // Run the test
-        final String result = appEnvUnderTest.getS3Endpoint();
+        final String result = appEnvUnderTest.getS3InterfaceEndpoint();
 
         // Verify the results
-        assertEquals(result, TEST_RESULT, "testGetS3Endpoint failed");
+        assertEquals(result, TEST_RESULT, "testGetS3InterfaceEndpoint failed");
     }
 
     @Test
-    public void testGetS3EndpointEnvironmentReturnsNull() {
+    public void testGetS3InterfaceEndpointEnvironmentReturnsNull() {
         // Setup
-        when(mockEnv.getProperty("osis.scality.s3.endpoint")).thenReturn(null);
+        when(mockEnv.getProperty("osis.scality.vaultS3Interface.endpoint")).thenReturn(null);
 
         // Run the test
-        final String result = appEnvUnderTest.getS3Endpoint();
+        final String result = appEnvUnderTest.getS3InterfaceEndpoint();
 
         // Verify the results
         assertNull(result, TEST_RESULT_NULL_ERR);

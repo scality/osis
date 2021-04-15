@@ -16,7 +16,8 @@ public class VaultAdminBuilderTest {
     @BeforeEach
     public void setUp() {
         vaultAdminBuilderUnderTest = new VaultAdminBuilder();
-        vaultAdminBuilderUnderTest.setEndpoint(TEST_END_POINT);
+        vaultAdminBuilderUnderTest.setAdminEndpoint(TEST_END_POINT);
+        vaultAdminBuilderUnderTest.setS3InterfaceEndpoint(TEST_END_POINT);
         vaultAdminBuilderUnderTest.setAccessKey(TEST_ACCESS_KEY);
         vaultAdminBuilderUnderTest.setSecretKey(TEST_SECRET_KEY);
     }
