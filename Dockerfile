@@ -1,4 +1,4 @@
-FROM gradle:jdk8-openj9 AS gradle-build
+FROM gradle:6.7.1-jdk8-openj9 AS gradle-build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle bootJar
