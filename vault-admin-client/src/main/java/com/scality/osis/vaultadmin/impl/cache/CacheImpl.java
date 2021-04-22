@@ -29,9 +29,9 @@ public class CacheImpl<K, V> implements Cache<K,V> {
      */
     private final int maxCapacity;
     /**
-     * expiration time for each entrant of the cache
+     * ttl for each entrant of the cache
      */
-    private long expirationTime;
+    private long ttl;
     private final Map<K, V> internalCache;
     private final Queue<K> trackingQueue;
 
@@ -45,16 +45,16 @@ public class CacheImpl<K, V> implements Cache<K,V> {
     private final ScheduledExecutorService scheduledExecutorService;
 
     public CacheImpl(int maxCapacity){
-        this(maxCapacity, DEFAULT_EXPIRY_TIME_IN_MS);
+        this(maxCapacity, DEFAULT_CACHE_TTL_IN_MS);
     }
 
-    public CacheImpl(int maxCapacity, long expirationTime){
-        if (maxCapacity < 0 || expirationTime < 0L) {
+    public CacheImpl(int maxCapacity, long ttl){
+        if (maxCapacity < 0 || ttl < 0L) {
             throw new IllegalArgumentException("Illegal max capacity: " + maxCapacity);
         }
 
         this.maxCapacity = maxCapacity;
-        this.expirationTime = expirationTime;
+        this.ttl = ttl;
         internalCache = new ConcurrentHashMap<>(maxCapacity);
         trackingQueue = new ConcurrentLinkedQueue<>();
         scheduledExecutorService = Executors.newScheduledThreadPool(DEFAULT_SCHEDULED_THREAD_POOL_SIZE);
@@ -111,8 +111,8 @@ public class CacheImpl<K, V> implements Cache<K,V> {
             internalCache.put(key, value);
             trackingQueue.add(key);
 
-            if (expirationTime > 0) {
-                removeAfterExpireTime(key, expirationTime);
+            if (ttl > 0) {
+                removeAfterExpireTime(key, ttl);
             }
         } finally {
             writeLock.unlock();

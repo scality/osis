@@ -51,8 +51,8 @@ public class VaultAdminEnv {
      * @return the integer
      */
     public Long getListAccountsCacheExpiration(){
-        return StringUtils.isEmpty(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_EXPIRATION))
-                ? null : Long.parseLong(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_EXPIRATION));
+        return StringUtils.isEmpty(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_CACHE_TTL))
+                ? null : Long.parseLong(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_CACHE_TTL));
     }
 
     /**
@@ -71,8 +71,8 @@ public class VaultAdminEnv {
      * @return the integer
      */
     public Long getAssumeRoleCacheExpiration(){
-        return StringUtils.isEmpty(env.getProperty(CacheConstants.ENV_ASSUME_ROLE_EXPIRATION))
-                ? null : Long.parseLong(env.getProperty(CacheConstants.ENV_ASSUME_ROLE_EXPIRATION));
+        return StringUtils.isEmpty(env.getProperty(CacheConstants.ENV_ASSUME_ROLE_CACHE_TTL))
+                ? null : Long.parseLong(env.getProperty(CacheConstants.ENV_ASSUME_ROLE_CACHE_TTL));
     }
 
 }

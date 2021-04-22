@@ -46,10 +46,10 @@ public class VaultAdminEnvTest {
     @Test
     public void testGetListAccountsExpiration() {
         // Setup
-        when(envMock.getProperty(ENV_LIST_ACCOUNT_EXPIRATION)).thenReturn((int)DEFAULT_EXPIRY_TIME_IN_MS + "");
+        when(envMock.getProperty(ENV_LIST_ACCOUNT_CACHE_TTL)).thenReturn((int) DEFAULT_CACHE_TTL_IN_MS + "");
 
         // Run the test
-        assertEquals((int)DEFAULT_EXPIRY_TIME_IN_MS, vaultAdminEnv.getListAccountsCacheExpiration());
+        assertEquals((int) DEFAULT_CACHE_TTL_IN_MS, vaultAdminEnv.getListAccountsCacheExpiration());
     }
 
     @Test
@@ -64,9 +64,9 @@ public class VaultAdminEnvTest {
     @Test
     public void testGetAssumeRoleCacheExpiration() {
         // Setup
-        when(envMock.getProperty(ENV_ASSUME_ROLE_EXPIRATION)).thenReturn((int)DEFAULT_EXPIRY_TIME_IN_MS + "");
+        when(envMock.getProperty(ENV_ASSUME_ROLE_CACHE_TTL)).thenReturn((int) DEFAULT_CACHE_TTL_IN_MS + "");
 
         // Run the test
-        assertEquals((int)DEFAULT_EXPIRY_TIME_IN_MS, vaultAdminEnv.getAssumeRoleCacheExpiration());
+        assertEquals((int) DEFAULT_CACHE_TTL_IN_MS, vaultAdminEnv.getAssumeRoleCacheExpiration());
     }
 }
