@@ -5,28 +5,24 @@
 
 package com.scality.osis.vaultadmin.impl;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 /**
  * Represents Vault admin errors
  *
  * <p>Created by saitharun on 12/24/20.
  */
 @SuppressWarnings("SameParameterValue")
-public class VaultServiceException extends RuntimeException {
+public class VaultServiceException extends ResponseStatusException {
 
   private static final long serialVersionUID = 8292089200348420677L;
-  private final int statusCode;
 
-  public VaultServiceException(int statusCode, String messageCode) {
-    super(messageCode);
-    this.statusCode = statusCode;
+  public VaultServiceException(HttpStatus status, String message) {
+    super(status, message);
   }
 
-  public VaultServiceException(int statusCode, String messageCode, Throwable cause) {
-    super(messageCode, cause);
-    this.statusCode = statusCode;
-  }
-
-  public int status() {
-    return statusCode;
+  public VaultServiceException(HttpStatus status, String messageCode, Throwable cause) {
+    super(status, messageCode, cause);
   }
 }

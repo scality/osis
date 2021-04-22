@@ -8,6 +8,7 @@ package com.scality.osis.vaultadmin.impl;
 import com.amazonaws.Response;
 import com.scality.osis.vaultadmin.utils.ErrorUtils;
 import com.scality.vaultclient.services.VaultClientException;
+import org.springframework.http.HttpStatus;
 
 import java.util.function.Function;
 
@@ -37,7 +38,7 @@ public final class ExternalServiceFactory {
         }catch (VaultClientException e){
             throw ErrorUtils.parseError(e);
         } catch (Exception e) {
-            throw new VaultServiceException(500, "Exception", e);
+            throw new VaultServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "Exception", e);
         }
     }
 }

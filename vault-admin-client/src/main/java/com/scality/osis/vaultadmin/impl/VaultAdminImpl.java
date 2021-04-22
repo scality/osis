@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import org.springframework.http.HttpStatus;
 
 /**
  * Vault administrator implementation
@@ -219,7 +220,7 @@ public class VaultAdminImpl implements VaultAdmin{
             cacheListAccountsMarker(listAccountsResponse.getAccounts().size(), marker);
 
           } else{
-            throw new VaultServiceException(400, "Requested offset is outside the total available items");
+            throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Requested offset is outside the total available items");
           }
 
         }

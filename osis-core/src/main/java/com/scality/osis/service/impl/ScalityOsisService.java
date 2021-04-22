@@ -86,7 +86,8 @@ public class ScalityOsisService implements OsisService {
             return resOsisTenant;
         } catch (VaultServiceException e){
             // Create Tenant supports only 400:BAD_REQUEST error, change status code in the VaultServiceException
-            throw new VaultServiceException(HttpStatus.BAD_REQUEST.value(), e.getMessage(), e);
+            logger.error("Create Tenant error. Error details: ", e);
+            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         }
     }
 

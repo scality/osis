@@ -18,6 +18,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 import com.scality.osis.vaultadmin.impl.VaultAdminImpl;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.*;
@@ -178,11 +179,11 @@ public class ScalityOsisServiceTest {
     }
 
     @Test
-    public void testCreateTenant500(){
+    public void testCreateTenant409(){
 
         when(vaultAdminMock.createAccount(any(CreateAccountRequestDTO.class)))
                 .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
-                    throw new VaultServiceException(500, "EntityAlreadyExists");
+                    throw new VaultServiceException(HttpStatus.CONFLICT, "EntityAlreadyExists");
                 });
 
         assertThrows(VaultServiceException.class, () -> {
@@ -198,7 +199,7 @@ public class ScalityOsisServiceTest {
 
         when(vaultAdminMock.createAccount(any(CreateAccountRequestDTO.class)))
                 .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
-                    throw new VaultServiceException(400, "Bad Request");
+                    throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Bad Request");
                 });
 
         assertThrows(VaultServiceException.class, () -> {
@@ -251,7 +252,7 @@ public class ScalityOsisServiceTest {
         final long limit = 1000L;
         when(vaultAdminMock.listAccounts(anyLong(),any(ListAccountsRequestDTO.class)))
                 .thenAnswer((Answer<ListAccountsResponseDTO>) invocation -> {
-                    throw new VaultServiceException(400, "Requested offset is outside the total available items");
+                    throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Requested offset is outside the total available items");
                 });
 
         final PageOfTenants response = scalityOsisServiceUnderTest.listTenants(offset, limit);
@@ -330,7 +331,7 @@ public class ScalityOsisServiceTest {
 
         when(vaultAdminMock.listAccounts(anyLong(),any(ListAccountsRequestDTO.class)))
                 .thenAnswer((Answer<ListAccountsResponseDTO>) invocation -> {
-                    throw new VaultServiceException(400, "Requested offset is outside the total available items");
+                    throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Requested offset is outside the total available items");
                 });
 
         final PageOfTenants response = scalityOsisServiceUnderTest.queryTenants(offset, limit, filter);
