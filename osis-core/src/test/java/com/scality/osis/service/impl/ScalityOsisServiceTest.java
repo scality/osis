@@ -80,6 +80,9 @@ public class ScalityOsisServiceTest {
         initCreateRoleMocks();
         initAttachRolePolicyMocks();
         initDeleteAccessKeyMocks();
+        initGetPolicyMocks();
+        initCreateAccessRequestMocks();
+        initCreateUserMocks();
         initCaches();
     }
 
@@ -222,6 +225,49 @@ public class ScalityOsisServiceTest {
                 });
     }
 
+    private void initCreateUserMocks() {
+
+        when(iamMock.createUser(any(CreateUserRequest.class)))
+                .thenAnswer((Answer<CreateUserResult>) invocation -> {
+                    final CreateUserRequest request = invocation.getArgument(0);
+                    final User user = new User()
+                            .withUserId(TEST_USER_ID)
+                            .withUserName(request.getUserName())
+                            .withPath(request.getPath())
+                            .withCreateDate(new Date());
+                    final CreateUserResult response = new CreateUserResult()
+                            .withUser(user);
+                    return response;
+                });
+    }
+
+    private void initGetPolicyMocks() {
+        when(iamMock.getPolicy(any(GetPolicyRequest.class)))
+                .thenAnswer((Answer<GetPolicyResult>) invocation -> {
+                    final GetPolicyRequest request = invocation.getArgument(0);
+                    final GetPolicyResult response = new GetPolicyResult();
+                    final Policy policy = new Policy()
+                            .withArn(request.getPolicyArn());
+                    response.setPolicy(policy);
+                    return response;
+                });
+    }
+
+    private void initCreateAccessRequestMocks() {
+        when(iamMock.createAccessKey(any(CreateAccessKeyRequest.class)))
+                .thenAnswer((Answer<CreateAccessKeyResult>) invocation -> {
+                    final CreateAccessKeyRequest request = invocation.getArgument(0);
+                    final AccessKey accessKeyObj = new AccessKey()
+                            .withAccessKeyId(TEST_ACCESS_KEY)
+                            .withSecretAccessKey(TEST_SECRET_KEY)
+                            .withCreateDate(new Date())
+                            .withUserName(request.getUserName());
+                    final CreateAccessKeyResult response = new CreateAccessKeyResult()
+                            .withAccessKey(accessKeyObj);
+                    return response;
+                });
+    }
+
     private void initCaches() {
         final CacheFactory cacheFactoryMock = mock(CacheFactory.class);
         when(cacheFactoryMock.getCache(NAME_LIST_ACCOUNTS_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
@@ -282,8 +328,6 @@ public class ScalityOsisServiceTest {
             scalityOsisServiceUnderTest.createTenant(createSampleOsisTenantObj());
         });
 
-        //resetting mocks to original
-        initMocks();
     }
 
     @Test
@@ -424,21 +468,47 @@ public class ScalityOsisServiceTest {
     public void testCreateUser() {
         // Setup
         final OsisUser osisUser = new OsisUser();
-        osisUser.userId(TEST_USER_ID);
         osisUser.setUserId(TEST_USER_ID);
-        osisUser.canonicalUserId("canonicalUserId");
-        osisUser.setCanonicalUserId("canonicalUserId");
-        osisUser.tenantId(TEST_TENANT_ID);
+        osisUser.setCanonicalUserId(TEST_USER_ID);
         osisUser.setTenantId(TEST_TENANT_ID);
-        osisUser.active(false);
-        osisUser.setActive(false);
-        osisUser.cdUserId("cdUserId");
-        osisUser.setCdUserId("cdUserId");
+        osisUser.setCdTenantId(TEST_TENANT_ID);
+        osisUser.setActive(true);
+        osisUser.setCdUserId(TEST_USER_ID);
+        osisUser.setRole(OsisUser.RoleEnum.TENANT_USER);
+        osisUser.setUsername(TEST_NAME);
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.createUser(osisUser), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        final OsisUser result = scalityOsisServiceUnderTest.createUser(osisUser);
 
         // Verify the results
+        assertEquals(TEST_USER_ID, result.getCdUserId());
+        assertEquals(TEST_USER_ID, result.getUserId());
+        assertEquals(TEST_NAME, result.getUsername());
+        assertEquals(TEST_TENANT_ID, result.getCdTenantId());
+        assertEquals(TEST_TENANT_ID, result.getTenantId());
+        assertEquals(TEST_NAME, result.getOsisS3Credentials().get(0).getUsername(), "Invalid getOsisS3Credentials username");
+        assertEquals(TEST_USER_ID, result.getOsisS3Credentials().get(0).getUserId(), "Invalid getOsisS3Credentials getUserId");
+        assertEquals(TEST_USER_ID, result.getOsisS3Credentials().get(0).getCdUserId(), "Invalid getOsisS3Credentials getCdUserId");
+        assertEquals(TEST_SECRET_KEY, result.getOsisS3Credentials().get(0).getSecretKey(), "Invalid getOsisS3Credentials getSecretKey");
+        assertEquals(TEST_ACCESS_KEY, result.getOsisS3Credentials().get(0).getAccessKey(), "Invalid getOsisS3Credentials getAccessKey");
+        assertEquals(TEST_TENANT_ID, result.getOsisS3Credentials().get(0).getTenantId(), "Invalid getOsisS3Credentials getTenantId");
+        assertEquals(TEST_TENANT_ID, result.getOsisS3Credentials().get(0).getCdTenantId(), "Invalid getOsisS3Credentials getCdTenantId");
+        assertTrue(result.getActive());
+    }
+
+    @Test
+    public void testCreateUser400() {
+        // Setup
+        when(iamMock.createUser(any(CreateUserRequest.class)))
+                .thenAnswer((Answer<CreateUserResult>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Bad Request");
+                });
+
+        // Run the test
+        // Verify the results
+        assertThrows(VaultServiceException.class, () -> {
+            scalityOsisServiceUnderTest.createUser(new OsisUser());
+        });
     }
 
     @Test
@@ -768,6 +838,50 @@ public class ScalityOsisServiceTest {
         verify(iamMock).createPolicy(any(CreatePolicyRequest.class));
         verify(iamMock).attachRolePolicy(any(AttachRolePolicyRequest.class));
         verify(iamMock).deleteAccessKey(any(DeleteAccessKeyRequest.class));
+    }
+
+    @Test
+    public void testGetOrCreateUserPolicy1() {
+        // Setup
+        // Run the test
+        final Policy policy = scalityOsisServiceUnderTest.getOrCreateUserPolicy(iamMock, TEST_TENANT_ID);
+
+        // Verify the results
+        assertEquals("arn:aws:iam::" + TEST_TENANT_ID +":policy/userPolicy@" + TEST_TENANT_ID, policy.getArn(), "Invalid Policy arn");
+    }
+
+    @Test
+    public void testGetOrCreateUserPolicy2() {
+        // Setup
+        // Modify get policy to return no entity found
+        when(iamMock.getPolicy(any()))
+                .thenAnswer((Answer<GetPolicyResult>) invocation -> {
+                    throw new NoSuchEntityException("Entity does not exist");
+                });
+        // Run the test
+        final Policy policy = scalityOsisServiceUnderTest.getOrCreateUserPolicy(iamMock, TEST_TENANT_ID);
+
+        // Verify the results
+        assertEquals("arn:aws:iam::" + TEST_TENANT_ID +":policy/userPolicy@" + TEST_TENANT_ID, policy.getArn(), "Invalid Policy arn");
+        assertEquals("userPolicy@" + TEST_TENANT_ID, policy.getPolicyName(), "Invalid Policy name");
+    }
+
+    @Test
+    public void testCreateOsisCredential() {
+        // Setup
+        // Modify get policy to return no entity found
+
+        // Run the test
+        final OsisS3Credential osisCredential = scalityOsisServiceUnderTest.createOsisCredential(TEST_TENANT_ID, TEST_USER_ID, TEST_TENANT_ID, TEST_NAME, iamMock);
+
+        // Verify the results
+        assertEquals(TEST_NAME, osisCredential.getUsername(), "Invalid username");
+        assertEquals(TEST_USER_ID, osisCredential.getUserId(), "Invalid getUserId");
+        assertEquals(TEST_USER_ID, osisCredential.getCdUserId(), "Invalid getCdUserId");
+        assertEquals(TEST_SECRET_KEY, osisCredential.getSecretKey(), "Invalid getSecretKey");
+        assertEquals(TEST_ACCESS_KEY, osisCredential.getAccessKey(), "Invalid getAccessKey");
+        assertEquals(TEST_TENANT_ID, osisCredential.getTenantId(), "Invalid getTenantId");
+        assertEquals(TEST_TENANT_ID, osisCredential.getCdTenantId(), "Invalid getCdTenantId");
     }
 
 
