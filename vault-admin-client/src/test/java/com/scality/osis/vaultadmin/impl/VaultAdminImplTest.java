@@ -74,8 +74,8 @@ public class VaultAdminImplTest extends BaseTest {
         final VaultServiceException exception = assertThrows(VaultServiceException.class, () -> {
             vaultAdminImpl.createAccount(createAccountRequestDTO);
         });
-        assertEquals(409, exception.status());
-        assertEquals("EntityAlreadyExists", exception.getMessage());
+        assertEquals(409, exception.getStatus().value());
+        assertEquals("EntityAlreadyExists", exception.getReason());
 
         //reinit the default mocks
         initMocks();
@@ -102,8 +102,8 @@ public class VaultAdminImplTest extends BaseTest {
         final VaultServiceException exception = assertThrows(VaultServiceException.class, () -> {
             vaultAdminImpl.createAccount(createAccountRequestDTO);
         });
-        assertEquals(500, exception.status());
-        assertEquals("Exception", exception.getMessage());
+        assertEquals(500, exception.getStatus().value());
+        assertEquals("Exception", exception.getReason());
 
         //reinit the default mocks
         initMocks();
@@ -132,8 +132,8 @@ public class VaultAdminImplTest extends BaseTest {
         final VaultServiceException exception = assertThrows(VaultServiceException.class, () -> {
             vaultAdminImpl.createAccount(createAccountRequestDTO);
         });
-        assertEquals(403, exception.status());
-        assertEquals("Forbidden", exception.getMessage());
+        assertEquals(403, exception.getStatus().value());
+        assertEquals("Forbidden", exception.getReason());
 
         //reinit the default mocks
         initMocks();
@@ -175,8 +175,8 @@ public class VaultAdminImplTest extends BaseTest {
         final VaultServiceException exception = assertThrows(VaultServiceException.class, () -> {
             vaultAdminImpl.listAccounts(listAccountsRequestDTO);
         });
-        assertEquals(400, exception.status());
-        assertEquals("WrongFormat", exception.getMessage());
+        assertEquals(400, exception.getStatus().value());
+        assertEquals("WrongFormat", exception.getReason());
 
         //reinit the default mocks
         initMocks();
@@ -201,8 +201,8 @@ public class VaultAdminImplTest extends BaseTest {
         final VaultServiceException exception = assertThrows(VaultServiceException.class, () -> {
             vaultAdminImpl.listAccounts(listAccountsRequestDTO);
         });
-        assertEquals(500, exception.status());
-        assertEquals("ServiceFailure", exception.getMessage());
+        assertEquals(500, exception.getStatus().value());
+        assertEquals("ServiceFailure", exception.getReason());
 
         //reinit the default mocks
         initMocks();
@@ -404,8 +404,8 @@ public class VaultAdminImplTest extends BaseTest {
         final VaultServiceException exception = assertThrows(VaultServiceException.class, () -> {
             vaultAdminImpl.getTempAccountCredentials(assumeRoleRequest);
         });
-        assertEquals(400, exception.status());
-        assertEquals("WrongFormat", exception.getMessage());
+        assertEquals(400, exception.getStatus().value());
+        assertEquals("WrongFormat", exception.getReason());
 
         //reinit the default mocks
         initMocks();
@@ -429,8 +429,8 @@ public class VaultAdminImplTest extends BaseTest {
         final VaultServiceException exception = assertThrows(VaultServiceException.class, () -> {
             vaultAdminImpl.getTempAccountCredentials(assumeRoleRequest);
         });
-        assertEquals(500, exception.status());
-        assertEquals("ServiceFailure", exception.getMessage());
+        assertEquals(500, exception.getStatus().value());
+        assertEquals("ServiceFailure", exception.getReason());
 
         //reinit the default mocks
         initMocks();

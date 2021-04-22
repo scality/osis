@@ -23,7 +23,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Vault administrator implementation
@@ -31,6 +35,7 @@ import org.springframework.http.HttpStatus;
  * <p>Created by saitharun on 12/16/20.
  */
 @SuppressWarnings({"deprecation", "unchecked"})
+@Component
 public class VaultAdminImpl implements VaultAdmin{
   private static final Logger logger = LoggerFactory.getLogger(VaultAdminImpl.class);
 
@@ -39,6 +44,9 @@ public class VaultAdminImpl implements VaultAdmin{
   private final AccountServicesClient vaultAccountClient;
 
   private final SecurityTokenServicesClient vaultSTSClient;
+
+
+  private String vaultAdminEndpoint;
 
   @Autowired
   private CacheFactory cacheFactory;
@@ -51,21 +59,22 @@ public class VaultAdminImpl implements VaultAdmin{
    * Create a Vault administrator implementation
    *  @param accessKey Access key of the admin who have proper administrative capabilities.
    * @param secretKey Secret key of the admin who have proper administrative capabilities.
-   * @param adminEndpoint Vault admin API endpoint, e.g., https://127.0.0.1:8600
-   * @param s3InterfaceEndpoint Vault S3 Interface endpoint, e.g., https://127.0.0.1:8500
+   * @param vaultAdminEndpoint Vault admin API endpoint, e.g., http://127.0.0.1:8600
+   * @param s3InterfaceEndpoint Vault S3 Interface endpoint, e.g., http://127.0.0.1:8500
    */
-  public VaultAdminImpl(String accessKey, String secretKey, String adminEndpoint, String s3InterfaceEndpoint) {
-    validEndpoint(adminEndpoint);
+  @Autowired
+  public VaultAdminImpl(@Value("${osis.scality.vault.access-key}") String accessKey, @Value("${osis.scality.vault.secret-key}") String secretKey, @Value("${osis.scality.vault.endpoint}") String vaultAdminEndpoint, @Value("${osis.scality.s3.endpoint}") String s3InterfaceEndpoint) {
+    validEndpoint(vaultAdminEndpoint);
+    this.vaultAdminEndpoint = vaultAdminEndpoint;
     this.vaultAccountClient = new AccountServicesClient(
             new BasicAWSCredentials(accessKey, secretKey));
-    vaultAccountClient.setEndpoint(adminEndpoint);
+    vaultAccountClient.setEndpoint(vaultAdminEndpoint);
 
 
     this.vaultSTSClient = new SecurityTokenServicesClient(
             new BasicAWSCredentials(accessKey, secretKey));
     vaultSTSClient.setEndpoint(s3InterfaceEndpoint);
 
-    initCaches();
   }
 
   /**
@@ -77,16 +86,16 @@ public class VaultAdminImpl implements VaultAdmin{
   public VaultAdminImpl(AccountServicesClient vaultAccountClient, SecurityTokenServicesClient vaultSTSClient,
                         String adminEndpoint, String s3InterfaceEndpoint) {
     validEndpoint(adminEndpoint);
+    vaultAdminEndpoint = adminEndpoint;
     this.vaultAccountClient = vaultAccountClient;
     vaultAccountClient.setEndpoint(adminEndpoint);
 
     validEndpoint(s3InterfaceEndpoint);
     this.vaultSTSClient = vaultSTSClient;
     vaultSTSClient.setEndpoint(s3InterfaceEndpoint);
-
-    initCaches();
   }
 
+  @PostConstruct
   public void initCaches() {
     if(cacheFactory !=null) {
       listAccountsMarkerCache = cacheFactory.getCache(CacheConstants.NAME_LIST_ACCOUNTS_CACHE);

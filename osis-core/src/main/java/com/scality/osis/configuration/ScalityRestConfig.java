@@ -6,10 +6,6 @@
 
 package com.scality.osis.configuration;
 
-
-import com.scality.osis.vaultadmin.VaultAdmin;
-import com.scality.osis.vaultadmin.VaultAdminBuilder;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -17,19 +13,6 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
 @Configuration
 public class ScalityRestConfig {
-
-
-    @Value("${osis.scality.vault.access-key}")
-    private String vaultAccessKey;
-
-    @Value("${osis.scality.vault.secret-key}")
-    private String vaultSecretKey;
-
-    @Value("${osis.scality.vault.endpoint}")
-    private String vaultEndpoint;
-
-    @Value("${osis.scality.vaultS3Interface.endpoint}")
-    private String s3InterfaceEndpoint;
 
     @Bean
     public ClientHttpRequestFactory simpleClientHttpRequestFactory() {
@@ -39,13 +22,4 @@ public class ScalityRestConfig {
         return factory;
     }
 
-    @Bean
-    public VaultAdmin getVaultAdmin() {
-        return new VaultAdminBuilder()
-                .setAccessKey(vaultAccessKey)
-                .setSecretKey(vaultSecretKey)
-                .setAdminEndpoint(vaultEndpoint)
-                .setS3InterfaceEndpoint(s3InterfaceEndpoint)
-                .build();
-    }
 }
