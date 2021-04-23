@@ -9,6 +9,7 @@ package com.scality.osis.service.impl;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import com.amazonaws.util.StringUtils;
 import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.utils.ScalityUtils;
 import com.google.gson.Gson;
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 
 import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
@@ -170,7 +172,56 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public OsisUser createUser(OsisUser osisUser) {
-        throw new NotImplementedException();
+        try {
+            logger.info("Create User request received:{}", new Gson().toJson(osisUser));
+
+            Credentials tempCredentials = getCredentials(osisUser.getTenantId());
+            final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
+
+            CreateUserRequest createUserRequest =  ScalityModelConverter.toCreateUserRequest(osisUser);
+            logger.debug("[Vault] Create User Request:{}", new Gson().toJson(createUserRequest));
+
+            CreateUserResult createUserResult = iam.createUser(createUserRequest);
+
+            logger.debug("[Vault] Create User response:{}", new Gson().toJson(createUserResult));
+
+            OsisUser resOsisUser = null;
+
+            if( null != createUserResult) {
+
+                resOsisUser = ScalityModelConverter.toOsisUser(createUserResult, osisUser.getTenantId());
+
+                /** Get userpolicy@<Account_id> **/
+                Policy userPolicy = getOrCreateUserPolicy(iam, resOsisUser.getTenantId());
+
+                /** Attach user policy to the user **/
+                AttachUserPolicyRequest attachUserPolicyRequest = ScalityModelConverter.toAttachUserPolicyRequest(userPolicy.getArn(), resOsisUser.getUserId());
+                logger.debug("[Vault] Attach User Policy Request:{}", new Gson().toJson(attachUserPolicyRequest));
+
+                AttachUserPolicyResult attachUserPolicyResult = iam.attachUserPolicy(attachUserPolicyRequest);
+                logger.debug("[Vault] Attach User Policy response:{}", new Gson().toJson(attachUserPolicyResult));
+
+                /** Create User Access Key for the user **/
+                OsisS3Credential osisCredential = createOsisCredential(
+                        resOsisUser.getTenantId(),
+                        resOsisUser.getUserId(),
+                        resOsisUser.getCdTenantId(),
+                        resOsisUser.getUsername(),
+                        iam);
+
+                resOsisUser.setOsisS3Credentials(Arrays.asList(osisCredential));
+
+                logger.info("Create User response:{}", new Gson().toJson(resOsisUser));
+            }
+
+            return resOsisUser;
+
+        } catch (Exception e){
+            // Create User supports only 400:BAD_REQUEST error, change status code in the VaultServiceException
+            logger.error("Create User error. Error details: ", e);
+            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        }
+
     }
 
     @Override
@@ -311,5 +362,54 @@ public class ScalityOsisService implements OsisService {
 
     public Credentials getCredentials(String accountID) {
         return vaultAdmin.getTempAccountCredentials(ScalityModelConverter.getAssumeRoleRequestForAccount(accountID, appEnv.getAssumeRoleName()));
+    }
+
+    public OsisS3Credential createOsisCredential(String tenantId, String userId, String cdTenantId, String username, AmazonIdentityManagement iam) {
+
+        CreateAccessKeyRequest createAccessKeyRequest =  ScalityModelConverter.toCreateUserAccessKeyRequest(userId);
+
+        logger.debug("[Vault] Create User Access Key Request:{}", new Gson().toJson(createAccessKeyRequest));
+
+        CreateAccessKeyResult createAccessKeyResult = iam.createAccessKey(createAccessKeyRequest);
+
+        logger.debug("[Vault] Create User Access Key response:{}", new Gson().toJson(createAccessKeyResult));
+
+        return ScalityModelConverter.toOsisS3Credentials(cdTenantId,
+                tenantId,
+                username,
+                createAccessKeyResult);
+    }
+
+    public Policy getOrCreateUserPolicy(AmazonIdentityManagement iam, String tenantId) {
+        Policy userPolicy = null;
+
+        GetPolicyRequest getPolicyRequest = ScalityModelConverter.toGetPolicyRequest(tenantId);
+
+        logger.debug("[Vault] Get Policy Request:{}", new Gson().toJson(getPolicyRequest));
+
+        try {
+            GetPolicyResult getPolicyResult = iam.getPolicy(getPolicyRequest);
+
+            logger.debug("[Vault] Get Policy response:{}", new Gson().toJson(getPolicyResult));
+
+            userPolicy = getPolicyResult.getPolicy();
+
+        } catch(com.amazonaws.services.identitymanagement.model.NoSuchEntityException e){
+            /** Policy does not exists **/
+            logger.debug("[Vault] User policy does not exists.", e);
+        }
+
+        if(userPolicy == null || StringUtils.isNullOrEmpty(userPolicy.getArn())){
+            /** Create a new policy with necessary permissions **/
+            CreatePolicyRequest createPolicyRequest = ScalityModelConverter.toCreateUserPolicyRequest(tenantId);
+            logger.debug("[Vault] Create Policy Request:{}", new Gson().toJson(createPolicyRequest));
+
+            CreatePolicyResult createPolicyResult = iam.createPolicy(createPolicyRequest);
+            logger.debug("[Vault] Create Policy response:{}", new Gson().toJson(createPolicyResult));
+
+            userPolicy = createPolicyResult.getPolicy();
+
+        }
+        return userPolicy;
     }
 }
