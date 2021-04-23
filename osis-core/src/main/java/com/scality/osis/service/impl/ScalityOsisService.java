@@ -6,6 +6,7 @@
 
 package com.scality.osis.service.impl;
 
+import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.utils.ScalityUtils;
 import com.google.gson.Gson;
@@ -295,5 +296,9 @@ public class ScalityOsisService implements OsisService {
     @Override
     public OsisUsage getOsisUsage(Optional<String> tenantId, Optional<String> userId) {
         return new OsisUsage();
+    }
+
+    public Credentials getCredentials(String accountID) {
+        return vaultAdmin.getTempAccountCredentials(ScalityModelConverter.getAssumeRoleRequestForAccount(accountID, appEnv.getAssumeRoleName()));
     }
 }

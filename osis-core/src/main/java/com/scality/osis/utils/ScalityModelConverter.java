@@ -5,6 +5,7 @@
 
 package com.scality.osis.utils;
 
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.vmware.osis.model.OsisTenant;
@@ -17,6 +18,7 @@ import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -86,6 +88,18 @@ public final class ScalityModelConverter {
     }
 
     /**
+     * Creates Vault Assume Role request request for given account id
+     * @param accountID the account ID
+     *
+     * @return the assume role request dto
+     */
+    public static AssumeRoleRequest getAssumeRoleRequestForAccount(String accountID, String roleName) {
+        return new AssumeRoleRequest()
+                .withRoleArn(toRoleArn(accountID, roleName))
+                .withRoleSessionName(ROLE_SESSION_NAME_PREFIX + new Date().getTime());
+    }
+
+    /**
      * Generates tenant email string using tenant name.
      *  example email address: tenant.name@osis.scality.com
      *
@@ -107,6 +121,20 @@ public final class ScalityModelConverter {
     public static Map<String,String> toScalityCustomAttributes(List<String> cdTenantIds) {
         return cdTenantIds.stream()
                 .collect(Collectors.toMap(str-> CD_TENANT_ID_PREFIX + str, str -> ""));
+    }
+
+    /**
+     * Converts account ID to Vault super role arn
+     *
+     * @param accountID account id
+     * @param roleName role name
+     * @return the role arn.
+     *          Example: <code>arn:aws:iam::[account-id]:role/[role-name]</code>
+     */
+    private static String toRoleArn(String accountID, String roleName) {
+        return ROLE_ARN_FORMAT
+                .replace(ACCOUNT_ID_REGEX, accountID)
+                .replace(ROLE_NAME_REGEX, roleName);
     }
 
     /* Converter methods below will convert Vault/Scality responses to OSIS model objects @param accountResponse the account response */

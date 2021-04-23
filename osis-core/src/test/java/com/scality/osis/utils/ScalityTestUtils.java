@@ -11,7 +11,7 @@ import java.util.Map;
 
 public final class ScalityTestUtils {
 
-    public static final String SAMPLE_TENANT_ID = "12313265465789";
+    public static final String SAMPLE_TENANT_ID = "123123123123";
     public static final String SAMPLE_ID = "bfc0d4a51e06481cbc917e9d96e52d81";
     public static final String SAMPLE_TENANT_NAME = "tenant name";
     public static final List<String> SAMPLE_CD_TENANT_IDS = new ArrayList<>(
@@ -20,6 +20,9 @@ public final class ScalityTestUtils {
                     "5b7e3259-aace-414c-bfd8-94daa0efefaf","6b7e3259-aace-414c-bfd8-94daa0efefaf",
                     "4b7e3259-aace-414c-bfd8-94daa0efefaf","3b7e3259-aace-414c-bfd8-94daa0efefaf")
     );
+    public static final String TEST_ROLE_ARN = "arn:aws:iam::123123123123:role/osis";
+    public static final String TEST_SESSION_NAME_PREFIX = "ROLE_SESSION_";
+    public static final String SAMPLE_ASSUME_ROLE_NAME ="osis";
 
     public static final Map<String, String> SAMPLE_CUSTOM_ATTRIBUTES  = new HashMap<>() ;
     static {
@@ -35,7 +38,22 @@ public final class ScalityTestUtils {
 
     public static final String SAMPLE_SCALITY_ACCOUNT_EMAIL = "tenant.name@osis.scality.com";
 
-    public static final String SAMPLE_SCALITY_ACCOUNT_NAME ="tenant.name";
+
+    public static final String TEST_TENANT_ID ="tenantId";
+    public static final String TEST_STR ="value";
+    public static final String NOT_IMPLEMENTED_EXCEPTION_ERR ="expected NotImplementedException";
+    public static final String NULL_ERR ="Expected Value. Found Null";
+    public static final String INVALID_URL_URL ="Invalid URL";
+    public static final String TEST_USER_ID ="userId";
+    public static final String TEST_NAME ="name";
+    public static final String TEST_ACCESS_KEY = "access_key";
+    public static final String TEST_SECRET_KEY = "secret_key";
+    public static final String TEST_SESSION_TOKEN = "session_token";
+    public static final String TEST_CONSOLE_URL ="https://example.console.ose.scality.com";
+    public static final String TEST_S3_INTERFACE_URL ="https://localhost:8443";
+    public static final String PLATFORM_NAME ="Scality";
+    public static final String PLATFORM_VERSION ="7.10";
+    public static final String API_VERSION ="1.0.0";
 
 
     private ScalityTestUtils(){

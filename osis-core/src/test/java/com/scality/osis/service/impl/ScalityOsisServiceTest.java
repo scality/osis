@@ -1,7 +1,8 @@
 package com.scality.osis.service.impl;
 
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.osis.ScalityAppEnv;
-import com.scality.osis.utils.ScalityTestUtils;
 import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
 import com.scality.osis.vaultadmin.impl.cache.CacheImpl;
 import com.vmware.osis.model.*;
@@ -23,25 +24,13 @@ import java.util.*;
 
 import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
 import static com.scality.osis.utils.ScalityConstants.IAM_PREFIX;
-import static com.scality.osis.utils.ScalityTestUtils.SAMPLE_CD_TENANT_IDS;
+import static com.scality.osis.utils.ScalityTestUtils.*;
 import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.DEFAULT_CACHE_MAX_CAPACITY;
 import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.NAME_LIST_ACCOUNTS_CACHE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class ScalityOsisServiceTest {
-    private static final String TEST_TENANT_ID ="tenantId";
-    private static final String TEST_STR ="value";
-    private static final String NOT_IMPLEMENTED_EXCEPTION_ERR ="expected NotImplementedException";
-    private static final String NULL_ERR ="Expected Value. Found Null";
-    private static final String INVALID_URL_URL ="Invalid URL";
-    private static final String TEST_USER_ID ="userId";
-    private static final String TEST_NAME ="name";
-    private static final String TEST_CONSOLE_URL ="https://example.console.ose.scality.com";
-    private static final String TEST_S3_INTERFACE_URL ="https://localhost:8443";
-    private static final String PLATFORM_NAME ="Scality";
-    private static final String PLATFORM_VERSION ="7.10";
-    private static final String API_VERSION ="1.0.0";
 
     //vault admin mock object
     private static VaultAdminImpl vaultAdminMock;
@@ -71,10 +60,12 @@ public class ScalityOsisServiceTest {
         when(appEnvMock.getPlatformVersion()).thenReturn(PLATFORM_VERSION);
         when(appEnvMock.getApiVersion()).thenReturn(API_VERSION);
         when(appEnvMock.getS3InterfaceEndpoint()).thenReturn(TEST_S3_INTERFACE_URL);
+        when(appEnvMock.getAssumeRoleName()).thenReturn(SAMPLE_ASSUME_ROLE_NAME);
         when(osisCapsManagerMock.getNotImplements()).thenReturn(new ArrayList<>());
 
         initCreateTenantMocks();
         initListTenantMocks();
+        initTempCredentialsMocks();
         initCaches();
     }
 
@@ -87,7 +78,7 @@ public class ScalityOsisServiceTest {
                     data.setEmailAddress(request.getEmailAddress());
                     data.setName(request.getName());
                     if(StringUtils.isEmpty(request.getExternalAccountId())){
-                        data.setId(ScalityTestUtils.SAMPLE_TENANT_ID);
+                        data.setId(SAMPLE_TENANT_ID);
                     } else{
                         data.setId(request.getExternalAccountId());
                     }
@@ -116,7 +107,7 @@ public class ScalityOsisServiceTest {
                         final AccountData data = new AccountData();
                         data.setEmailAddress("xyz@scality.com");
                         data.setName(TEST_NAME);
-                        data.setId(ScalityTestUtils.SAMPLE_TENANT_ID + (index + offset)); //setting ID with index
+                        data.setId(SAMPLE_TENANT_ID + (index + offset)); //setting ID with index
 
                         // if filterStartsWith generate customAttributes for all accounts
                         final Map<String, String> customAttributestemp  = new HashMap<>() ;
@@ -140,6 +131,20 @@ public class ScalityOsisServiceTest {
                 });
     }
 
+    private void initTempCredentialsMocks() {
+        //initialize mock vault admin temporary credentials response
+        when(vaultAdminMock.getTempAccountCredentials(any(AssumeRoleRequest.class)))
+                .thenAnswer((Answer<Credentials>) invocation -> {
+                    final Credentials credentials = new Credentials();
+                    credentials.setAccessKeyId(TEST_ACCESS_KEY);
+                    credentials.setSecretAccessKey(TEST_SECRET_KEY);
+                    credentials.setExpiration(new Date());
+                    credentials.setSessionToken(TEST_SESSION_TOKEN);
+
+                    return credentials;
+                });
+    }
+
     private void initCaches() {
         final CacheFactory cacheFactoryMock = mock(CacheFactory.class);
         when(cacheFactoryMock.getCache(NAME_LIST_ACCOUNTS_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
@@ -152,10 +157,10 @@ public class ScalityOsisServiceTest {
     public void testCreateTenant(){
 
         // Call Scality Osis service to create a tenant
-        final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.createTenant(ScalityTestUtils.createSampleOsisTenantObj());
+        final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.createTenant(createSampleOsisTenantObj());
 
-        assertEquals(ScalityTestUtils.SAMPLE_ID, osisTenantRes.getTenantId());
-        assertEquals(ScalityTestUtils.SAMPLE_TENANT_NAME, osisTenantRes.getName());
+        assertEquals(SAMPLE_ID, osisTenantRes.getTenantId());
+        assertEquals(SAMPLE_TENANT_NAME, osisTenantRes.getName());
         assertTrue(SAMPLE_CD_TENANT_IDS.size() == osisTenantRes.getCdTenantIds().size() &&
                 SAMPLE_CD_TENANT_IDS.containsAll(osisTenantRes.getCdTenantIds()) && osisTenantRes.getCdTenantIds().containsAll(SAMPLE_CD_TENANT_IDS));
         assertTrue(osisTenantRes.getActive());
@@ -163,7 +168,7 @@ public class ScalityOsisServiceTest {
 
     @Test
     public void testCreateTenantInactive(){
-        final OsisTenant osisTenantReq = ScalityTestUtils.createSampleOsisTenantObj();
+        final OsisTenant osisTenantReq = createSampleOsisTenantObj();
         osisTenantReq.active(false);
 
         // Call Scality Osis service to create a tenant
@@ -181,7 +186,7 @@ public class ScalityOsisServiceTest {
                 });
 
         assertThrows(VaultServiceException.class, () -> {
-            scalityOsisServiceUnderTest.createTenant(ScalityTestUtils.createSampleOsisTenantObj());
+            scalityOsisServiceUnderTest.createTenant(createSampleOsisTenantObj());
         });
 
         //resetting mocks to original
@@ -197,7 +202,7 @@ public class ScalityOsisServiceTest {
                 });
 
         assertThrows(VaultServiceException.class, () -> {
-            scalityOsisServiceUnderTest.createTenant(ScalityTestUtils.createSampleOsisTenantObj());
+            scalityOsisServiceUnderTest.createTenant(createSampleOsisTenantObj());
         });
 
         //resetting mocks to original
@@ -603,7 +608,7 @@ public class ScalityOsisServiceTest {
         assertEquals(PLATFORM_VERSION, information.getPlatformVersion(), "Invalid Platform Version");
         assertEquals(API_VERSION, information.getApiVersion(), "Invalid API Version");
         assertEquals(Information.StatusEnum.NORMAL, information.getStatus(), "Invalid status");
-        assertEquals(TEST_S3_INTERFACE_URL, information.getServices().getS3(), "Invalid S3 URL");
+        assertEquals(TEST_S3_INTERFACE_URL, information.getServices().getS3(), "Invalid S3 interface URL");
         assertNotNull(information.getNotImplemented(), NULL_ERR);
         assertEquals(domain + IAM_PREFIX,  information.getServices().getIam(), "Invalid IAM URL");
 
@@ -626,7 +631,7 @@ public class ScalityOsisServiceTest {
         assertEquals(PLATFORM_VERSION, information.getPlatformVersion(), "Invalid Platform Version");
         assertEquals(API_VERSION, information.getApiVersion(), "Invalid API Version");
         assertEquals(Information.StatusEnum.NORMAL, information.getStatus(), "Invalid status");
-        assertEquals(TEST_S3_INTERFACE_URL, information.getServices().getS3(), "Invalid S3 URL");
+        assertEquals(TEST_S3_INTERFACE_URL, information.getServices().getS3(), "Invalid S3 interface URL");
         assertNotNull(information.getNotImplemented(), NULL_ERR);
         assertEquals(domain + IAM_PREFIX,  information.getServices().getIam(), "Invalid IAM URL");
     }
@@ -661,6 +666,18 @@ public class ScalityOsisServiceTest {
 
         // Verify the results
 
+    }
+
+    @Test
+    public void testGetCredentials() {
+        // Setup
+
+        // Run the test
+        final Credentials credentials = scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID);
+
+        // Verify the results
+        assertEquals(TEST_ACCESS_KEY, credentials.getAccessKeyId(), "Invalid Access key");
+        assertEquals(TEST_SECRET_KEY, credentials.getSecretAccessKey(), "Invalid Secret Key");
     }
 
 

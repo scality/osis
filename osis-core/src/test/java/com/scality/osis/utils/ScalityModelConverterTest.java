@@ -1,5 +1,6 @@
 package com.scality.osis.utils;
 
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.vmware.osis.model.OsisTenant;
 import com.vmware.osis.model.exception.BadRequestException;
 import com.scality.vaultclient.dto.Account;
@@ -90,5 +91,15 @@ public class ScalityModelConverterTest {
                 SAMPLE_CD_TENANT_IDS.containsAll(osisTenant.getCdTenantIds())
                 && osisTenant.getCdTenantIds().containsAll(SAMPLE_CD_TENANT_IDS), "failed createAccountResponseToOsisTenantTest:getCdTenantIds()");
         assertTrue(osisTenant.getActive(), "failed createAccountResponseToOsisTenantTest:getActive()");
+    }
+
+    @Test
+    public void  testGetAssumeRoleRequestForAccount() {
+
+
+        final AssumeRoleRequest assumeRoleRequest = ScalityModelConverter.getAssumeRoleRequestForAccount(SAMPLE_TENANT_ID, SAMPLE_ASSUME_ROLE_NAME);
+
+        assertEquals(TEST_ROLE_ARN, assumeRoleRequest.getRoleArn(), "failed  testGetAssumeRoleRequestForAccount:getRoleArn()");
+        assertTrue(assumeRoleRequest.getRoleSessionName().startsWith(TEST_SESSION_NAME_PREFIX), "failed  testGetAssumeRoleRequestForAccount:getRoleSessionName()");
     }
 }
