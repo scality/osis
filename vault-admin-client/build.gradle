@@ -25,6 +25,7 @@ dependencies {
     implementation 'com.scality:vaultclient:0.3.0-SNAPSHOT'
     implementation 'com.amazonaws:aws-java-sdk-s3:1.11.914'
     implementation 'com.amazonaws:aws-java-sdk-sts:1.11.914'
+    implementation 'com.amazonaws:aws-java-sdk-iam:1.11.914'
     testImplementation 'org.mockito:mockito-core:2.7.22'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'

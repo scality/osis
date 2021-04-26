@@ -5,8 +5,14 @@
 
 package com.scality.osis.vaultadmin.impl;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.amazonaws.util.StringUtils;
 import com.scality.osis.vaultadmin.impl.cache.Cache;
 import com.scality.osis.vaultadmin.impl.cache.CacheConstants;
 import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
@@ -263,5 +269,27 @@ public class VaultAdminImpl implements VaultAdmin{
     }
 
     return credentials;
+  }
+
+  @Override
+  public AmazonIdentityManagement getIAMClient(Credentials credentials, String region) {
+    if(StringUtils.isNullOrEmpty(credentials.getSessionToken())) {
+      return AmazonIdentityManagementClientBuilder.standard()
+              .withCredentials(new AWSStaticCredentialsProvider(
+                      new BasicAWSCredentials(
+                              credentials.getAccessKeyId(),
+                              credentials.getSecretAccessKey())))
+              .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(vaultAdminEndpoint, region))
+              .build();
+    } else{
+      return AmazonIdentityManagementClientBuilder.standard()
+              .withCredentials(new AWSStaticCredentialsProvider(
+                      new BasicSessionCredentials(
+                              credentials.getAccessKeyId(),
+                              credentials.getSecretAccessKey(),
+                              credentials.getSessionToken())))
+              .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(vaultAdminEndpoint, region))
+              .build();
+    }
   }
 }

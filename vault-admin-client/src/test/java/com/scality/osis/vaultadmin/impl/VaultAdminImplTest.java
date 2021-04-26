@@ -2,6 +2,7 @@ package com.scality.osis.vaultadmin.impl;
 
 import com.amazonaws.Response;
 import com.amazonaws.http.HttpResponse;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
@@ -441,5 +442,26 @@ public class VaultAdminImplTest extends BaseTest {
         assertThrows(IllegalArgumentException.class,
                 () -> new VaultAdminImpl(accountServicesClient, stsClient, vaultAdminEndpoint, "dummy_endpoint"),
                 "VaultAdminImpl constructor should throw IllegalArgumentException for null endpoint");
+    }
+
+    @Test
+    public void testGetIAMClient() {
+        final Credentials credentials = new Credentials();
+        credentials.setAccessKeyId(TEST_ACCESS_KEY);
+        credentials.setSecretAccessKey(TEST_SECRET_KEY);
+
+        final AmazonIdentityManagement iam = vaultAdminImpl.getIAMClient(credentials, TEST_REGION);
+        assertNotNull(iam);
+    }
+
+    @Test
+    public void testGetIAMClientWithSession() {
+        final Credentials credentials = new Credentials();
+        credentials.setAccessKeyId(TEST_ACCESS_KEY);
+        credentials.setSecretAccessKey(TEST_SECRET_KEY);
+        credentials.setSessionToken(TEST_SESSION_TOKEN);
+
+        final AmazonIdentityManagement iam = vaultAdminImpl.getIAMClient(credentials, TEST_REGION);
+        assertNotNull(iam);
     }
 }

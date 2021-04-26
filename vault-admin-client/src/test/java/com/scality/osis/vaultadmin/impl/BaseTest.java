@@ -53,6 +53,7 @@ public class BaseTest {
   public static final String TEST_SESSION_NAME = "session";
   public static final String TEST_ROLE_ARN = "arn:aws:iam::123123123123:role/osis";
   public static final String TEST_ASSUMED_USER_ARN = "arn:aws:sts::123123123123:assumed-role/osis/session1";
+  public static final String TEST_REGION = "us-east-1";
 
   @BeforeEach
   public void init() throws IOException {

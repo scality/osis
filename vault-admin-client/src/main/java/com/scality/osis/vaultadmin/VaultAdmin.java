@@ -5,6 +5,7 @@
 
 package com.scality.osis.vaultadmin;
 
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
@@ -73,4 +74,7 @@ public interface VaultAdmin {
    * @return the credentials object with temporary access key and secret key of the account
    */
   Credentials getTempAccountCredentials(AssumeRoleRequest assumeRoleRequest);
+
+  AmazonIdentityManagement getIAMClient(Credentials credentials, String region);
+
 }
