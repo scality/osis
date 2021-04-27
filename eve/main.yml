@@ -52,32 +52,32 @@ stages:
           name: gradle bootJar
           command: gradle bootJar
           haltOnFailure: true
-      - ShellCommand:
-          name: Copy secret key ring file
-          command: echo "%(secret:signing_secret_key_ring_file)s" | base64 --decode > secring.gpg
-      - ShellCommand:
-          name: gradle upload artifact
-          command: gradle uploadArchives -Psigning.secretKeyRingFile=$SECRET_FILE -PnexusUsername=$NEXUS_UNAME -PnexusPassword=$NEXUS_PWD -Psigning.keyId=$SIGNING_KEYID -Psigning.password=$SIGNING_PWD
-          haltOnFailure: true
-          env:
-            SECRET_FILE: '%(prop:builddir)s/build/secring.gpg'
-            NEXUS_UNAME: '%(secret:nexus_username)s'
-            NEXUS_PWD: '%(secret:nexus_password)s'
-            SIGNING_KEYID: '%(secret:signing_key_id)s'
-            SIGNING_PWD: '%(secret:signing_password)s'
-      - ShellCommand:
-          name: upload test coverage
-          haltOnFailure: False
-          command: "curl -s https://codecov.io/bash | bash"
-          env:
-            <<: *coverage
-      - Upload:
-          name: Upload reports
-          source: 'reports'
-          urls:
-            - 'pmd-lint/*.html' # this will create links to every .html files
-            - 'spotbugs/*.html'
-            - 'code-coverage/*.html'
+#      - ShellCommand:
+#          name: Copy secret key ring file
+#          command: echo "%(secret:signing_secret_key_ring_file)s" | base64 --decode > secring.gpg
+#      - ShellCommand:
+#          name: gradle upload artifact
+#          command: gradle uploadArchives -Psigning.secretKeyRingFile=$SECRET_FILE -PnexusUsername=$NEXUS_UNAME -PnexusPassword=$NEXUS_PWD -Psigning.keyId=$SIGNING_KEYID -Psigning.password=$SIGNING_PWD
+#          haltOnFailure: true
+#          env:
+#            SECRET_FILE: '%(prop:builddir)s/build/secring.gpg'
+#            NEXUS_UNAME: '%(secret:nexus_username)s'
+#            NEXUS_PWD: '%(secret:nexus_password)s'
+#            SIGNING_KEYID: '%(secret:signing_key_id)s'
+#            SIGNING_PWD: '%(secret:signing_password)s'
+#      - ShellCommand:
+#          name: upload test coverage
+#          haltOnFailure: False
+#          command: "curl -s https://codecov.io/bash | bash"
+#          env:
+#            <<: *coverage
+#      - Upload:
+#          name: Upload reports
+#          source: 'reports'
+#          urls:
+#            - 'pmd-lint/*.html' # this will create links to every .html files
+#            - 'spotbugs/*.html'
+#            - 'code-coverage/*.html'
       - TriggerStages:
           stage_names:
             - docker-build

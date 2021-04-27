@@ -33,6 +33,8 @@ public class OsisController {
     @Autowired
     private OsisService osisService;
 
+    static int i =0;
+
     /**
      * POST /api/v1/tenants/{tenantId}/users/{userId}/s3credentials : Create S3 credential for the platform user
      * Operation ID: createCredential&lt;br&gt; Create S3 credential for the platform user
@@ -57,6 +59,7 @@ public class OsisController {
             @PathVariable("tenantId") String tenantId,
             @ApiParam(value = "The ID of the user which the created S3 credential belongs to", required = true)
             @PathVariable("userId") String userId) {
+        logger.info("createCredential");
         return osisService.createS3Credential(tenantId, userId);
     }
 
@@ -83,6 +86,7 @@ public class OsisController {
     public OsisTenant createTenant(
             @ApiParam(value = "Tenant to create in the platform", required = true)
             @Valid @RequestBody OsisTenant osisTenant) {
+        logger.info("createTenant");
         return osisService.createTenant(osisTenant);
     }
 
@@ -145,6 +149,7 @@ public class OsisController {
             @Valid @RequestParam(value = "user_id", required = true) String userId,
             @ApiParam(value = "The access key of the S3 credential to delete", required = true)
             @PathVariable("accessKey") String accessKey) {
+        logger.info("deleteCredential");
         osisService.deleteS3Credential(tenantId, userId, accessKey);
     }
 
@@ -174,6 +179,7 @@ public class OsisController {
             @ApiParam(value = "Purge data when the tenant is deleted", defaultValue = "true")
             @Valid @RequestParam(value = "purge_data", required = false, defaultValue = "true")
                     Boolean purgeData) {
+        logger.info("deleteTenant");
         osisService.deleteTenant(tenantId, purgeData);
     }
 
@@ -204,6 +210,7 @@ public class OsisController {
             @ApiParam(value = "Purge data when the user is deleted", defaultValue = "true")
             @Valid @RequestParam(value = "purge_data", required = false, defaultValue = "true")
                     Boolean purgeData) {
+        logger.info("deleteUser");
         osisService.deleteUser(tenantId, userId, purgeData);
     }
 
@@ -236,6 +243,7 @@ public class OsisController {
             @Valid @RequestParam(value = "offset", required = false, defaultValue = "0") long offset,
             @ApiParam(value = "The maximum number of buckets to return")
             @Valid @RequestParam(value = "limit", required = false, defaultValue = "100") long limit) {
+        logger.info("getBucketList");
         return osisService.getBucketList(tenantId, offset, limit);
     }
 
@@ -261,6 +269,7 @@ public class OsisController {
     public String getConsole(
             @ApiParam(value = "The ID of the tenant to get its console URI")
             @Valid @RequestParam(value = "tenant_id", required = false) Optional<String> tenantId) {
+        logger.info("getConsole");
         if (tenantId.isPresent()) {
             return osisService.getTenantConsoleUrl(tenantId.get());
         } else {
@@ -296,6 +305,7 @@ public class OsisController {
             @Valid @RequestParam(value = "user_id", required = false) Optional<String> userId,
             @ApiParam(value = "The access key of the S3 credential to get", required = true)
             @PathVariable("accessKey") String accessKey) {
+        logger.info("getCredential");
         return osisService.getS3Credential(accessKey);
     }
 
@@ -315,11 +325,12 @@ public class OsisController {
             produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public Information getInfo(HttpServletRequest request) {
+        logger.info("getInfo");
         StringBuffer url = request.getRequestURL();
         String domain = url.substring(0, url.lastIndexOf(request.getRequestURI()));
-        logger.info(domain + "1");
+        logger.info(domain + OsisController.i);
         try {
-            Thread.sleep(100000);
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -343,6 +354,7 @@ public class OsisController {
     @GetMapping(value = "/api/v1/s3capabilities",
             produces = "application/json")
     public OsisS3Capabilities getS3Capabilities() {
+        logger.info("getS3Capabilities");
         return osisService.getS3Capabilities();
     }
 
@@ -370,6 +382,7 @@ public class OsisController {
     public OsisTenant getTenant(
             @ApiParam(value = "Tenant ID to get the tenant from the platform", required = true)
             @PathVariable("tenantId") String tenantId) {
+        logger.info("getTenant");
         return osisService.getTenant(tenantId);
     }
 
@@ -398,6 +411,7 @@ public class OsisController {
             @Valid @RequestParam(value = "tenant_id", required = false) Optional<String> tenantId,
             @ApiParam(value = "The ID of the user to get its usage. 'tenant_id' takes precedence over 'user_id' to take effect if both are specified.")
             @Valid @RequestParam(value = "user_id", required = false) Optional<String> userId) {
+        logger.info("getUsage");
         if (!tenantId.isPresent() && userId.isPresent()) {
             throw new BadRequestException("userId must be specified with associated tenantId!");
         }
@@ -426,6 +440,7 @@ public class OsisController {
     public OsisUser getUserWithCanonicalID(
             @ApiParam(value = "The canonical ID of the user to get", required = true)
             @PathVariable("canonicalUserId") String canonicalUserId) {
+        logger.info("getUserWithCanonicalID");
         return osisService.getUser(canonicalUserId);
     }
 
@@ -454,6 +469,7 @@ public class OsisController {
             @PathVariable("tenantId") String tenantId,
             @ApiParam(value = "The ID of the user to get", required = true)
             @PathVariable("userId") String userId) {
+        logger.info("getUserWithId");
         return osisService.getUser(tenantId, userId);
     }
 
@@ -479,6 +495,7 @@ public class OsisController {
     public Void headTenant(
             @ApiParam(value = "Tenant ID to check on the platform", required = true)
             @PathVariable("tenantId") String tenantId) {
+        logger.info("headTenant");
         osisService.headTenant(tenantId);
         return null;
     }
@@ -510,6 +527,7 @@ public class OsisController {
             @PathVariable("tenantId") String tenantId,
             @ApiParam(value = "The ID of the user to check", required = true)
             @PathVariable("userId") String userId) {
+        logger.info("headUser");
         osisService.headUser(tenantId, userId);
 
     }
@@ -545,6 +563,7 @@ public class OsisController {
             @Valid @RequestParam(value = "limit", required = false, defaultValue = "100") Long limit) {
 
 
+        logger.info("listCredentials");
         return osisService.listS3Credentials(tenantId, userId, offset, limit);
 
     }
@@ -572,6 +591,7 @@ public class OsisController {
             @Valid @RequestParam(value = "offset", required = false, defaultValue = "0") Long offset,
             @ApiParam(value = "Maximum number of tenants to return")
             @Valid @RequestParam(value = "limit", required = false, defaultValue = "100") Long limit) {
+        logger.info("listTenants");
         return osisService.listTenants(offset, limit);
     }
 
@@ -601,6 +621,7 @@ public class OsisController {
             @Valid @RequestParam(value = "offset", required = false, defaultValue = "0") long offset,
             @ApiParam(value = "Maximum number of users to return")
             @Valid @RequestParam(value = "limit", required = false, defaultValue = "100") long limit) {
+        logger.info("listUsers");
         return osisService.listUsers(tenantId, offset, limit);
     }
 
@@ -639,6 +660,7 @@ public class OsisController {
             @PathVariable("accessKey") String accessKey,
             @ApiParam(value = "The S3 credential containing the status to update. Only property 'active' takes effect", required = true)
             @Valid @RequestBody OsisS3Credential osisS3Credential) {
+        logger.info("updateCredentialStatus");
         throw new NotImplementedException();
     }
 
@@ -668,6 +690,7 @@ public class OsisController {
             @PathVariable("tenantId") String tenantId,
             @ApiParam(value = "Tenant status to update in the platform. Only property 'active' takes effect", required = true)
             @Valid @RequestBody OsisTenant osisTenant) {
+        logger.info("updateTenantStatus");
         return osisService.updateTenant(tenantId, osisTenant);
     }
 
@@ -700,6 +723,7 @@ public class OsisController {
             @PathVariable("userId") String userId,
             @ApiParam(value = "User status to update in the platform tenant. Only property 'active' takes effect", required = true)
             @Validated(value = Update.class) @RequestBody OsisUser osisUser) {
+        logger.info("updateUserStatus");
         return osisService.updateUser(tenantId, userId, osisUser);
     }
 
@@ -728,6 +752,7 @@ public class OsisController {
             @Valid @RequestParam(value = "limit", required = false, defaultValue = "100") long limit,
             @ApiParam(value = "The conditions to query platform tenants")
             @Valid @RequestParam(value = "filter", required = false) String filter) {
+        logger.info("queryTenants");
         return osisService.queryTenants(offset, limit, filter);
     }
 
@@ -758,6 +783,7 @@ public class OsisController {
             @ApiParam(value = "The conditions to query platform users")
             @Valid @RequestParam(value = "filter", required = false) String filter) {
 
+        logger.info("queryUsers");
         return osisService.queryUsers(offset, limit, filter);
     }
 
@@ -786,6 +812,7 @@ public class OsisController {
             @Valid @RequestParam(value = "limit", required = false, defaultValue = "100") long limit,
             @ApiParam(value = "The conditions to query platform users")
             @Valid @RequestParam(value = "filter", required = false) String filter) {
+        logger.info("queryCredentials");
         return this.osisService.queryS3Credentials(offset, limit, filter);
     }
 
@@ -793,6 +820,7 @@ public class OsisController {
             produces = "application/json")
     @NotImplement(name = OsisConstants.GET_BUCKET_ID_LOGGING_API_CODE)
     public OsisBucketLoggingId getBucketLoggingId() {
+        logger.info("getBucketLoggingId");
         throw new NotImplementedException();
     }
 
@@ -800,11 +828,13 @@ public class OsisController {
             produces = "application/json")
     @NotImplement(name = OsisConstants.GET_ANONYMOUS_USER_API_CODE)
     public OsisUser getAnonymousUser() {
+        logger.info("getAnonymousUser");
         return new OsisUser();
     }
 
     @PostMapping(value = "/api/admin-apis", produces = "application/json")
     public OsisCaps updateOsisCaps(@RequestBody OsisCaps osisCaps) {
+        logger.info("updateOsisCaps");
         return this.osisService.updateOsisCaps(osisCaps);
     }
 }
