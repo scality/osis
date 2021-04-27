@@ -16,6 +16,8 @@ import com.scality.osis.vaultadmin.impl.VaultServiceException;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
+import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.vmware.osis.model.*;
@@ -80,6 +82,9 @@ public class ScalityOsisService implements OsisService {
             logger.debug("[Vault]CreateAccount response:{}", new Gson().toJson(accountResponse));
 
             OsisTenant resOsisTenant = ScalityModelConverter.toOsisTenant(accountResponse);
+
+            //TODO: Make this call async
+            setupAssumeRole(resOsisTenant);
 
             logger.info("Create Tenant response:{}", new Gson().toJson(resOsisTenant));
 
@@ -297,6 +302,30 @@ public class ScalityOsisService implements OsisService {
     @Override
     public OsisUsage getOsisUsage(Optional<String> tenantId, Optional<String> userId) {
         return new OsisUsage();
+    }
+
+    private void setupAssumeRole(OsisTenant resOsisTenant) {
+        try {
+            GenerateAccountAccessKeyRequest generateAccountAccessKeyRequest =
+                    ScalityModelConverter.toGenerateAccountAccessKeyRequest(
+                            resOsisTenant.getName(),
+                            appEnv.getAccountAKDurationSeconds());
+            logger.debug("[Vault] Generate Account AccessKey Request:{}", new Gson().toJson(generateAccountAccessKeyRequest));
+
+            GenerateAccountAccessKeyResponse generateAccountAccessKeyResponse = vaultAdmin.getAccountAccessKey(generateAccountAccessKeyRequest);
+
+            logger.debug("[Vault] Generate Account AccessKey response:{}", new Gson().toJson(generateAccountAccessKeyResponse));
+
+            //TODO: Create `osis` role
+
+            //TODO: Create Admin policy for account `adminPolicy@[account-id]`
+
+            //TODO: Attach admin policy to `osis` role
+
+            //TODO: Delete Access Key for account
+        } catch (Exception e) {
+            logger.error("setupAssumeRole error for account id:{}. Error details: {}", resOsisTenant.getTenantId(), e);
+        }
     }
 
     public Credentials getCredentials(String accountID) {

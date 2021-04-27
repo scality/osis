@@ -6,6 +6,7 @@
 package com.scality.osis.utils;
 
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.vmware.osis.model.OsisTenant;
@@ -97,6 +98,21 @@ public final class ScalityModelConverter {
         return new AssumeRoleRequest()
                 .withRoleArn(toRoleArn(accountID, roleName))
                 .withRoleSessionName(ROLE_SESSION_NAME_PREFIX + new Date().getTime());
+    }
+
+    /**
+     * Creates GenerateAccountAccessKeyRequest dto for given account id and duration in seconds
+     * @param accountID the account ID
+     * @param durationSeconds the duration in seconds
+     *
+     * @return the GenerateAccountAccessKeyRequest dto
+     */
+    public static GenerateAccountAccessKeyRequest toGenerateAccountAccessKeyRequest(String accountID,
+                                                                                    long durationSeconds) {
+        return GenerateAccountAccessKeyRequest.builder()
+                .accountName(accountID)
+                .durationSeconds(durationSeconds)
+                .build();
     }
 
     /**

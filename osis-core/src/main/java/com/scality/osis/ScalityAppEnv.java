@@ -18,6 +18,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.scality.osis.utils.ScalityConstants.DEFAULT_ACCOUNT_AK_DURATION_SECONDS;
+
 @Component
 @Primary
 public class ScalityAppEnv extends AppEnv {
@@ -98,5 +100,13 @@ public class ScalityAppEnv extends AppEnv {
 
     public String getAssumeRoleName() {
         return env.getProperty("osis.scality.vault.role.name");
+    }
+
+    public long getAccountAKDurationSeconds() {
+        String durationSeconds =  env.getProperty("osis.scality.vault.account.accessKey.durationSeconds");
+        if(StringUtils.isBlank(durationSeconds)) {
+            durationSeconds = DEFAULT_ACCOUNT_AK_DURATION_SECONDS;
+        }
+        return Long.parseLong(durationSeconds);
     }
 }

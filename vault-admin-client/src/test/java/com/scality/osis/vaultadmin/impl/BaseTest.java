@@ -5,9 +5,12 @@ import com.amazonaws.http.HttpResponse;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.vaultclient.dto.AccountData;
+import com.scality.vaultclient.dto.AccountSecretKeyData;
 import com.scality.vaultclient.dto.AssumeRoleResult;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
+import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
+import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
@@ -35,7 +38,7 @@ public class BaseTest {
   protected static String s3InterfaceEndpoint;
   protected static String vaultAdminEndpoint;
 
-  private static final String DEFAULT_TEST_ACCOUNT_ID = "001583654825";
+  protected static final String DEFAULT_TEST_ACCOUNT_ID = "001583654825";
 
   private static final String DEFAULT_TEST_ARN_STR = "\"arn:aws:iam::001583654825:/";
 
@@ -54,6 +57,8 @@ public class BaseTest {
   public static final String TEST_ROLE_ARN = "arn:aws:iam::123123123123:role/osis";
   public static final String TEST_ASSUMED_USER_ARN = "arn:aws:sts::123123123123:assumed-role/osis/session1";
   public static final String TEST_REGION = "us-east-1";
+  public static final String ACTIVE_STR = "Active";
+  public static final String NA_STR = "N/A";
 
   @BeforeEach
   public void init() throws IOException {
@@ -68,6 +73,7 @@ public class BaseTest {
     initCreateAccountMocks();
     initListAccountsMocks();
     initAssumeRoleMocks();
+    initGenerateAccountAKMocks();
 
     vaultAdminImpl = new VaultAdminImpl(accountServicesClient, stsClient, vaultAdminEndpoint, s3InterfaceEndpoint);
   }
@@ -199,6 +205,46 @@ public class BaseTest {
                 return new Response<>(response,httpResponse);
               }
     });
+  }
+
+  private void initGenerateAccountAKMocks() {
+    //initialize mock generate account AK response
+    when(accountServicesClient.generateAccountAccessKey(any(GenerateAccountAccessKeyRequest.class)))
+            .thenAnswer(new Answer<Response<GenerateAccountAccessKeyResponse>>() {
+              @Override
+              public Response<GenerateAccountAccessKeyResponse> answer(final InvocationOnMock invocation) {
+                final GenerateAccountAccessKeyRequest request = invocation.getArgument(0);
+
+                final Credentials credentials = new Credentials();
+                credentials.setAccessKeyId(TEST_ACCESS_KEY);
+                credentials.setSecretAccessKey(TEST_SECRET_KEY);
+                credentials.setExpiration(new Date());
+                credentials.setSessionToken(TEST_SESSION_TOKEN);
+
+                final Date afterDate = new Date();
+                afterDate.setTime(afterDate.getTime() + (request.getDurationSeconds() * 1000L));
+
+                final AccountSecretKeyData accountSecretKeyData = new AccountSecretKeyData().builder()
+                        .id(TEST_ACCESS_KEY)
+                        .value(TEST_SECRET_KEY)
+                        .userId(DEFAULT_TEST_ACCOUNT_ID)
+                        .createDate(new Date())
+                        .lastUsedService(NA_STR)
+                        .lastUsedRegion(NA_STR)
+                        .lastUsedDate(new Date())
+                        .notAfter(afterDate)
+                        .status(ACTIVE_STR)
+                        .build();
+
+                final GenerateAccountAccessKeyResponse response = new GenerateAccountAccessKeyResponse();
+                response.setData(accountSecretKeyData);
+
+                final HttpResponse httpResponse = new HttpResponse(null, null);
+                httpResponse.setStatusCode(201);
+                httpResponse.setStatusText("Created");
+                return new Response<>(response,httpResponse);
+              }
+            });
   }
 
   protected void loadExistingAccountErrorMocks() {

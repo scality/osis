@@ -19,6 +19,8 @@ import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
 import com.scality.vaultclient.dto.AssumeRoleResult;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
+import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
+import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
@@ -69,7 +71,7 @@ public class VaultAdminImpl implements VaultAdmin{
    * @param s3InterfaceEndpoint Vault S3 Interface endpoint, e.g., http://127.0.0.1:8500
    */
   @Autowired
-  public VaultAdminImpl(@Value("${osis.scality.vault.access-key}") String accessKey, @Value("${osis.scality.vault.secret-key}") String secretKey, @Value("${osis.scality.vault.endpoint}") String vaultAdminEndpoint, @Value("${osis.scality.s3.endpoint}") String s3InterfaceEndpoint) {
+  public VaultAdminImpl(@Value("${osis.scality.vault.access-key}") String accessKey, @Value("${osis.scality.vault.secret-key}") String secretKey, @Value("${osis.scality.vault.endpoint}") String vaultAdminEndpoint, @Value("${osis.scality.vaultS3Interface.endpoint}") String s3InterfaceEndpoint) {
     validEndpoint(vaultAdminEndpoint);
     this.vaultAdminEndpoint = vaultAdminEndpoint;
     this.vaultAccountClient = new AccountServicesClient(
@@ -291,5 +293,16 @@ public class VaultAdminImpl implements VaultAdmin{
               .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(vaultAdminEndpoint, region))
               .build();
     }
+  }
+
+  /**
+   * Returns the temporary account credentials
+   *
+   * @param generateAccountAccessKeyRequest Generate Account Access Key Request
+   * @return GenerateAccountAccessKeyResponse with AK/SK for the account
+   */
+  @Override
+  public GenerateAccountAccessKeyResponse getAccountAccessKey(GenerateAccountAccessKeyRequest generateAccountAccessKeyRequest) {
+    return ExternalServiceFactory.executeVaultService(vaultAccountClient::generateAccountAccessKey, generateAccountAccessKeyRequest);
   }
 }

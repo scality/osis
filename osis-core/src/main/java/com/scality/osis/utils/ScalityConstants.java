@@ -27,4 +27,6 @@ public final class ScalityConstants {
     public static final String ICON_PATH = "/scalitylogo.png";
 
     public static final String IAM_PREFIX = "/";
+
+    public static final String DEFAULT_ACCOUNT_AK_DURATION_SECONDS = "120";
 }

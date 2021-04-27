@@ -10,6 +10,8 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
+import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
+import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
@@ -75,6 +77,21 @@ public interface VaultAdmin {
    */
   Credentials getTempAccountCredentials(AssumeRoleRequest assumeRoleRequest);
 
+  /**
+   * Returns the temporary account credentials
+   *
+   * @param credentials the credential object with AK/SK and @optional `SessionToken`
+   * @param region the region
+   * @return the iam client with requested credentials, vault end point and region
+   */
   AmazonIdentityManagement getIAMClient(Credentials credentials, String region);
+
+  /**
+   * Returns the temporary account credentials
+   *
+   * @param generateAccountAccessKeyRequest Generate Account Access Key Request
+   * @return GenerateAccountAccessKeyResponse with AK/SK for the account
+   */
+  GenerateAccountAccessKeyResponse getAccountAccessKey(GenerateAccountAccessKeyRequest generateAccountAccessKeyRequest);
 
 }

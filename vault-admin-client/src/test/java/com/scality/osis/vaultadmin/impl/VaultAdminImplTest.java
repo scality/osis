@@ -7,11 +7,7 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
 import com.scality.osis.vaultadmin.impl.cache.CacheImpl;
-import com.scality.vaultclient.dto.AssumeRoleResult;
-import com.scality.vaultclient.dto.CreateAccountRequestDTO;
-import com.scality.vaultclient.dto.CreateAccountResponseDTO;
-import com.scality.vaultclient.dto.ListAccountsRequestDTO;
-import com.scality.vaultclient.dto.ListAccountsResponseDTO;
+import com.scality.vaultclient.dto.*;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import java.io.IOException;
@@ -22,12 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -207,6 +198,25 @@ public class VaultAdminImplTest extends BaseTest {
 
         //reinit the default mocks
         initMocks();
+    }
+
+    @Test
+    public void testGetAccountAccessKey() {
+
+        final GenerateAccountAccessKeyRequest generateAccountAccessKeyRequest = GenerateAccountAccessKeyRequest.builder()
+                .accountName(DEFAULT_TEST_ACCOUNT_ID)
+                .durationSeconds(60L)
+                .build();
+
+        final GenerateAccountAccessKeyResponse response = vaultAdminImpl.getAccountAccessKey(generateAccountAccessKeyRequest);
+        assertNotNull(response.getData());
+        final AccountSecretKeyData secretKeyData = response.getData();
+        assertNotNull(secretKeyData.getId());
+        assertNotNull(secretKeyData.getValue());
+        assertNotNull(secretKeyData.getNotAfter());
+        assertEquals(ACTIVE_STR, secretKeyData.getStatus());
+        assertNotNull(secretKeyData.getCreateDate());
+        assertNotNull(secretKeyData.getLastUsedDate());
     }
 
     @Test
