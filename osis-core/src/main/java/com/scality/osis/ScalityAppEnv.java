@@ -60,7 +60,7 @@ public class ScalityAppEnv extends AppEnv {
     public List<String> getRegionInfo() {
         String regionInfo =  env.getProperty("osis.scality.region");
         if(StringUtils.isBlank(regionInfo)) {
-            return Collections.singletonList("default");
+            return Collections.singletonList("us-east-1");
         }
         return Arrays.stream(StringUtils.split(regionInfo, COMMA))
                 .map(String::trim).collect(Collectors.toList());

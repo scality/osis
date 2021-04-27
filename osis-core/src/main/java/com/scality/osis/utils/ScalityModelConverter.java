@@ -5,8 +5,14 @@
 
 package com.scality.osis.utils;
 
+import com.amazonaws.services.identitymanagement.model.AttachRolePolicyRequest;
+import com.amazonaws.services.identitymanagement.model.CreatePolicyRequest;
+import com.amazonaws.services.identitymanagement.model.CreateRoleRequest;
+import com.amazonaws.services.identitymanagement.model.DeleteAccessKeyRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
+import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.vmware.osis.model.OsisTenant;
@@ -116,6 +122,75 @@ public final class ScalityModelConverter {
     }
 
     /**
+     * Creates CreateRoleRequest dto
+     * @param assumeRoleName the role name
+     *
+     * @return the CreateRoleRequest dto
+     */
+    public static CreateRoleRequest toCreateOSISRoleRequest(String assumeRoleName) {
+        return new CreateRoleRequest()
+                .withRoleName(assumeRoleName)
+                .withAssumeRolePolicyDocument(DEFAULT_OSIS_ROLE_INLINE_POLICY);
+    }
+
+    /**
+     * Creates CreatePolicyRequest dto for admin policy for OSIS role
+     * @param tenantId the account id
+     *
+     * @return the CreatePolicyRequest dto
+     */
+    public static CreatePolicyRequest toCreateAdminPolicyRequest(String tenantId) {
+        return new CreatePolicyRequest()
+                .withPolicyName(toAdminPolicyName(tenantId))
+                .withPolicyDocument(DEFAULT_ADMIN_POLICY_DOCUMENT)
+                .withDescription(toAdminPolicyDescription(tenantId));
+    }
+
+    /**
+     * Creates AttachRolePolicyRequest dto for attaching admin policy to OSIS role
+     * @param policyArn the policy arn
+     * @param roleName the OSIS role name
+     *
+     * @return the AttachRolePolicyRequest dto
+     */
+    public static AttachRolePolicyRequest toAttachAdminPolicyRequest(String policyArn, String roleName) {
+        return new AttachRolePolicyRequest()
+                .withPolicyArn(policyArn)
+                .withRoleName(roleName);
+    }
+
+    /**
+     * Creates DeleteAccessKeyRequest dto
+     * @param accessKeyId the accesskeyId
+     *
+     * @return the DeleteAccessKeyRequest dto
+     */
+    public static DeleteAccessKeyRequest toDeleteAccessKeyRequest(String accessKeyId, String username) {
+        DeleteAccessKeyRequest deleteAccessKeyRequest = new DeleteAccessKeyRequest()
+                .withAccessKeyId(accessKeyId);
+
+        if(!StringUtils.isEmpty(username)) {
+            deleteAccessKeyRequest.setUserName(username);
+        }
+
+        return deleteAccessKeyRequest;
+    }
+
+    public static String toAdminPolicyArn(String accountID) {
+        return ACCOUNT_ADMIN_POLICY_ARN_REGEX
+                .replace(ACCOUNT_ID_REGEX, accountID);
+    }
+
+    private static String toAdminPolicyName(String accountID) {
+        return ACCOUNT_ADMIN_POLICY_NAME_REGEX
+                .replace(ACCOUNT_ID_REGEX, accountID);
+    }
+
+    private static String toAdminPolicyDescription(String accountID) {
+        return DEFAULT_ADMIN_POLICY_DESCRIPTION.replace(ACCOUNT_ID_REGEX, accountID);
+    }
+
+    /**
      * Generates tenant email string using tenant name.
      *  example email address: tenant.name@osis.scality.com
      *
@@ -220,5 +295,17 @@ public final class ScalityModelConverter {
         pageOfTenants.items(tenantItems);
         pageOfTenants.setPageInfo(pageInfo);
         return pageOfTenants;
+    }
+
+    /**
+     * Converts Vault Generate Account AccessKey response to AWS Credentials
+     *
+     * @param generateAccountAccessKeyResponse the Generate Account AccessKey response dto
+     * @return the AWS credentials for API authentication.
+     */
+    public static Credentials toCredentials(GenerateAccountAccessKeyResponse generateAccountAccessKeyResponse) {
+        return new Credentials()
+                .withAccessKeyId(generateAccountAccessKeyResponse.getData().getId())
+                .withSecretAccessKey(generateAccountAccessKeyResponse.getData().getValue());
     }
 }

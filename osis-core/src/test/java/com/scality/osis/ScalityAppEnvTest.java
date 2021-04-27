@@ -193,7 +193,7 @@ public class ScalityAppEnvTest {
         final List<String> result = appEnvUnderTest.getRegionInfo();
 
         // Verify the results
-        assertEquals(result, Arrays.asList("default"), "testGetRegionInfoEnvironmentReturnsNull failed");
+        assertEquals(result, Arrays.asList("us-east-1"), "testGetRegionInfoEnvironmentReturnsNull failed");
     }
 
     @Test
