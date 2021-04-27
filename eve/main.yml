@@ -38,7 +38,7 @@ stages:
   pre-merge:
     worker:
       type: kube_pod
-      path: eve/workers/pod.yaml
+      path: eve/workers/build/pod.yaml
       images:
         build: eve/workers/build
     steps:
@@ -51,6 +51,20 @@ stages:
       - ShellCommand:
           name: gradle build
           command: gradle build
+          haltOnFailure: true
+      - ShellCommand:
+          name: Copy secret key ring file
+          command: echo "%(secret:signing_secret_key_ring_file)s" | base64 --decode > secring.gpg
+      - ShellCommand:
+          name: gradle upload artifact
+          command: gradle uploadArchives -Psigning.secretKeyRingFile=$SECRET_FILE -PnexusUsername=$NEXUS_UNAME -PnexusPassword=$NEXUS_PWD -Psigning.keyId=$SIGNING_KEYID -Psigning.password=$SIGNING_PWD
+          haltOnFailure: true
+          env:
+            SECRET_FILE: '%(prop:builddir)s/build/secring.gpg'
+            NEXUS_UNAME: '%(secret:nexus_username)s'
+            NEXUS_PWD: '%(secret:nexus_password)s'
+            SIGNING_KEYID: '%(secret:signing_key_id)s'
+            SIGNING_PWD: '%(secret:signing_password)s'
       - ShellCommand:
           name: upload test coverage
           haltOnFailure: False
@@ -64,6 +78,9 @@ stages:
             - 'pmd-lint/*.html' # this will create links to every .html files
             - 'spotbugs/*.html'
             - 'code-coverage/*.html'
+      - TriggerStages:
+          stage_names:
+            - docker-build
   docker-build:
     worker: &docker_worker
       type: kube_pod
@@ -86,25 +103,31 @@ stages:
           command: docker push ${DEVELOPMENT_DOCKER_IMAGE_NAME}
           env: *docker_env
           haltOnFailure: true
-
-#  docker-release:
-#    worker: *docker_worker
-#    steps:
-#      - Git: *git_pull
-#      - ShellCommand: *wait_docker_daemon
-#      - ShellCommand: *docker_login
-#      - EvePropertyFromCommand:
-#          name: get tag short revision
-#          property: tag_revision
-#          command: |
-#            git checkout refs/tags/%(prop:tag)s 2&> /dev/null
-#            git rev-parse --short HEAD
-#          haltOnFailure: true
-#      - ShellCommand:
-#          name: publish docker image to Scality Production OCI registry
-#          command: |
-#            docker pull ${DEVELOPMENT_DOCKER_IMAGE_NAME}:%(prop:tag_revision)s
-#            docker tag ${DEVELOPMENT_DOCKER_IMAGE_NAME}:%(prop:tag_revision)s ${PRODUCTION_DOCKER_IMAGE_NAME}:%(prop:tag)s
-#            docker push ${PRODUCTION_DOCKER_IMAGE_NAME}:%(prop:tag)s
-#          env: *docker_env
-#          haltOnFailure: true
+  release:
+    worker:
+      type: local
+    steps:
+      - TriggerStages:
+          stage_names:
+            - docker-release
+  docker-release:
+    worker: *docker_worker
+    steps:
+      - Git: *git_pull
+      - ShellCommand: *wait_docker_daemon
+      - ShellCommand: *docker_login
+      - EvePropertyFromCommand:
+          name: get tag short revision
+          property: tag_revision
+          command: |
+            git checkout refs/tags/%(prop:tag)s 2&> /dev/null
+            git rev-parse --short HEAD
+          haltOnFailure: true
+      - ShellCommand:
+          name: publish docker image to Scality Production OCI registry
+          command: |
+            docker pull ${DEVELOPMENT_DOCKER_IMAGE_NAME}:%(prop:tag_revision)s
+            docker tag ${DEVELOPMENT_DOCKER_IMAGE_NAME}:%(prop:tag_revision)s ${PRODUCTION_DOCKER_IMAGE_NAME}:%(prop:tag)s
+            docker push ${PRODUCTION_DOCKER_IMAGE_NAME}:%(prop:tag)s
+          env: *docker_env
+          haltOnFailure: true

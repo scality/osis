@@ -140,7 +140,7 @@ configure(allprojects.findAll { it.name != 'vault-admin-client' }) {
 }
 
 group = 'com.scality'
-version = '0.1.0-SNAPSHOT'
+version = '0.1.0-MOCKV1'
 description = 'osis.scality'
 sourceCompatibility = '1.8'
 
@@ -165,7 +165,7 @@ publishing {
         mavenJava(MavenPublication) {
             groupId 'com.scality'
             artifactId 'osis'
-            version '0.1.0-SNAPSHOT'
+            version '0.1.0-MOCKV1'
 
             from components.java
 
