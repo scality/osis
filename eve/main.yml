@@ -49,8 +49,8 @@ stages:
           retryFetch: true
           haltOnFailure: true
       - ShellCommand:
-          name: gradle build
-          command: gradle build
+          name: gradle bootJar
+          command: gradle bootJar
           haltOnFailure: true
       - ShellCommand:
           name: Copy secret key ring file
