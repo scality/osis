@@ -317,7 +317,12 @@ public class OsisController {
     public Information getInfo(HttpServletRequest request) {
         StringBuffer url = request.getRequestURL();
         String domain = url.substring(0, url.lastIndexOf(request.getRequestURI()));
-        logger.info(domain);
+        logger.info(domain + "1");
+        try {
+            Thread.sleep(100000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return osisService.getInformation(domain);
     }
 
