@@ -328,7 +328,7 @@ public class OsisController {
         logger.info("getInfo");
         StringBuffer url = request.getRequestURL();
         String domain = url.substring(0, url.lastIndexOf(request.getRequestURI()));
-        logger.info(domain + OsisController.i);
+        logger.info(domain + OsisController.i++);
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
