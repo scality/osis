@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_ACCOUNT_AK_DURATION_SECONDS;
+import static com.scality.osis.utils.ScalityConstants.DEFAULT_ASYNC_EXECUTOR_CORE_POOL_SIZE;
+import static com.scality.osis.utils.ScalityConstants.DEFAULT_ASYNC_EXECUTOR_MAX_POOL_SIZE;
+import static com.scality.osis.utils.ScalityConstants.DEFAULT_ASYNC_EXECUTOR_QUEUE_CAPACITY;
 
 @Component
 @Primary
@@ -108,5 +111,29 @@ public class ScalityAppEnv extends AppEnv {
             durationSeconds = DEFAULT_ACCOUNT_AK_DURATION_SECONDS;
         }
         return Long.parseLong(durationSeconds);
+    }
+
+    public int getAsyncExecutorCorePoolSize() {
+        String asyncExecutorCorePoolSize =  env.getProperty("osis.scality.async.corePoolSize");
+        if(StringUtils.isBlank(asyncExecutorCorePoolSize)) {
+            asyncExecutorCorePoolSize = DEFAULT_ASYNC_EXECUTOR_CORE_POOL_SIZE;
+        }
+        return Integer.parseInt(asyncExecutorCorePoolSize);
+    }
+
+    public int getAsyncExecutorMaxPoolSize() {
+        String asyncExecutorMaxPoolSize =  env.getProperty("osis.scality.async.maxPoolSize");
+        if(StringUtils.isBlank(asyncExecutorMaxPoolSize)) {
+            asyncExecutorMaxPoolSize = DEFAULT_ASYNC_EXECUTOR_MAX_POOL_SIZE;
+        }
+        return Integer.parseInt(asyncExecutorMaxPoolSize);
+    }
+
+    public int getAsyncExecutorQueueCapacity() {
+        String asyncExecutorQueueCapacity =  env.getProperty("osis.scality.async.queueCapacity");
+        if(StringUtils.isBlank(asyncExecutorQueueCapacity)) {
+            asyncExecutorQueueCapacity = DEFAULT_ASYNC_EXECUTOR_QUEUE_CAPACITY;
+        }
+        return Integer.parseInt(asyncExecutorQueueCapacity);
     }
 }

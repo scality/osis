@@ -57,6 +57,9 @@ public class ScalityOsisService implements OsisService {
     @Autowired
     private OsisCapsManager osisCapsManager;
 
+    @Autowired
+    private AsyncScalityOsisService asyncScalityOsisService;
+
     public ScalityOsisService(){}
 
     public ScalityOsisService(ScalityAppEnv appEnv, VaultAdmin vaultAdmin, OsisCapsManager osisCapsManager){
@@ -85,8 +88,8 @@ public class ScalityOsisService implements OsisService {
 
             OsisTenant resOsisTenant = ScalityModelConverter.toOsisTenant(accountResponse);
 
-            //TODO: Make this call async
-            setupAssumeRole(resOsisTenant);
+            // call async service to setup the assume role for the new tenant
+            asyncScalityOsisService.setupAssumeRole(resOsisTenant);
 
             logger.info("Create Tenant response:{}", new Gson().toJson(resOsisTenant));
 
@@ -304,77 +307,6 @@ public class ScalityOsisService implements OsisService {
     @Override
     public OsisUsage getOsisUsage(Optional<String> tenantId, Optional<String> userId) {
         return new OsisUsage();
-    }
-
-    private void setupAssumeRole(OsisTenant resOsisTenant) {
-        try {
-            logger.info(" Started [setupAssumeRole] for the Tenant:{}", resOsisTenant.getTenantId());
-
-            /* Call generateAccountAccessKey() and extract credentials from `generateAccountAccessKeyResponse`*/
-            GenerateAccountAccessKeyRequest generateAccountAccessKeyRequest =
-                    ScalityModelConverter.toGenerateAccountAccessKeyRequest(
-                            resOsisTenant.getName(),
-                            appEnv.getAccountAKDurationSeconds());
-            logger.debug("[Vault] Generate Account AccessKey Request:{}", new Gson().toJson(generateAccountAccessKeyRequest));
-
-            GenerateAccountAccessKeyResponse generateAccountAccessKeyResponse = vaultAdmin.getAccountAccessKey(generateAccountAccessKeyRequest);
-
-            logger.debug("[Vault] Generate Account AccessKey response:{}", new Gson().toJson(generateAccountAccessKeyResponse));
-
-            Credentials credentials = ScalityModelConverter.toCredentials(generateAccountAccessKeyResponse);
-
-            AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(credentials, appEnv.getRegionInfo().get(0));
-
-             /*Create OSIS admin role with sts:AssumeRole permissions*/
-            CreateRoleRequest createOSISRoleRequest = ScalityModelConverter
-                    .toCreateOSISRoleRequest(appEnv.getAssumeRoleName());
-
-            logger.debug("[Vault] Create OSIS role Request:{}", new Gson().toJson(createOSISRoleRequest));
-
-            CreateRoleResult createOSISRoleResponse = iamClient.createRole(createOSISRoleRequest);
-
-            logger.debug("[Vault] Create OSIS role response:{}", new Gson().toJson(createOSISRoleResponse));
-
-            /* Create Admin policy for account `adminPolicy@[account-id]`*/
-            CreatePolicyRequest createAdminPolicyRequest = ScalityModelConverter.toCreateAdminPolicyRequest(resOsisTenant.getTenantId());
-            logger.debug("[Vault] Create Admin Policy Request:{}", new Gson().toJson(createAdminPolicyRequest));
-
-            CreatePolicyResult adminPolicyResult = null;
-            try {
-                adminPolicyResult = iamClient.createPolicy(createAdminPolicyRequest);
-                logger.debug("[Vault] Create Admin Policy response:{}", new Gson().toJson(adminPolicyResult));
-
-            } catch (Exception e){
-                logger.error("Cannot create admin policy for Tenant ID:{}. Admin policy may already exists for this Tenant." +
-                        " Exception details:{}", resOsisTenant.getTenantId(), e.getMessage());
-            }
-             /*Attach admin policy to `osis` role*/
-            AttachRolePolicyRequest attachAdminPolicyRequest = ScalityModelConverter.
-                    toAttachAdminPolicyRequest(
-                            (adminPolicyResult != null) ?
-                                        adminPolicyResult.getPolicy().getArn() :
-                                        ScalityModelConverter.toAdminPolicyArn(resOsisTenant.getTenantId()),
-                            createOSISRoleResponse.getRole().getRoleName());
-
-            logger.debug("[Vault] Attach Admin Policy Request:{}", new Gson().toJson(attachAdminPolicyRequest));
-
-            AttachRolePolicyResult attachAdminPolicyResult = iamClient.attachRolePolicy(attachAdminPolicyRequest);
-            logger.debug("[Vault] Attach Admin Policy response:{}", new Gson().toJson(attachAdminPolicyResult));
-
-            // Delete the newly created Access Key for the account
-            DeleteAccessKeyRequest deleteAccessKeyRequest = ScalityModelConverter.
-                    toDeleteAccessKeyRequest(credentials.getAccessKeyId(), null);
-            logger.debug("[Vault] Delete Access key Request:{}", new Gson().toJson(attachAdminPolicyRequest));
-
-            DeleteAccessKeyResult deleteAccessKeyResult = iamClient.deleteAccessKey(deleteAccessKeyRequest);
-            logger.debug("[Vault] Delete Access key response:{}", new Gson().toJson(deleteAccessKeyResult));
-
-
-            logger.info(" Finished [setupAssumeRole] for the Tenant:{}", resOsisTenant.getTenantId());
-            
-        } catch (Exception e) {
-            logger.error("setupAssumeRole error for Tenant id:{}. Error details: {}", resOsisTenant.getTenantId(), e);
-        }
     }
 
     public Credentials getCredentials(String accountID) {

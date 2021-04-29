@@ -1,0 +1,113 @@
+/**
+ * Copyright 2021 Scality, Inc.
+ * SPDX-License-Identifier: Apache License 2.0
+ */
+
+package com.scality.osis.service.impl;
+
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
+import com.amazonaws.services.identitymanagement.model.AttachRolePolicyRequest;
+import com.amazonaws.services.identitymanagement.model.AttachRolePolicyResult;
+import com.amazonaws.services.identitymanagement.model.CreatePolicyRequest;
+import com.amazonaws.services.identitymanagement.model.CreatePolicyResult;
+import com.amazonaws.services.identitymanagement.model.CreateRoleRequest;
+import com.amazonaws.services.identitymanagement.model.CreateRoleResult;
+import com.amazonaws.services.identitymanagement.model.DeleteAccessKeyRequest;
+import com.amazonaws.services.identitymanagement.model.DeleteAccessKeyResult;
+import com.amazonaws.services.securitytoken.model.Credentials;
+import com.google.gson.Gson;
+import com.scality.osis.ScalityAppEnv;
+import com.scality.osis.utils.ScalityModelConverter;
+import com.scality.osis.vaultadmin.VaultAdmin;
+import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
+import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
+import com.vmware.osis.model.OsisTenant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+
+
+@Component
+public class AsyncScalityOsisService {
+    private static final Logger logger = LoggerFactory.getLogger(AsyncScalityOsisService.class);
+
+    @Autowired
+    private ScalityAppEnv appEnv;
+
+    @Autowired
+    private VaultAdmin vaultAdmin;
+
+    @Async
+    public void setupAssumeRole(OsisTenant resOsisTenant) {
+        try {
+            logger.info(" Started [setupAssumeRole] for the Tenant:{}", resOsisTenant.getTenantId());
+
+            /* Call generateAccountAccessKey() and extract credentials from `generateAccountAccessKeyResponse`*/
+            GenerateAccountAccessKeyRequest generateAccountAccessKeyRequest =
+                    ScalityModelConverter.toGenerateAccountAccessKeyRequest(
+                            resOsisTenant.getName(),
+                            appEnv.getAccountAKDurationSeconds());
+            logger.debug("[Vault] Generate Account AccessKey Request:{}", new Gson().toJson(generateAccountAccessKeyRequest));
+
+            GenerateAccountAccessKeyResponse generateAccountAccessKeyResponse = vaultAdmin.getAccountAccessKey(generateAccountAccessKeyRequest);
+
+            logger.debug("[Vault] Generate Account AccessKey response:{}", new Gson().toJson(generateAccountAccessKeyResponse));
+
+            Credentials credentials = ScalityModelConverter.toCredentials(generateAccountAccessKeyResponse);
+
+            AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(credentials, appEnv.getRegionInfo().get(0));
+
+             /*Create OSIS admin role with sts:AssumeRole permissions*/
+            CreateRoleRequest createOSISRoleRequest = ScalityModelConverter
+                    .toCreateOSISRoleRequest(appEnv.getAssumeRoleName());
+
+            logger.debug("[Vault] Create OSIS role Request:{}", new Gson().toJson(createOSISRoleRequest));
+
+            CreateRoleResult createOSISRoleResponse = iamClient.createRole(createOSISRoleRequest);
+
+            logger.debug("[Vault] Create OSIS role response:{}", new Gson().toJson(createOSISRoleResponse));
+
+            /* Create Admin policy for account `adminPolicy@[account-id]`*/
+            CreatePolicyRequest createAdminPolicyRequest = ScalityModelConverter.toCreateAdminPolicyRequest(resOsisTenant.getTenantId());
+            logger.debug("[Vault] Create Admin Policy Request:{}", new Gson().toJson(createAdminPolicyRequest));
+
+            CreatePolicyResult adminPolicyResult = null;
+            try {
+                adminPolicyResult = iamClient.createPolicy(createAdminPolicyRequest);
+                logger.debug("[Vault] Create Admin Policy response:{}", new Gson().toJson(adminPolicyResult));
+
+            } catch (Exception e){
+                logger.error("Cannot create admin policy for Tenant ID:{}. Admin policy may already exists for this Tenant." +
+                        " Exception details:{}", resOsisTenant.getTenantId(), e.getMessage());
+            }
+             /*Attach admin policy to `osis` role*/
+            AttachRolePolicyRequest attachAdminPolicyRequest = ScalityModelConverter.
+                    toAttachAdminPolicyRequest(
+                            (adminPolicyResult != null) ?
+                                        adminPolicyResult.getPolicy().getArn() :
+                                        ScalityModelConverter.toAdminPolicyArn(resOsisTenant.getTenantId()),
+                            createOSISRoleResponse.getRole().getRoleName());
+
+            logger.debug("[Vault] Attach Admin Policy Request:{}", new Gson().toJson(attachAdminPolicyRequest));
+
+            AttachRolePolicyResult attachAdminPolicyResult = iamClient.attachRolePolicy(attachAdminPolicyRequest);
+            logger.debug("[Vault] Attach Admin Policy response:{}", new Gson().toJson(attachAdminPolicyResult));
+
+            // Delete the newly created Access Key for the account
+            DeleteAccessKeyRequest deleteAccessKeyRequest = ScalityModelConverter.
+                    toDeleteAccessKeyRequest(credentials.getAccessKeyId(), null);
+            logger.debug("[Vault] Delete Access key Request:{}", new Gson().toJson(attachAdminPolicyRequest));
+
+            DeleteAccessKeyResult deleteAccessKeyResult = iamClient.deleteAccessKey(deleteAccessKeyRequest);
+            logger.debug("[Vault] Delete Access key response:{}", new Gson().toJson(deleteAccessKeyResult));
+
+
+            logger.info(" Finished [setupAssumeRole] for the Tenant:{}", resOsisTenant.getTenantId());
+            
+        } catch (Exception e) {
+            logger.error("setupAssumeRole error for Tenant id:{}. Error details: ", resOsisTenant.getTenantId(), e);
+        }
+    }
+}

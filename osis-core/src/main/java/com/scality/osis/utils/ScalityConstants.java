@@ -36,9 +36,7 @@ public final class ScalityConstants {
                                                                     "        \"Version\": \"2012-10-17\",\n" +
                                                                     "        \"Statement\": [{\n" +
                                                                     "                \"Effect\": \"Allow\",\n" +
-                                                                    "                \"Principal\": {\n" +
-                                                                    "                        \"Service\": \"backbeat\"\n" + // TODO: change backbeat to OSIS
-                                                                    "                },\n" +
+                                                                    "                \"Principal\": \"*\",\n" +
                                                                     "                \"Action\": \"sts:AssumeRole\"\n" +
                                                                     "        }]\n" +
                                                                     "}";
@@ -59,4 +57,10 @@ public final class ScalityConstants {
     public static final String ACCOUNT_ADMIN_POLICY_ARN_REGEX = "arn:aws:iam::$ACCOUNTID:policy/adminPolicy@$ACCOUNTID";
 
     public static final String ACCOUNT_ADMIN_POLICY_NAME_REGEX = "adminPolicy@$ACCOUNTID";
+
+    // Async threadpool executor parameters
+    public static final String ASYNC_THREADPOOL_NAME_PREFIX = "async-thread-";
+    public static final String DEFAULT_ASYNC_EXECUTOR_CORE_POOL_SIZE = "10";
+    public static final String DEFAULT_ASYNC_EXECUTOR_MAX_POOL_SIZE = "10";
+    public static final String DEFAULT_ASYNC_EXECUTOR_QUEUE_CAPACITY = "500";
 }
