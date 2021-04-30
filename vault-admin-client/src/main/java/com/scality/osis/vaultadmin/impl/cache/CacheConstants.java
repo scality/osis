@@ -23,6 +23,7 @@ public final class CacheConstants {
     //Constants
     public static final String NAME_LIST_ACCOUNTS_CACHE = "listAccounts";
     public static final String NAME_ASSUME_ROLE_CACHE = "assumeRole";
+    public static final String NAME_LIST_USERS_CACHE = "listAccounts";
 
     private CacheConstants(){}
 

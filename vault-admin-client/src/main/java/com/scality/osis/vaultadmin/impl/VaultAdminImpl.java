@@ -63,6 +63,8 @@ public class VaultAdminImpl implements VaultAdmin{
 
   private Cache<String, Credentials> assumeRoleCache;
 
+  private Cache<String, Credentials> listUsersCache;
+
   /**
    * Create a Vault administrator implementation
    *  @param accessKey Access key of the admin who have proper administrative capabilities.
@@ -108,6 +110,7 @@ public class VaultAdminImpl implements VaultAdmin{
     if(cacheFactory !=null) {
       listAccountsMarkerCache = cacheFactory.getCache(CacheConstants.NAME_LIST_ACCOUNTS_CACHE);
       assumeRoleCache = cacheFactory.getCache(CacheConstants.NAME_ASSUME_ROLE_CACHE);
+      listUsersCache = cacheFactory.getCache(CacheConstants.NAME_LIST_USERS_CACHE);
     }
   }
 
