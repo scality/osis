@@ -6,9 +6,8 @@
 
 package com.scality.osis.service.impl;
 
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import com.amazonaws.util.StringUtils;
 import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.utils.ScalityUtils;
 import com.google.gson.Gson;
@@ -18,8 +17,6 @@ import com.scality.osis.vaultadmin.impl.VaultServiceException;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
-import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.vmware.osis.model.*;
@@ -40,6 +37,8 @@ import java.util.Optional;
 
 import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
 import static com.scality.osis.utils.ScalityConstants.IAM_PREFIX;
+import static com.scality.osis.utils.ScalityConstants.NO_SUCH_ENTITY_ERR;
+import static com.scality.osis.utils.ScalityConstants.ROLE_DOES_NOT_EXIST_ERR;
 
 
 @Service
@@ -309,7 +308,22 @@ public class ScalityOsisService implements OsisService {
         return new OsisUsage();
     }
 
-    public Credentials getCredentials(String accountID) {
-        return vaultAdmin.getTempAccountCredentials(ScalityModelConverter.getAssumeRoleRequestForAccount(accountID, appEnv.getAssumeRoleName()));
+    public Credentials getCredentials(String accountID, String accountName) {
+        Credentials credentials = null;
+        try {
+            credentials = vaultAdmin.getTempAccountCredentials(ScalityModelConverter.getAssumeRoleRequestForAccount(accountID, appEnv.getAssumeRoleName()));
+        } catch(VaultServiceException e) {
+
+            if(!StringUtils.isNullOrEmpty(e.getErrorCode()) &&
+                    NO_SUCH_ENTITY_ERR.equals(e.getErrorCode()) &&
+                    ROLE_DOES_NOT_EXIST_ERR.equals(e.getReason())){
+                // If role does not exists, invoke setupAssumeRole
+                logger.error(ROLE_DOES_NOT_EXIST_ERR + ". Recreating the role");
+                asyncScalityOsisService.setupAssumeRole(accountID, accountName);
+                return getCredentials(accountID, accountName);
+            }
+            throw e;
+        }
+        return credentials;
     }
 }

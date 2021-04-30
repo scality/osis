@@ -750,7 +750,7 @@ public class ScalityOsisServiceTest {
         // Setup
 
         // Run the test
-        final Credentials credentials = scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID);
+        final Credentials credentials = scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID, TEST_NAME);
 
         // Verify the results
         assertEquals(TEST_ACCESS_KEY, credentials.getAccessKeyId(), "Invalid Access key");
@@ -758,9 +758,69 @@ public class ScalityOsisServiceTest {
     }
 
     @Test
-    public void testSetupAssumeRole() {
+    public void testGetCredentialsWithNoRole() {
+        // Setup
+
+        when(vaultAdminMock.getTempAccountCredentials(any(AssumeRoleRequest.class)))
+                .thenThrow(new VaultServiceException(HttpStatus.NOT_FOUND, "NoSuchEntity", "Role does not exist"))
+                .thenAnswer((Answer<Credentials>) invocation -> {
+                    final Credentials credentials = new Credentials();
+                    credentials.setAccessKeyId(TEST_ACCESS_KEY);
+                    credentials.setSecretAccessKey(TEST_SECRET_KEY);
+                    credentials.setExpiration(new Date());
+                    credentials.setSessionToken(TEST_SESSION_TOKEN);
+
+                    return credentials;
+                });
+        // Run the test
+        final Credentials credentials = scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID, TEST_NAME);
+
+        // Verify the results
+        assertEquals(TEST_ACCESS_KEY, credentials.getAccessKeyId(), "Invalid Access key");
+        assertEquals(TEST_SECRET_KEY, credentials.getSecretAccessKey(), "Invalid Secret Key");
+    }
+
+    @Test
+    public void testGetCredentialsWithNoRoleFail() {
+        // Setup
+
+        when(vaultAdminMock.getTempAccountCredentials(any(AssumeRoleRequest.class)))
+                .thenThrow(new VaultServiceException(HttpStatus.NOT_FOUND, "NoSuchEntity", "Role does not exist"))
+                .thenThrow(new VaultServiceException(HttpStatus.NOT_FOUND, "MalformedPolicyDocument"));
+        // Run the test
+        // Verify the results
+        assertThrows(VaultServiceException.class, () -> scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID));
+    }
+
+    @Test
+    public void testGetCredentials400() {
+        // Setup
+        when(vaultAdminMock.getTempAccountCredentials(any(AssumeRoleRequest.class)))
+                .thenThrow(new VaultServiceException(HttpStatus.BAD_REQUEST, "Bad Request"));
+
+        // Run the test
+        assertThrows(VaultServiceException.class, () -> scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID, TEST_NAME));
+
+        // Verify the results
+    }
+
+    @Test
+    public void testSetupAssumeRoleAsync() {
 
         asyncScalityOsisServiceUnderTest.setupAssumeRole(createSampleOsisTenantObj());
+
+        // Verify if all the API calls were made successfully
+        verify(vaultAdminMock).getAccountAccessKey(any(GenerateAccountAccessKeyRequest.class));
+        verify(iamMock).createRole(any(CreateRoleRequest.class));
+        verify(iamMock).createPolicy(any(CreatePolicyRequest.class));
+        verify(iamMock).attachRolePolicy(any(AttachRolePolicyRequest.class));
+        verify(iamMock).deleteAccessKey(any(DeleteAccessKeyRequest.class));
+    }
+
+    @Test
+    public void testSetupAssumeRole() {
+
+        asyncScalityOsisServiceUnderTest.setupAssumeRole(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME);
 
         // Verify if all the API calls were made successfully
         verify(vaultAdminMock).getAccountAccessKey(any(GenerateAccountAccessKeyRequest.class));
