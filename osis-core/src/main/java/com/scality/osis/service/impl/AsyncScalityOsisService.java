@@ -40,20 +40,26 @@ public class AsyncScalityOsisService {
     private VaultAdmin vaultAdmin;
 
     @Async
-    public void setupAssumeRole(OsisTenant resOsisTenant) {
+    public void setupAssumeRole(OsisTenant osisTenant) {
+        setupAssumeRole(osisTenant.getTenantId(), osisTenant.getName());
+    }
+
+    public void setupAssumeRole(String tenantId, String tenantName) {
         try {
-            logger.info(" Started [setupAssumeRole] for the Tenant:{}", resOsisTenant.getTenantId());
+            logger.info(" Started [setupAssumeRole] for the Tenant:{}", tenantId);
 
             /* Call generateAccountAccessKey() and extract credentials from `generateAccountAccessKeyResponse`*/
             GenerateAccountAccessKeyRequest generateAccountAccessKeyRequest =
                     ScalityModelConverter.toGenerateAccountAccessKeyRequest(
-                            resOsisTenant.getName(),
+                            tenantName,
                             appEnv.getAccountAKDurationSeconds());
             logger.debug("[Vault] Generate Account AccessKey Request:{}", new Gson().toJson(generateAccountAccessKeyRequest));
 
             GenerateAccountAccessKeyResponse generateAccountAccessKeyResponse = vaultAdmin.getAccountAccessKey(generateAccountAccessKeyRequest);
 
-            logger.debug("[Vault] Generate Account AccessKey response:{}", new Gson().toJson(generateAccountAccessKeyResponse));
+            logger.info("Generated temporary Account AccessKey accessKey={} for account ID={} with expiration={}",
+                    generateAccountAccessKeyResponse.getData().getId(), tenantId, generateAccountAccessKeyResponse.getData().getNotAfter());
+            logger.trace("[Vault] Generate Account AccessKey full response:{}", new Gson().toJson(generateAccountAccessKeyResponse));
 
             Credentials credentials = ScalityModelConverter.toCredentials(generateAccountAccessKeyResponse);
 
@@ -70,7 +76,7 @@ public class AsyncScalityOsisService {
             logger.debug("[Vault] Create OSIS role response:{}", new Gson().toJson(createOSISRoleResponse));
 
             /* Create Admin policy for account `adminPolicy@[account-id]`*/
-            CreatePolicyRequest createAdminPolicyRequest = ScalityModelConverter.toCreateAdminPolicyRequest(resOsisTenant.getTenantId());
+            CreatePolicyRequest createAdminPolicyRequest = ScalityModelConverter.toCreateAdminPolicyRequest(tenantId);
             logger.debug("[Vault] Create Admin Policy Request:{}", new Gson().toJson(createAdminPolicyRequest));
 
             CreatePolicyResult adminPolicyResult = null;
@@ -80,14 +86,14 @@ public class AsyncScalityOsisService {
 
             } catch (Exception e){
                 logger.error("Cannot create admin policy for Tenant ID:{}. Admin policy may already exists for this Tenant." +
-                        " Exception details:{}", resOsisTenant.getTenantId(), e.getMessage());
+                        " Exception details:{}", tenantId, e.getMessage());
             }
              /*Attach admin policy to `osis` role*/
             AttachRolePolicyRequest attachAdminPolicyRequest = ScalityModelConverter.
                     toAttachAdminPolicyRequest(
                             (adminPolicyResult != null) ?
                                         adminPolicyResult.getPolicy().getArn() :
-                                        ScalityModelConverter.toAdminPolicyArn(resOsisTenant.getTenantId()),
+                                        ScalityModelConverter.toAdminPolicyArn(tenantId),
                             createOSISRoleResponse.getRole().getRoleName());
 
             logger.debug("[Vault] Attach Admin Policy Request:{}", new Gson().toJson(attachAdminPolicyRequest));
@@ -104,10 +110,10 @@ public class AsyncScalityOsisService {
             logger.debug("[Vault] Delete Access key response:{}", new Gson().toJson(deleteAccessKeyResult));
 
 
-            logger.info(" Finished [setupAssumeRole] for the Tenant:{}", resOsisTenant.getTenantId());
-            
+            logger.info(" Finished [setupAssumeRole] for the Tenant:{}", tenantId);
+
         } catch (Exception e) {
-            logger.error("setupAssumeRole error for Tenant id:{}. Error details: ", resOsisTenant.getTenantId(), e);
+            logger.error("setupAssumeRole error for Tenant id:{}. Error details: ", tenantId, e);
         }
     }
 }

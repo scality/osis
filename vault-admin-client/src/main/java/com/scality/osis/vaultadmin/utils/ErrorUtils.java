@@ -22,7 +22,7 @@ public final class ErrorUtils {
 
   public static VaultServiceException parseError(VaultClientException vaultClientException) {
       return new VaultServiceException(
-              HttpStatus.valueOf(vaultClientException.getStatusCode()), vaultClientException.getErrorCode());
+              HttpStatus.valueOf(vaultClientException.getStatusCode()), vaultClientException.getErrorCode(), vaultClientException.getErrorMessage());
   }
 
   public static boolean isSuccessful(int statusCode) {

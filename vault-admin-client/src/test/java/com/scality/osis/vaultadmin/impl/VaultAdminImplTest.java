@@ -67,7 +67,7 @@ public class VaultAdminImplTest extends BaseTest {
             vaultAdminImpl.createAccount(createAccountRequestDTO);
         });
         assertEquals(409, exception.getStatus().value());
-        assertEquals("EntityAlreadyExists", exception.getReason());
+        assertEquals("EntityAlreadyExists", exception.getErrorCode());
 
         //reinit the default mocks
         initMocks();

@@ -8,10 +8,12 @@ package com.scality.osis.vaultadmin;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import com.scality.vaultclient.dto.AccountData;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
+import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
@@ -94,4 +96,12 @@ public interface VaultAdmin {
    */
   GenerateAccountAccessKeyResponse getAccountAccessKey(GenerateAccountAccessKeyRequest generateAccountAccessKeyRequest);
 
+  /**
+   * Get account with account id
+   * <p>This method will get the account from Vault using Account ID.
+   *
+   * @param getAccountRequestDTO the get account request dto
+   * @return the account
+   */
+  AccountData getAccountWithID(GetAccountRequestDTO getAccountRequestDTO);
 }

@@ -47,6 +47,7 @@ http://pmd.sourceforge.net/ruleset/2.0.0 ">
     <rule ref="category/java/design.xml">
         <exclude name="LawOfDemeter"/>
         <exclude name="TooManyMethods"/>
+        <exclude name="ExcessivePublicCount"/>
     </rule>
 
 </ruleset>

@@ -18,8 +18,19 @@ public class VaultServiceException extends ResponseStatusException {
 
   private static final long serialVersionUID = 8292089200348420677L;
 
+  private String errorCode = "";
+
+  public String getErrorCode() {
+    return errorCode;
+  }
+
   public VaultServiceException(HttpStatus status, String message) {
     super(status, message);
+  }
+
+  public VaultServiceException(HttpStatus status, String errorCode, String message) {
+    super(status, message);
+    this.errorCode = errorCode;
   }
 
   public VaultServiceException(HttpStatus status, String messageCode, Throwable cause) {
