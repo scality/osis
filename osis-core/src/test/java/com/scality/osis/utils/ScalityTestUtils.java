@@ -54,6 +54,10 @@ public final class ScalityTestUtils {
     public static final String PLATFORM_NAME ="Scality";
     public static final String PLATFORM_VERSION ="7.10";
     public static final String API_VERSION ="1.0.0";
+    public static final long SAMPLE_DURATION_SECONDS = 120L;
+    public static final String TEST_POLICY_ARN ="policy-arn";
+    public static final String ACTIVE_STR = "Active";
+    public static final String NA_STR = "N/A";
 
 
     private ScalityTestUtils(){

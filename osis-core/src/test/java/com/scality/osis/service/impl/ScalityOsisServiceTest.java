@@ -1,13 +1,12 @@
 package com.scality.osis.service.impl;
 
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.Credentials;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
+import com.amazonaws.services.identitymanagement.model.*;
+import com.amazonaws.services.securitytoken.model.*;
 import com.scality.osis.ScalityAppEnv;
-import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
-import com.scality.osis.vaultadmin.impl.cache.CacheImpl;
+import com.scality.osis.vaultadmin.impl.cache.*;
 import com.vmware.osis.model.*;
-import com.vmware.osis.model.exception.BadRequestException;
-import com.vmware.osis.model.exception.NotImplementedException;
+import com.vmware.osis.model.exception.*;
 import com.vmware.osis.resource.OsisCapsManager;
 import org.junit.jupiter.api.BeforeEach;
 import com.scality.vaultclient.dto.*;
@@ -16,27 +15,27 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
-import com.scality.osis.vaultadmin.impl.VaultAdminImpl;
-import com.scality.osis.vaultadmin.impl.VaultServiceException;
+import com.scality.osis.vaultadmin.impl.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.*;
 
-import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
-import static com.scality.osis.utils.ScalityConstants.IAM_PREFIX;
+import static com.scality.osis.utils.ScalityConstants.*;
 import static com.scality.osis.utils.ScalityTestUtils.*;
-import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.DEFAULT_CACHE_MAX_CAPACITY;
-import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.NAME_LIST_ACCOUNTS_CACHE;
+import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class ScalityOsisServiceTest {
 
     //vault admin mock object
+    @Mock
     private static VaultAdminImpl vaultAdminMock;
 
     private static ScalityOsisService scalityOsisServiceUnderTest;
+
+    private static AsyncScalityOsisService asyncScalityOsisServiceUnderTest;
 
     @Mock
     private static ScalityAppEnv appEnvMock;
@@ -44,12 +43,20 @@ public class ScalityOsisServiceTest {
     @Mock
     private static OsisCapsManager osisCapsManagerMock;
 
+    @Mock
+    private AmazonIdentityManagement iamMock;
+
     @BeforeEach
     private void init(){
-        vaultAdminMock = mock(VaultAdminImpl.class);
         MockitoAnnotations.initMocks( this );
         initMocks();
         scalityOsisServiceUnderTest = new ScalityOsisService(appEnvMock, vaultAdminMock, osisCapsManagerMock);
+
+        asyncScalityOsisServiceUnderTest = new AsyncScalityOsisService();
+        ReflectionTestUtils.setField(asyncScalityOsisServiceUnderTest, "vaultAdmin", vaultAdminMock);
+        ReflectionTestUtils.setField(asyncScalityOsisServiceUnderTest, "appEnv", appEnvMock);
+
+        ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "asyncScalityOsisService", asyncScalityOsisServiceUnderTest);
     }
 
     private void initMocks() {
@@ -63,10 +70,16 @@ public class ScalityOsisServiceTest {
         when(appEnvMock.getS3InterfaceEndpoint()).thenReturn(TEST_S3_INTERFACE_URL);
         when(appEnvMock.getAssumeRoleName()).thenReturn(SAMPLE_ASSUME_ROLE_NAME);
         when(osisCapsManagerMock.getNotImplements()).thenReturn(new ArrayList<>());
+        when(vaultAdminMock.getIAMClient(any(Credentials.class),any())).thenReturn(iamMock);
 
         initCreateTenantMocks();
         initListTenantMocks();
         initTempCredentialsMocks();
+        initCreatePolicyMocks();
+        initGenerateAccountAKMocks();
+        initCreateRoleMocks();
+        initAttachRolePolicyMocks();
+        initDeleteAccessKeyMocks();
         initCaches();
     }
 
@@ -143,6 +156,69 @@ public class ScalityOsisServiceTest {
                     credentials.setSessionToken(TEST_SESSION_TOKEN);
 
                     return credentials;
+                });
+    }
+
+    private void initGenerateAccountAKMocks() {
+        when(vaultAdminMock.getAccountAccessKey(any(GenerateAccountAccessKeyRequest.class)))
+                .thenAnswer((Answer<GenerateAccountAccessKeyResponse>) invocation -> {
+                    final GenerateAccountAccessKeyRequest request = invocation.getArgument(0);
+
+                    final Date expirationDate = new Date(new Date().getTime() + (request.getDurationSeconds() * 1000L));
+                    final AccountSecretKeyData accountSecretKeyData = new AccountSecretKeyData().builder()
+                            .id(TEST_ACCESS_KEY)
+                            .value(TEST_SECRET_KEY)
+                            .userId(SAMPLE_TENANT_ID)
+                            .createDate(new Date())
+                            .lastUsedService(NA_STR)
+                            .lastUsedRegion(NA_STR)
+                            .lastUsedDate(new Date())
+                            .status(ACTIVE_STR)
+                            .notAfter(expirationDate)
+                            .build();
+                    final GenerateAccountAccessKeyResponse response = new GenerateAccountAccessKeyResponse();
+                    response.setData(accountSecretKeyData);
+
+                    return response;
+                });
+    }
+
+    private void initCreateRoleMocks() {
+        when(iamMock.createRole(any(CreateRoleRequest.class)))
+                .thenAnswer((Answer<CreateRoleResult>) invocation -> {
+                    final CreateRoleRequest request = invocation.getArgument(0);
+                    final CreateRoleResult response = new CreateRoleResult();
+                    final Role role = new Role()
+                            .withAssumeRolePolicyDocument(request.getAssumeRolePolicyDocument())
+                            .withDescription(request.getDescription())
+                            .withRoleName(request.getRoleName())
+                            .withCreateDate(new Date())
+                            .withRoleId(SAMPLE_ID)
+                            .withArn("arn:aws:iam::" + TEST_TENANT_ID +":role/" + request.getRoleName());
+                    response.setRole(role);
+                    return response;
+                });
+    }
+
+    private void initAttachRolePolicyMocks() {
+        when(iamMock.attachRolePolicy(any(AttachRolePolicyRequest.class))).thenReturn(new AttachRolePolicyResult());
+    }
+
+    private void initDeleteAccessKeyMocks() {
+        when(iamMock.deleteAccessKey(any(DeleteAccessKeyRequest.class))).thenReturn( new DeleteAccessKeyResult());
+    }
+
+    private void initCreatePolicyMocks() {
+        when(iamMock.createPolicy(any(CreatePolicyRequest.class)))
+                .thenAnswer((Answer<CreatePolicyResult>) invocation -> {
+                    final CreatePolicyRequest request = invocation.getArgument(0);
+                    final CreatePolicyResult response = new CreatePolicyResult();
+                    final Policy policy = new Policy()
+                            .withPolicyName(request.getPolicyName())
+                            .withDescription(request.getDescription())
+                            .withArn("arn:aws:iam::" + TEST_TENANT_ID +":policy/" + request.getPolicyName());
+                    response.setPolicy(policy);
+                    return response;
                 });
     }
 
@@ -679,6 +755,19 @@ public class ScalityOsisServiceTest {
         // Verify the results
         assertEquals(TEST_ACCESS_KEY, credentials.getAccessKeyId(), "Invalid Access key");
         assertEquals(TEST_SECRET_KEY, credentials.getSecretAccessKey(), "Invalid Secret Key");
+    }
+
+    @Test
+    public void testSetupAssumeRole() {
+
+        asyncScalityOsisServiceUnderTest.setupAssumeRole(createSampleOsisTenantObj());
+
+        // Verify if all the API calls were made successfully
+        verify(vaultAdminMock).getAccountAccessKey(any(GenerateAccountAccessKeyRequest.class));
+        verify(iamMock).createRole(any(CreateRoleRequest.class));
+        verify(iamMock).createPolicy(any(CreatePolicyRequest.class));
+        verify(iamMock).attachRolePolicy(any(AttachRolePolicyRequest.class));
+        verify(iamMock).deleteAccessKey(any(DeleteAccessKeyRequest.class));
     }
 
 

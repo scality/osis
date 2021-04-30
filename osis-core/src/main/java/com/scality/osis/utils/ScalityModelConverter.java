@@ -306,6 +306,7 @@ public final class ScalityModelConverter {
     public static Credentials toCredentials(GenerateAccountAccessKeyResponse generateAccountAccessKeyResponse) {
         return new Credentials()
                 .withAccessKeyId(generateAccountAccessKeyResponse.getData().getId())
-                .withSecretAccessKey(generateAccountAccessKeyResponse.getData().getValue());
+                .withSecretAccessKey(generateAccountAccessKeyResponse.getData().getValue())
+                .withExpiration(generateAccountAccessKeyResponse.getData().getNotAfter());
     }
 }
