@@ -57,7 +57,9 @@ public class AsyncScalityOsisService {
 
             GenerateAccountAccessKeyResponse generateAccountAccessKeyResponse = vaultAdmin.getAccountAccessKey(generateAccountAccessKeyRequest);
 
-            logger.debug("[Vault] Generate Account AccessKey response:{}", new Gson().toJson(generateAccountAccessKeyResponse));
+            logger.info("Generated temporary Account AccessKey accessKey={} for account ID={} with expiration={}",
+                    generateAccountAccessKeyResponse.getData().getId(), tenantId, generateAccountAccessKeyResponse.getData().getNotAfter());
+            logger.trace("[Vault] Generate Account AccessKey full response:{}", new Gson().toJson(generateAccountAccessKeyResponse));
 
             Credentials credentials = ScalityModelConverter.toCredentials(generateAccountAccessKeyResponse);
 
