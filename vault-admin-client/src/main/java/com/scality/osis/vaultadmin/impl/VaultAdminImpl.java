@@ -15,6 +15,7 @@ import com.amazonaws.services.identitymanagement.model.ListUsersRequest;
 import com.amazonaws.services.identitymanagement.model.ListUsersResult;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.util.StringUtils;
+import com.google.gson.Gson;
 import com.scality.osis.vaultadmin.impl.cache.Cache;
 import com.scality.osis.vaultadmin.impl.cache.CacheConstants;
 import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
@@ -265,29 +266,57 @@ public class VaultAdminImpl implements VaultAdmin{
     }
   }
 
+  @Override
+  public ListUsersResult listUsers(String accountId, long offset, long limit, AmazonIdentityManagement iamClient) {
+    ListUsersRequest listUsersRequest =  new ListUsersRequest()
+                                            .withMaxItems((int) limit);
+    if(offset > 0) {
+      String marker = getUsersMarker((int)offset, accountId, iamClient);
+      logger.debug("List Users called with marker:{}", marker);
+      listUsersRequest.setMarker(marker);
+    }
+
+    logger.info("[Vault] List Users Request:{}", new Gson().toJson(listUsersRequest));
+
+    ListUsersResult listUsersResult = iamClient.listUsers(listUsersRequest);
+
+    logger.info("[Vault] List Users response:{}", new Gson().toJson(listUsersResult));
+
+    if(listUsersResult.isTruncated()) {
+      // Store (offset + listUsersResult.getUsers().size()) as key for the received marker
+      int markerKey = (int) (offset + listUsersResult.getUsers().size());
+      cacheListUsersMarker(getListUsersCacheKey(markerKey, accountId), listUsersResult.getMarker());
+    }
+
+    return listUsersResult;
+  }
+
   /**
    * Returns users marker
    * <p>This method will return the users marker for the provided offset.
    *
    * @param offset The start index of users to return
+   * @param iamClient the IAM Client
    * @return the marker string
    */
-  public String getUsersMarker(int offset) throws VaultServiceException {
+  private String getUsersMarker(int offset, String accountId, AmazonIdentityManagement iamClient) throws VaultServiceException {
 
     String marker = null;
+
     if(listUsersMarkerCache != null){
-      marker = listUsersMarkerCache.get(offset);
+      String offsetKey = getListUsersCacheKey(offset, accountId);
+      marker = listUsersMarkerCache.get(offsetKey);
     }
 
     // If marker available in cache
     if(marker  == null){
 
       // Move index 0 to offset and capture all missing markers
-      int index = 0;
-      for(;index < offset; index += 1000){
+      for(int index = 0;index < offset; index += 1000){
 
         int maxItems = (offset < 1000) ? offset : 1000;
-        int nextOffset = index + maxItems;
+
+        String nextOffset = getListUsersCacheKey((index + maxItems), accountId);
 
         if(listUsersMarkerCache != null && listUsersMarkerCache.get(nextOffset) !=null){
           marker = listUsersMarkerCache.get(nextOffset);
@@ -300,12 +329,13 @@ public class VaultAdminImpl implements VaultAdmin{
           listUsersRequest.setMarker(marker);
         }
 
-        ListUsersResult listUsersResponse = listUsers(listUsersRequest);
+        ListUsersResult listUsersResponse = iamClient.listUsers(listUsersRequest);
 
         if(listUsersResponse.isTruncated()) {
 
           marker = listUsersResponse.getMarker();
-          cacheListUsersMarker(listUsersResponse.getUsers().size(), marker);
+          String key = getListUsersCacheKey(listUsersResponse.getUsers().size(), accountId);
+          cacheListUsersMarker(key, marker);
 
         } else{
           throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Requested offset is outside the total available items");
@@ -317,9 +347,13 @@ public class VaultAdminImpl implements VaultAdmin{
     return marker;
   }
 
-  private void cacheListUsersMarker(int key, String marker) {
-    if(listAccountsMarkerCache != null) {
-      listAccountsMarkerCache.put(key, marker);
+  private String getListUsersCacheKey(int offset, String accountId) {
+    return accountId + "_" + offset;
+  }
+
+  private void cacheListUsersMarker(String key, String marker) {
+    if(listUsersMarkerCache != null) {
+      listUsersMarkerCache.put(key, marker);
     }
   }
 

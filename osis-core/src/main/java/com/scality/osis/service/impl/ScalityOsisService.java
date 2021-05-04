@@ -331,13 +331,7 @@ public class ScalityOsisService implements OsisService {
             Credentials tempCredentials = getCredentials(tenantId);
             final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
 
-            ListUsersRequest listUsersRequest =  ScalityModelConverter.toIAMListUsersRequest(limit);
-            //TODO: Get list users marker
-            logger.info("[Vault] List Users Request:{}", new Gson().toJson(listUsersRequest));
-
-            ListUsersResult listUsersResult = iam.listUsers(listUsersRequest);
-
-            logger.info("[Vault] List Users response:{}", new Gson().toJson(listUsersResult));
+            ListUsersResult listUsersResult = vaultAdmin.listUsers(tenantId, offset, limit, iam );
 
             PageOfUsers pageOfUsers = ScalityModelConverter.toPageOfUsers(listUsersResult, offset, limit, tenantId);
             logger.info("List Users response:{}", new Gson().toJson(pageOfUsers));

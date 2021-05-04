@@ -6,6 +6,7 @@
 package com.scality.osis.vaultadmin;
 
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
+import com.amazonaws.services.identitymanagement.model.ListUsersResult;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.vaultclient.dto.AccountData;
@@ -104,4 +105,6 @@ public interface VaultAdmin {
    * @return the account
    */
   AccountData getAccountWithID(GetAccountRequestDTO getAccountRequestDTO);
+
+  ListUsersResult listUsers(String tenantId, long offset, long limit, AmazonIdentityManagement iam);
 }

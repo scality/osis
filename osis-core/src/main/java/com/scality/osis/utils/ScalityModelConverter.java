@@ -97,17 +97,6 @@ public final class ScalityModelConverter {
     }
 
     /**
-     * Created Vault List Accounts request for List Tenants
-     * @param limit the max number of items
-     *
-     * @return the create account request dto
-     */
-    public static ListUsersRequest toIAMListUsersRequest(long limit) {
-        return new ListUsersRequest()
-                .withMaxItems((int) limit);
-    }
-
-    /**
      * Created Vault List Accounts request for Query Tenants
      * @param limit the max number of items
      *

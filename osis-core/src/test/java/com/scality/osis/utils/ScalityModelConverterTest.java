@@ -348,16 +348,6 @@ public class ScalityModelConverterTest {
     }
 
     @Test
-    public void testToIAMListUsersRequest() {
-        // Setup
-        // Run the test
-        final ListUsersRequest result = ScalityModelConverter.toIAMListUsersRequest(1000);
-
-        // Verify the results
-        assertEquals(1000, result.getMaxItems());
-    }
-
-    @Test
     public void testToPageOfUsers() {
         // Setup
         final String path = "/"+ TEST_NAME +"/"
