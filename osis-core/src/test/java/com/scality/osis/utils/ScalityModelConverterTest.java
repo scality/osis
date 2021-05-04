@@ -7,6 +7,7 @@ import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.vmware.osis.model.OsisS3Credential;
 import com.vmware.osis.model.OsisTenant;
 import com.vmware.osis.model.OsisUser;
+import com.vmware.osis.model.PageOfUsers;
 import com.vmware.osis.model.exception.BadRequestException;
 import com.scality.vaultclient.dto.Account;
 import com.scality.vaultclient.dto.AccountData;
@@ -17,6 +18,8 @@ import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -342,5 +345,46 @@ public class ScalityModelConverterTest {
         assertEquals(TEST_TENANT_ID, result.getCdTenantId());
         assertEquals(TEST_ACCESS_KEY, result.getAccessKey());
         assertEquals(TEST_SECRET_KEY, result.getSecretKey());
+    }
+
+    @Test
+    public void testToIAMListUsersRequest() {
+        // Setup
+        // Run the test
+        final ListUsersRequest result = ScalityModelConverter.toIAMListUsersRequest(1000);
+
+        // Verify the results
+        assertEquals(1000, result.getMaxItems());
+    }
+
+    @Test
+    public void testToPageOfUsers() {
+        // Setup
+        final String path = "/"+ TEST_NAME +"/"
+                + OsisUser.RoleEnum.TENANT_USER.getValue() +"/"
+                + SAMPLE_SCALITY_USER_EMAIL  + "/"
+                + TEST_TENANT_ID  + "/";
+
+        final User user = new User(path, TEST_USER_ID, TEST_USER_ID, "arn", new GregorianCalendar(2019, Calendar.JANUARY, 1).getTime());
+
+        final ListUsersResult listUsersResult = new ListUsersResult().withUsers(Collections.singletonList(user));
+        // Run the test
+        final PageOfUsers pageOfUsers = ScalityModelConverter.toPageOfUsers(listUsersResult, 0, 1000, SAMPLE_TENANT_ID);
+
+        // Verify the results
+        assertTrue(pageOfUsers.getItems().size() > 0);
+        assertNotNull(pageOfUsers.getPageInfo());
+
+        final OsisUser osisUser = pageOfUsers.getItems().get(0);
+
+        assertEquals(TEST_USER_ID, osisUser.getUserId());
+        assertEquals(SAMPLE_TENANT_ID, osisUser.getTenantId());
+        assertEquals(TEST_USER_ID, osisUser.getCdUserId());
+        assertEquals(TEST_NAME, osisUser.getUsername());
+        assertEquals(SAMPLE_SCALITY_USER_EMAIL, osisUser.getEmail());
+        assertEquals(TEST_TENANT_ID, osisUser.getCdTenantId());
+        assertEquals(OsisUser.RoleEnum.TENANT_USER, osisUser.getRole());
+        assertEquals(TEST_USER_ID, osisUser.getCanonicalUserId());
+        assertTrue(osisUser.getActive());
     }
 }
