@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import com.scality.osis.utils.ScalityModelConverter;
 import com.scality.osis.vaultadmin.VaultAdmin;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
+import com.scality.vaultclient.dto.AccountData;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -308,7 +309,7 @@ public class ScalityOsisService implements OsisService {
         return new OsisUsage();
     }
 
-    public Credentials getCredentials(String accountID, String accountName) {
+    public Credentials getCredentials(String accountID) {
         Credentials credentials = null;
         try {
             credentials = vaultAdmin.getTempAccountCredentials(ScalityModelConverter.getAssumeRoleRequestForAccount(accountID, appEnv.getAssumeRoleName()));
@@ -319,8 +320,10 @@ public class ScalityOsisService implements OsisService {
                     ROLE_DOES_NOT_EXIST_ERR.equals(e.getReason())){
                 // If role does not exists, invoke setupAssumeRole
                 logger.error(ROLE_DOES_NOT_EXIST_ERR + ". Recreating the role");
-                asyncScalityOsisService.setupAssumeRole(accountID, accountName);
-                return getCredentials(accountID, accountName);
+                // Call get Account with Account ID to retrieve account name
+                AccountData account = vaultAdmin.getAccountWithID(ScalityModelConverter.toGetAccountRequestWithID(accountID));
+                asyncScalityOsisService.setupAssumeRole(accountID, account.getName());
+                return getCredentials(accountID);
             }
             throw e;
         }

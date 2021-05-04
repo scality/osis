@@ -16,11 +16,13 @@ import com.amazonaws.util.StringUtils;
 import com.scality.osis.vaultadmin.impl.cache.Cache;
 import com.scality.osis.vaultadmin.impl.cache.CacheConstants;
 import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
+import com.scality.vaultclient.dto.AccountData;
 import com.scality.vaultclient.dto.AssumeRoleResult;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
+import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
@@ -304,5 +306,17 @@ public class VaultAdminImpl implements VaultAdmin{
   @Override
   public GenerateAccountAccessKeyResponse getAccountAccessKey(GenerateAccountAccessKeyRequest generateAccountAccessKeyRequest) {
     return ExternalServiceFactory.executeVaultService(vaultAccountClient::generateAccountAccessKey, generateAccountAccessKeyRequest);
+  }
+
+  /**
+   * Get account with account id
+   * <p>This method will get the account from Vault using Account ID.
+   *
+   * @param getAccountRequestDTO the get account request dto
+   * @return the account
+   */
+  @Override
+  public AccountData getAccountWithID(GetAccountRequestDTO getAccountRequestDTO) {
+    return ExternalServiceFactory.executeVaultService(vaultAccountClient::getAccount, getAccountRequestDTO);
   }
 }

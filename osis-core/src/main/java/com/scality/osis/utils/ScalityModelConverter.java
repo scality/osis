@@ -13,6 +13,7 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
+import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.vmware.osis.model.OsisTenant;
@@ -174,6 +175,18 @@ public final class ScalityModelConverter {
         }
 
         return deleteAccessKeyRequest;
+    }
+
+    /**
+     * Creates GetAccountRequestDTO
+     * @param accountID the accountID
+     *
+     * @return the GetAccountRequestDTO
+     */
+    public static GetAccountRequestDTO toGetAccountRequestWithID(String accountID) {
+        return GetAccountRequestDTO.builder()
+                .accountId(accountID)
+                .build();
     }
 
     public static String toAdminPolicyArn(String accountID) {

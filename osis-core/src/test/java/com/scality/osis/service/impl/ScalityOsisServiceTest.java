@@ -80,6 +80,7 @@ public class ScalityOsisServiceTest {
         initCreateRoleMocks();
         initAttachRolePolicyMocks();
         initDeleteAccessKeyMocks();
+        initGetAccountMocks();
         initCaches();
     }
 
@@ -219,6 +220,32 @@ public class ScalityOsisServiceTest {
                             .withArn("arn:aws:iam::" + TEST_TENANT_ID +":policy/" + request.getPolicyName());
                     response.setPolicy(policy);
                     return response;
+                });
+    }
+
+    private void initGetAccountMocks() {
+        when(vaultAdminMock.getAccountWithID(any(GetAccountRequestDTO.class)))
+                .thenAnswer((Answer<AccountData>) invocation -> {
+
+                    final GetAccountRequestDTO request = invocation.getArgument(0);
+                    final String accountId = request.getAccountId() ==null ? SAMPLE_TENANT_ID : request.getAccountId();
+                    final String accountName = request.getAccountName() ==null ? SAMPLE_TENANT_NAME : request.getAccountName();
+                    final String accountArn = request.getAccountArn();
+                    final String emailAddress = request.getEmailAddress() ==null ? SAMPLE_SCALITY_ACCOUNT_EMAIL : request.getEmailAddress();
+                    final String canonicalId = request.getCanonicalId() ==null ? SAMPLE_ID : request.getCanonicalId();
+                    final Map<String, String> customAttributestes  = new HashMap<>() ;
+                    customAttributestes.put(CD_TENANT_ID_PREFIX + UUID.randomUUID(), "");
+
+                    final AccountData data = new AccountData();
+                    data.setEmailAddress(emailAddress);
+                    data.setName(accountName);
+                    data.setArn(accountArn);
+                    data.setCreateDate(new Date());
+                    data.setId(accountId);
+                    data.setCanonicalId(canonicalId);
+                    data.setCustomAttributes(customAttributestes);
+
+                    return data;
                 });
     }
 
@@ -750,7 +777,7 @@ public class ScalityOsisServiceTest {
         // Setup
 
         // Run the test
-        final Credentials credentials = scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID, TEST_NAME);
+        final Credentials credentials = scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID);
 
         // Verify the results
         assertEquals(TEST_ACCESS_KEY, credentials.getAccessKeyId(), "Invalid Access key");
@@ -773,7 +800,7 @@ public class ScalityOsisServiceTest {
                     return credentials;
                 });
         // Run the test
-        final Credentials credentials = scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID, TEST_NAME);
+        final Credentials credentials = scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID);
 
         // Verify the results
         assertEquals(TEST_ACCESS_KEY, credentials.getAccessKeyId(), "Invalid Access key");
@@ -799,7 +826,7 @@ public class ScalityOsisServiceTest {
                 .thenThrow(new VaultServiceException(HttpStatus.BAD_REQUEST, "Bad Request"));
 
         // Run the test
-        assertThrows(VaultServiceException.class, () -> scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID, TEST_NAME));
+        assertThrows(VaultServiceException.class, () -> scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID));
 
         // Verify the results
     }
@@ -828,6 +855,57 @@ public class ScalityOsisServiceTest {
         verify(iamMock).createPolicy(any(CreatePolicyRequest.class));
         verify(iamMock).attachRolePolicy(any(AttachRolePolicyRequest.class));
         verify(iamMock).deleteAccessKey(any(DeleteAccessKeyRequest.class));
+    }
+
+    @Test
+    public void testSetupAssumeRoleCreateRoleFail() {
+        when(iamMock.createRole(any(CreateRoleRequest.class)))
+                .thenAnswer((Answer<CreateRoleResult>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.NOT_FOUND, "MalformedPolicyDocument");
+                });
+
+        asyncScalityOsisServiceUnderTest.setupAssumeRole(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME);
+
+        // Verify if all the API calls were skipped after create role if it returns "NoSuchEntity"
+        verify(vaultAdminMock).getAccountAccessKey(any(GenerateAccountAccessKeyRequest.class));
+        verify(iamMock).createRole(any(CreateRoleRequest.class));
+        verify(iamMock, never()).createPolicy(any(CreatePolicyRequest.class));
+        verify(iamMock, never()).attachRolePolicy(any(AttachRolePolicyRequest.class));
+        verify(iamMock, never()).deleteAccessKey(any(DeleteAccessKeyRequest.class));
+    }
+
+    @Test
+    public void testSetupAssumeRoleCreatePolicyFail() {
+        when(iamMock.createPolicy(any(CreatePolicyRequest.class)))
+                .thenAnswer((Answer<CreatePolicyResult>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.CONFLICT, "EntityAlreadyExists");
+                });
+
+        asyncScalityOsisServiceUnderTest.setupAssumeRole(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME);
+
+        // Verify if all the API calls were made successfully even after createPolicy returns "EntityAlreadyExists"
+        verify(vaultAdminMock).getAccountAccessKey(any(GenerateAccountAccessKeyRequest.class));
+        verify(iamMock).createRole(any(CreateRoleRequest.class));
+        verify(iamMock).createPolicy(any(CreatePolicyRequest.class));
+        verify(iamMock).attachRolePolicy(any(AttachRolePolicyRequest.class));
+        verify(iamMock).deleteAccessKey(any(DeleteAccessKeyRequest.class));
+    }
+
+    @Test
+    public void testSetupAssumeRoleAttachPolicyFail() {
+        when(iamMock.attachRolePolicy(any(AttachRolePolicyRequest.class)))
+                .thenAnswer((Answer<AttachRolePolicyResult>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.NOT_FOUND, "NoSuchEntity");
+                });
+
+        asyncScalityOsisServiceUnderTest.setupAssumeRole(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME);
+
+        // Verify if all the API calls were skipped after attachRolePolicy if it returns "NoSuchEntity"
+        verify(vaultAdminMock).getAccountAccessKey(any(GenerateAccountAccessKeyRequest.class));
+        verify(iamMock).createRole(any(CreateRoleRequest.class));
+        verify(iamMock).createPolicy(any(CreatePolicyRequest.class));
+        verify(iamMock).attachRolePolicy(any(AttachRolePolicyRequest.class));
+        verify(iamMock, never()).deleteAccessKey(any(DeleteAccessKeyRequest.class));
     }
 
 

@@ -3,6 +3,7 @@ package com.scality.osis.utils;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.vmware.osis.model.OsisTenant;
 import com.vmware.osis.model.exception.BadRequestException;
 import com.scality.vaultclient.dto.Account;
@@ -201,5 +202,19 @@ public class ScalityModelConverterTest {
         assertEquals(TEST_ACCESS_KEY, result.getAccessKeyId());
         assertEquals(TEST_SECRET_KEY, result.getSecretAccessKey());
         assertEquals(expirationDate, result.getExpiration());
+    }
+
+    @Test
+    public void testToGetAccountRequestWithID() {
+        // Setup
+        // Run the test
+        final GetAccountRequestDTO result = ScalityModelConverter.toGetAccountRequestWithID(TEST_TENANT_ID);
+
+        // Verify the results
+        assertEquals(TEST_TENANT_ID, result.getAccountId());
+        assertNull(result.getAccountName());
+        assertNull(result.getAccountArn());
+        assertNull(result.getEmailAddress());
+        assertNull(result.getCanonicalId());
     }
 }
