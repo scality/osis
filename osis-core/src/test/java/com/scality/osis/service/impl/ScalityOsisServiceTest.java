@@ -84,6 +84,7 @@ public class ScalityOsisServiceTest {
         initGetPolicyMocks();
         initCreateAccessRequestMocks();
         initCreateUserMocks();
+        initListUserMocks();
         initCaches();
     }
 
@@ -291,6 +292,42 @@ public class ScalityOsisServiceTest {
                             .withUserName(request.getUserName());
                     final CreateAccessKeyResult response = new CreateAccessKeyResult()
                             .withAccessKey(accessKeyObj);
+                    return response;
+                });
+    }
+
+    private void initListUserMocks() {
+
+        //initialize mock list accounts response
+        when(iamMock.listUsers(any(ListUsersRequest.class)))
+                .thenAnswer((Answer<ListUsersResult>) invocation -> {
+                    final ListUsersRequest request = invocation.getArgument(0);
+                    final int maxItems = request.getMaxItems();
+                    final int markerVal = Integer.parseInt(request.getMarker());
+
+                    final List<User> users = new ArrayList<>();
+
+                    // Generate Users with ids (markerVal + i) to maxItems count
+                    for( int index = 0; index < maxItems; index++){
+                        final String path = "/"+ TEST_NAME + (index + markerVal) +"/"
+                                + OsisUser.RoleEnum.TENANT_USER.getValue() +"/"
+                                + SAMPLE_SCALITY_USER_EMAIL  + "/"
+                                + TEST_TENANT_ID  + "/";
+
+                        final User user = new User()
+                                .withUserId(TEST_USER_ID + (index + markerVal))
+                                .withUserName(TEST_NAME + (index + markerVal))
+                                .withPath(path)
+                                .withCreateDate(new Date());
+
+                        users.add(user);
+                    }
+
+                    final ListUsersResult response = new ListUsersResult()
+                            .withUsers(users)
+                            .withIsTruncated(Boolean.TRUE)
+                            .withMarker(markerVal + maxItems + "");
+
                     return response;
                 });
     }
@@ -738,11 +775,54 @@ public class ScalityOsisServiceTest {
     @Test
     public void testListUsers() {
         // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.listUsers(TEST_TENANT_ID, 0L, 0L), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        final PageOfUsers response = scalityOsisServiceUnderTest.listUsers(SAMPLE_TENANT_ID, offset, limit);
 
         // Verify the results
+        assertEquals(limit, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals((int)limit, response.getItems().size());
+    }
+
+    @Test
+    public void testListUsersWithOffset() {
+        // Setup
+        final long offset = 2000L;
+        final long limit = 1000L;
+
+        // Run the test
+        final PageOfUsers response = scalityOsisServiceUnderTest.listUsers(SAMPLE_TENANT_ID, offset, limit);
+
+        // Verify the results
+        assertEquals(limit, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals((int)limit, response.getItems().size());
+    }
+
+    @Test
+    public void testListUsersErr() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        when(iamMock.listUsers(any(ListUsersRequest.class)))
+                .thenAnswer((Answer<ListUsersResult>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Requested offset is outside the total available items");
+                });
+
+        // Run the test
+        final PageOfUsers response = scalityOsisServiceUnderTest.listUsers(SAMPLE_TENANT_ID, offset, limit);
+
+        // Verify the results
+        assertEquals(0L, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(0L, response.getItems().size());
+
     }
 
     @Test

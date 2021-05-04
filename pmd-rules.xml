@@ -48,6 +48,7 @@ http://pmd.sourceforge.net/ruleset/2.0.0 ">
         <exclude name="LawOfDemeter"/>
         <exclude name="TooManyMethods"/>
         <exclude name="ExcessivePublicCount"/>
+        <exclude name="ExcessiveClassLength"/>
     </rule>
 
 </ruleset>
