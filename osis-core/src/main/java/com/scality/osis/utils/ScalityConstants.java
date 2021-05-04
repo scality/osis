@@ -37,26 +37,26 @@ public final class ScalityConstants {
     public static final String DEFAULT_ADMIN_POLICY_DESCRIPTION = "This is a admin role policy created for OSIS to IAM actions using AssumeRole for the $ACCOUNTID account";
 
     public static final String DEFAULT_OSIS_ROLE_INLINE_POLICY = "{\n" +
-                                                                    "        \"Version\": \"2012-10-17\",\n" +
-                                                                    "        \"Statement\": [{\n" +
-                                                                    "                \"Effect\": \"Allow\",\n" +
-                                                                    "                \"Principal\": \"*\",\n" +
-                                                                    "                \"Action\": \"sts:AssumeRole\"\n" +
-                                                                    "        }]\n" +
-                                                                    "}";
+            "        \"Version\": \"2012-10-17\",\n" +
+            "        \"Statement\": [{\n" +
+            "                \"Effect\": \"Allow\",\n" +
+            "                \"Principal\": \"*\",\n" +
+            "                \"Action\": \"sts:AssumeRole\"\n" +
+            "        }]\n" +
+            "}";
 
     public static final String DEFAULT_ADMIN_POLICY_DOCUMENT  = "{\n" +
-                                                                "   \"Version\":\"2012-10-17\",\n" +
-                                                                "   \"Statement\":[\n" +
-                                                                "      {\n" +
-                                                                "         \"Effect\":\"Allow\",\n" +
-                                                                "         \"Action\":[\n" +
-                                                                "            \"iam:*\"\n" +
-                                                                "         ],\n" +
-                                                                "         \"Resource\":\"*\"\n" +
-                                                                "      }\n" +
-                                                                "   ]\n" +
-                                                                "}";
+            "   \"Version\":\"2012-10-17\",\n" +
+            "   \"Statement\":[\n" +
+            "      {\n" +
+            "         \"Effect\":\"Allow\",\n" +
+            "         \"Action\":[\n" +
+            "            \"iam:*\"\n" +
+            "         ],\n" +
+            "         \"Resource\":\"*\"\n" +
+            "      }\n" +
+            "   ]\n" +
+            "}";
 
     public static final String ACCOUNT_ADMIN_POLICY_ARN_REGEX = "arn:aws:iam::$ACCOUNTID:policy/adminPolicy@$ACCOUNTID";
 
@@ -67,4 +67,20 @@ public final class ScalityConstants {
     public static final String DEFAULT_ASYNC_EXECUTOR_CORE_POOL_SIZE = "10";
     public static final String DEFAULT_ASYNC_EXECUTOR_MAX_POOL_SIZE = "10";
     public static final String DEFAULT_ASYNC_EXECUTOR_QUEUE_CAPACITY = "500";
+
+    public static final String USER_POLICY_ARN_REGEX = "arn:aws:iam::$ACCOUNTID:policy/userPolicy@$ACCOUNTID";
+
+    public static final String USER_POLICY_NAME_REGEX = "userPolicy@$ACCOUNTID";
+
+    public static final String DEFAULT_USER_POLICY_DESCRIPTION = "This is a common user policy created by OSIS for all the users belonging to the $ACCOUNTID account";
+
+    public static final String DEFAULT_USER_POLICY_DOCUMENT = "{\n  " +
+                                                        "\"Version\": \"2012-10-17\",\n  " +
+                                                        "\"Statement\": [\n    {\n      " +
+                                                                                    "\"Effect\": \"Allow\",\n      " +
+                                                                                    "\"Action\": [\n        " +
+                                                                                        "\"s3:*\",\n        " +
+                                                                                        "\"kms:*\"\n      ],\n      " +
+                                                                                    "\"Resource\": \"*\"\n    }\n  " +
+                                                                        "]\n}";
 }
