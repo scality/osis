@@ -37,6 +37,7 @@ public final class ScalityTestUtils {
 
 
     public static final String SAMPLE_SCALITY_ACCOUNT_EMAIL = "tenant.name@osis.scality.com";
+    public static final String SAMPLE_SCALITY_USER_EMAIL = "user.name@osis.scality.com";
 
 
     public static final String TEST_TENANT_ID ="tenantId";
@@ -46,6 +47,7 @@ public final class ScalityTestUtils {
     public static final String INVALID_URL_URL ="Invalid URL";
     public static final String TEST_USER_ID ="userId";
     public static final String TEST_NAME ="name";
+    public static final String TEST_POLICY_ARN ="policy-arn";
     public static final String TEST_ACCESS_KEY = "access_key";
     public static final String TEST_SECRET_KEY = "secret_key";
     public static final String TEST_SESSION_TOKEN = "session_token";
@@ -55,7 +57,6 @@ public final class ScalityTestUtils {
     public static final String PLATFORM_VERSION ="7.10";
     public static final String API_VERSION ="1.0.0";
     public static final long SAMPLE_DURATION_SECONDS = 120L;
-    public static final String TEST_POLICY_ARN ="policy-arn";
     public static final String ACTIVE_STR = "Active";
     public static final String NA_STR = "N/A";
 
