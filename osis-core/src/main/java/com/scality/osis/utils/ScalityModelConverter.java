@@ -16,6 +16,9 @@ import com.amazonaws.services.identitymanagement.model.CreateUserRequest;
 import com.amazonaws.services.identitymanagement.model.CreateUserResult;
 import com.amazonaws.services.identitymanagement.model.GetPolicyRequest;
 import com.amazonaws.services.identitymanagement.model.User;
+import com.amazonaws.services.identitymanagement.model.ListUsersRequest;
+import com.amazonaws.services.identitymanagement.model.ListUsersResult;
+import com.amazonaws.services.identitymanagement.model.User;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
@@ -28,6 +31,7 @@ import com.vmware.osis.model.OsisTenant;
 import com.vmware.osis.model.OsisUser;
 import com.vmware.osis.model.PageInfo;
 import com.vmware.osis.model.PageOfTenants;
+import com.vmware.osis.model.PageOfUsers;
 import com.vmware.osis.model.exception.BadRequestException;
 import com.scality.vaultclient.dto.AccountData;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
@@ -90,6 +94,17 @@ public final class ScalityModelConverter {
                 .maxItems((int) limit)
                 .filterKeyStartsWith(CD_TENANT_ID_PREFIX)
                 .build();
+    }
+
+    /**
+     * Created Vault List Accounts request for List Tenants
+     * @param limit the max number of items
+     *
+     * @return the create account request dto
+     */
+    public static ListUsersRequest toIAMListUsersRequest(long limit) {
+        return new ListUsersRequest()
+                .withMaxItems((int) limit);
     }
 
     /**
@@ -327,6 +342,24 @@ public final class ScalityModelConverter {
     }
 
     /**
+     * Converts IAM User object to OSIS User object
+     *
+     * @return the osis User
+     */
+    public static OsisUser toOsisUser(User user, String tenantId) {
+        return new OsisUser()
+                .cdUserId(user.getUserName())
+                .canonicalUserId(user.getUserName())
+                .userId(user.getUserName())
+                .active(Boolean.TRUE)
+                .cdTenantId(cdTenantIDFromUserPath(user.getPath()))
+                .tenantId(tenantId)
+                .displayName(nameFromUserPath(user.getPath()))
+                .role(roleFromUserPath(user.getPath()))
+                .email(emailFromUserPath(user.getPath()));
+    }
+
+    /**
      * Converts Vault Account customAttributes Map Format to OSIS cdTenantIDs list.
      *
      * @param customAttributes the customAttributes map.
@@ -423,5 +456,31 @@ public final class ScalityModelConverter {
                 .cdTenantId(cdTenantId)
                 .username(username)
                 .creationDate(Instant.now());
+    }
+
+    /**
+     * Converts IAM List users response to OSIS page of users
+     *
+     * @param listUsersResult the list users response dto
+     * @param offset
+     * @param limit
+     * @return the page of users
+     */
+    public static PageOfUsers toPageOfUsers(ListUsersResult listUsersResult, long offset, long limit, String tenantId) {
+        List<OsisUser> userItems = new ArrayList<>();
+
+        for(User user: listUsersResult.getUsers()){
+            userItems.add(toOsisUser(user, tenantId));
+        }
+
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setLimit(limit);
+        pageInfo.setOffset(offset);
+        pageInfo.setTotal((long) userItems.size());
+
+        PageOfUsers pageOfUsers = new PageOfUsers();
+        pageOfUsers.items(userItems);
+        pageOfUsers.setPageInfo(pageInfo);
+        return pageOfUsers;
     }
 }

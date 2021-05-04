@@ -123,6 +123,7 @@ public class ScalityOsisService implements OsisService {
                 return pageOfTenants;
 
             } catch (VaultServiceException e) {
+                logger.error("Query Tenants error. Return empty list. Error details: ", e);
                 // For errors, List Tenants should return empty PageOfTenants
                 PageInfo pageInfo = new PageInfo();
                 pageInfo.setLimit(limit);
@@ -158,6 +159,7 @@ public class ScalityOsisService implements OsisService {
             return pageOfTenants;
 
         } catch (VaultServiceException e){
+            logger.error("List Tenants error. Return empty list. Error details: ", e);
             // For errors, List Tenants should return empty PageOfTenants
             PageInfo pageInfo = new PageInfo();
             pageInfo.setLimit(limit);
@@ -323,7 +325,39 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfUsers listUsers(String tenantId, long offset, long limit) {
-        throw new NotImplementedException();
+        try {
+            logger.info("List Users request received:: tenant ID:{}, offset:{}, limit:{}", tenantId, offset, limit);
+
+            Credentials tempCredentials = getCredentials(tenantId);
+            final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
+
+            ListUsersRequest listUsersRequest =  ScalityModelConverter.toIAMListUsersRequest(limit);
+            //TODO: Get list users marker
+            logger.info("[Vault] List Users Request:{}", new Gson().toJson(listUsersRequest));
+
+            ListUsersResult listUsersResult = iam.listUsers(listUsersRequest);
+
+            logger.info("[Vault] List Users response:{}", new Gson().toJson(listUsersResult));
+
+            PageOfUsers pageOfUsers = ScalityModelConverter.toPageOfUsers(listUsersResult, offset, limit, tenantId);
+            logger.info("List Users response:{}", new Gson().toJson(pageOfUsers));
+
+            return  pageOfUsers;
+        } catch (Exception e){
+
+            logger.error("ListUsers error. Returning empty list. Error details: ", e);
+            // For errors, List Tenants should return empty PageOfTenants
+            PageInfo pageInfo = new PageInfo();
+            pageInfo.setLimit(limit);
+            pageInfo.setOffset(offset);
+            pageInfo.setTotal(0L);
+
+            PageOfUsers pageOfUsers = new PageOfUsers();
+            pageOfUsers.setItems(new ArrayList<>());
+            pageOfUsers.setPageInfo(pageInfo);
+            return pageOfUsers;
+        }
+
     }
 
     @Override

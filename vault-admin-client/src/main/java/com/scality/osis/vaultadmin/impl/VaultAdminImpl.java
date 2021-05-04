@@ -11,6 +11,8 @@ import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
+import com.amazonaws.services.identitymanagement.model.ListUsersRequest;
+import com.amazonaws.services.identitymanagement.model.ListUsersResult;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.util.StringUtils;
 import com.scality.osis.vaultadmin.impl.cache.Cache;
@@ -65,6 +67,8 @@ public class VaultAdminImpl implements VaultAdmin{
 
   private Cache<String, Credentials> assumeRoleCache;
 
+  private Cache<String, String> listUsersMarkerCache;
+
   /**
    * Create a Vault administrator implementation
    *  @param accessKey Access key of the admin who have proper administrative capabilities.
@@ -110,6 +114,7 @@ public class VaultAdminImpl implements VaultAdmin{
     if(cacheFactory !=null) {
       listAccountsMarkerCache = cacheFactory.getCache(CacheConstants.NAME_LIST_ACCOUNTS_CACHE);
       assumeRoleCache = cacheFactory.getCache(CacheConstants.NAME_ASSUME_ROLE_CACHE);
+      listUsersMarkerCache = cacheFactory.getCache(CacheConstants.NAME_LIST_USERS_CACHE);
     }
   }
 
@@ -257,6 +262,64 @@ public class VaultAdminImpl implements VaultAdmin{
   private void cacheAssumeRoleCredentials(String roleArn, Credentials credentials) {
     if(assumeRoleCache != null) {
       assumeRoleCache.put(roleArn, credentials);
+    }
+  }
+
+  /**
+   * Returns users marker
+   * <p>This method will return the users marker for the provided offset.
+   *
+   * @param offset The start index of users to return
+   * @return the marker string
+   */
+  public String getUsersMarker(int offset) throws VaultServiceException {
+
+    String marker = null;
+    if(listUsersMarkerCache != null){
+      marker = listUsersMarkerCache.get(offset);
+    }
+
+    // If marker available in cache
+    if(marker  == null){
+
+      // Move index 0 to offset and capture all missing markers
+      int index = 0;
+      for(;index < offset; index += 1000){
+
+        int maxItems = (offset < 1000) ? offset : 1000;
+        int nextOffset = index + maxItems;
+
+        if(listUsersMarkerCache != null && listUsersMarkerCache.get(nextOffset) !=null){
+          marker = listUsersMarkerCache.get(nextOffset);
+          continue;
+        }
+
+        ListUsersRequest listUsersRequest = new ListUsersRequest().withMaxItems(maxItems);
+
+        if(marker != null) {
+          listUsersRequest.setMarker(marker);
+        }
+
+        ListUsersResult listUsersResponse = listUsers(listUsersRequest);
+
+        if(listUsersResponse.isTruncated()) {
+
+          marker = listUsersResponse.getMarker();
+          cacheListUsersMarker(listUsersResponse.getUsers().size(), marker);
+
+        } else{
+          throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Requested offset is outside the total available items");
+        }
+
+      }
+
+    }
+    return marker;
+  }
+
+  private void cacheListUsersMarker(int key, String marker) {
+    if(listAccountsMarkerCache != null) {
+      listAccountsMarkerCache.put(key, marker);
     }
   }
 
