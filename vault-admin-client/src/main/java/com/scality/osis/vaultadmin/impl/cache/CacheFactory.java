@@ -27,6 +27,8 @@ public class CacheFactory {
 
     private Cache<String, Credentials> assumeRoleCache;
 
+    private Cache<String, String> accountIdCache;
+
     private CacheFactory(){
 
     }
@@ -40,6 +42,7 @@ public class CacheFactory {
         this.env =env;
         initListAccountsMarkerCache();
         initAssumeRoleCache();
+        initAccountIdCache();
     }
 
     @PostConstruct
@@ -65,6 +68,19 @@ public class CacheFactory {
         assumeRoleCache = new CacheImpl<>(maxCapacity, expirationTime);
     }
 
+    @PostConstruct
+    private void initAccountIdCache() {
+        // if accountID cache not disabled
+        if(!env.isAccountIDCacheDisabled()) {
+            int maxCapacity = env.getAccountIDCacheMaxCapacity() !=null
+                    ? env.getAccountIDCacheMaxCapacity() : DEFAULT_CACHE_MAX_CAPACITY;
+
+            long expirationTime = env.getAccountIDCacheExpiration() !=null
+                    ? env.getAccountIDCacheExpiration() : DEFAULT_CACHE_MAX_CAPACITY;
+            accountIdCache = new CacheImpl<>(maxCapacity, expirationTime);
+        }
+    }
+
     /**
      * Get cache object using cache name.
      *
@@ -75,6 +91,7 @@ public class CacheFactory {
         switch(cacheName){
             case NAME_LIST_ACCOUNTS_CACHE : return listAccountsMarkerCache;
             case NAME_ASSUME_ROLE_CACHE : return assumeRoleCache;
+            case NAME_ACCOUNT_ID_CACHE : return accountIdCache;
         }
         return null;
     }

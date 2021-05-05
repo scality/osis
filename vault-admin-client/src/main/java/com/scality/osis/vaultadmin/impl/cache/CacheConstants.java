@@ -12,6 +12,9 @@ public final class CacheConstants {
     public static final String ENV_LIST_ACCOUNT_CACHE_TTL = "osis.scality.vault.cache.listAccounts.ttlInMS";
     public static final String ENV_ASSUME_ROLE_MAX_CAPACITY = "osis.scality.vault.cache.assumeRole.maxCapacity";
     public static final String ENV_ASSUME_ROLE_CACHE_TTL = "osis.scality.vault.cache.assumeRole.ttlInMS";
+    public static final String ENV_ACCOUNT_ID_DISABLED = "osis.scality.vault.cache.accountID.disabled";
+    public static final String ENV_ACCOUNT_ID_MAX_CAPACITY = "osis.scality.vault.cache.accountID.maxCapacity";
+    public static final String ENV_ACCOUNT_ID_CACHE_TTL = "osis.scality.vault.cache.accountID.ttlInMS";
 
 
 
@@ -23,6 +26,7 @@ public final class CacheConstants {
     //Constants
     public static final String NAME_LIST_ACCOUNTS_CACHE = "listAccounts";
     public static final String NAME_ASSUME_ROLE_CACHE = "assumeRole";
+    public static final String NAME_ACCOUNT_ID_CACHE = "accountIDs";
 
     private CacheConstants(){}
 

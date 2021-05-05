@@ -253,7 +253,7 @@ public class ScalityOsisService implements OsisService {
 
                 ListAccountsRequestDTO queryAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit, cdTenantIdFilter);
 
-                String tenantId = ""; // TODO: Implement getAccountID() to call listAccounts with filterKey to retrieve account ID
+                String tenantId = vaultAdmin.getAccountID(queryAccountsRequest);
 
                 Credentials tempCredentials = getCredentials(tenantId);
                 final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
