@@ -5,10 +5,17 @@
 
 package com.scality.osis.utils;
 
+import com.amazonaws.services.identitymanagement.model.AttachUserPolicyRequest;
+import com.amazonaws.services.identitymanagement.model.CreateAccessKeyRequest;
+import com.amazonaws.services.identitymanagement.model.CreateAccessKeyResult;
 import com.amazonaws.services.identitymanagement.model.AttachRolePolicyRequest;
 import com.amazonaws.services.identitymanagement.model.CreatePolicyRequest;
 import com.amazonaws.services.identitymanagement.model.CreateRoleRequest;
 import com.amazonaws.services.identitymanagement.model.DeleteAccessKeyRequest;
+import com.amazonaws.services.identitymanagement.model.CreateUserRequest;
+import com.amazonaws.services.identitymanagement.model.CreateUserResult;
+import com.amazonaws.services.identitymanagement.model.GetPolicyRequest;
+import com.amazonaws.services.identitymanagement.model.User;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
@@ -16,7 +23,9 @@ import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
 import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
+import com.vmware.osis.model.OsisS3Credential;
 import com.vmware.osis.model.OsisTenant;
+import com.vmware.osis.model.OsisUser;
 import com.vmware.osis.model.PageInfo;
 import com.vmware.osis.model.PageOfTenants;
 import com.vmware.osis.model.exception.BadRequestException;
@@ -25,6 +34,7 @@ import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -203,6 +213,55 @@ public final class ScalityModelConverter {
         return DEFAULT_ADMIN_POLICY_DESCRIPTION.replace(ACCOUNT_ID_REGEX, accountID);
     }
 
+    public static CreateUserRequest toCreateUserRequest(OsisUser osisUser) {
+        OsisUser.RoleEnum role = (osisUser.getRole() != null) ? osisUser.getRole() :OsisUser.RoleEnum.UNKNOWN ;
+        return new CreateUserRequest()
+                .withUserName(osisUser.getCdUserId())
+                .withPath(
+                        toUserPath(osisUser.getUsername(), role,
+                                osisUser.getEmail(), osisUser.getCdTenantId()));
+    }
+
+    private static String toUserPath(String username, OsisUser.RoleEnum role, String email, String cdTenantId) {
+        return "/" + username + "/" + role.getValue() + "/" + email + "/" + cdTenantId + "/" ;
+    }
+
+    public static CreateAccessKeyRequest toCreateUserAccessKeyRequest(String userID) {
+        return new CreateAccessKeyRequest(userID);
+    }
+
+    public static GetPolicyRequest toGetPolicyRequest(String accountId) {
+        return new GetPolicyRequest()
+                .withPolicyArn(toUserPolicyArn(accountId));
+    }
+
+    public static CreatePolicyRequest toCreateUserPolicyRequest(String tenantId) {
+        return new CreatePolicyRequest()
+                .withPolicyName(toUserPolicyName(tenantId))
+                .withPolicyDocument(DEFAULT_USER_POLICY_DOCUMENT)
+                .withDescription(toUserPolicyDescription(tenantId));
+    }
+
+    public static AttachUserPolicyRequest toAttachUserPolicyRequest(String policyArn, String username) {
+        return new AttachUserPolicyRequest()
+                .withPolicyArn(policyArn)
+                .withUserName(username);
+    }
+
+    private static String toUserPolicyArn(String accountID) {
+        return USER_POLICY_ARN_REGEX
+                .replace(ACCOUNT_ID_REGEX, accountID);
+    }
+
+    private static String toUserPolicyName(String accountID) {
+        return USER_POLICY_NAME_REGEX
+                .replace(ACCOUNT_ID_REGEX, accountID);
+    }
+
+    private static String toUserPolicyDescription(String accountID) {
+        return DEFAULT_USER_POLICY_DESCRIPTION.replace(ACCOUNT_ID_REGEX, accountID);
+    }
+
     /**
      * Generates tenant email string using tenant name.
      *  example email address: tenant.name@osis.scality.com
@@ -321,5 +380,48 @@ public final class ScalityModelConverter {
                 .withAccessKeyId(generateAccountAccessKeyResponse.getData().getId())
                 .withSecretAccessKey(generateAccountAccessKeyResponse.getData().getValue())
                 .withExpiration(generateAccountAccessKeyResponse.getData().getNotAfter());
+    }
+
+    public static OsisUser toOsisUser(CreateUserResult createUserResult, String tenantId) {
+        User vaultUser = createUserResult.getUser();
+        return new OsisUser()
+                .cdUserId(vaultUser.getUserName())
+                .canonicalUserId(vaultUser.getUserName())
+                .userId(vaultUser.getUserName())
+                .active(Boolean.TRUE)
+                .cdTenantId(cdTenantIDFromUserPath(vaultUser.getPath()))
+                .tenantId(tenantId)
+                .displayName(nameFromUserPath(vaultUser.getPath()))
+                .role(roleFromUserPath(vaultUser.getPath()))
+                .email(emailFromUserPath(vaultUser.getPath()));
+    }
+
+    private static String nameFromUserPath(String path) {
+        return path.split("/")[1];
+    }
+
+    private static OsisUser.RoleEnum roleFromUserPath(String path) {
+        return path.split("/").length > 2 ? OsisUser.RoleEnum.fromValue(path.split("/")[2]) : OsisUser.RoleEnum.ANONYMOUS;
+    }
+
+    private static String emailFromUserPath(String path) {
+        return path.split("/").length > 3 ? path.split("/")[3] : "";
+    }
+
+    private static String cdTenantIDFromUserPath(String path) {
+        return path.split("/").length > 4 ? path.split("/")[4] : "";
+    }
+
+    public static OsisS3Credential toOsisS3Credentials(String cdTenantId, String tenantId, String username, CreateAccessKeyResult createAccessKeyResult) {
+        return new OsisS3Credential()
+                .accessKey(createAccessKeyResult.getAccessKey().getAccessKeyId())
+                .secretKey(createAccessKeyResult.getAccessKey().getSecretAccessKey())
+                .active(Boolean.TRUE)
+                .userId(createAccessKeyResult.getAccessKey().getUserName())
+                .cdUserId(createAccessKeyResult.getAccessKey().getUserName())
+                .tenantId(tenantId)
+                .cdTenantId(cdTenantId)
+                .username(username)
+                .creationDate(Instant.now());
     }
 }
