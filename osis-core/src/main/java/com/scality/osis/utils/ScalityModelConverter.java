@@ -317,6 +317,17 @@ public final class ScalityModelConverter {
                 .replace(ROLE_NAME_REGEX, roleName);
     }
 
+    public static String extractCdTenantIdFilter(String filter) {
+        String[] filters = filter.split(QUERY_USER_FILTER_SEPARATOR);
+        return filters[0].contains(CD_TENANT_ID_PREFIX) ? filters[0] : filters[1];
+    }
+
+    public static String extractOsisUserName(String filter) {
+        String[] filters = filter.split(QUERY_USER_FILTER_SEPARATOR);
+        String osisUserNameFilter = filters[0].contains(DISPLAY_NAME_PREFIX) ? filters[0] : filters[1];
+        return osisUserNameFilter.split(FILTER_KEY_VALUE_SEPARATOR) [1];
+    }
+
     /* Converter methods below will convert Vault/Scality responses to OSIS model objects @param accountResponse the account response */
 
 
