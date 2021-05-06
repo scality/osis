@@ -75,8 +75,9 @@ public class ScalityOsisService implements OsisService {
             PageOfTenants page = new PageOfTenants();
             String cd = filter.substring(filter.indexOf("==")+2);
 
-            List<OsisTenant> items = pageOfTenants.getItems().stream().filter(tenant -> tenant.getCdTenantIds().contains(cd)).collect(Collectors.toList());
-            page.setItems(items);
+            pageOfTenants.getItems().get(0).setCdTenantIds(Collections.singletonList(cd));
+            pageOfTenants.getPageInfo().setTotal(1L);
+            page.setItems(Collections.singletonList(pageOfTenants.getItems().get(0)));
             page.setPageInfo(pageOfTenants.getPageInfo());
             return page;
         } else{
@@ -94,17 +95,20 @@ public class ScalityOsisService implements OsisService {
         PageOfTenants pageOfTenants = new PageOfTenants();
 
         //tenant-1
-        String tenant1Res = "{\"account\":{\"data\":{\"id\":\"12345678910\",\"emailAddress\":\"5d110b2d-35c9-4fae-99d0-1042ef4f1d99@osis.account.com\",\"name\":\"sample-3__12345678910\",\"arn\":\"arn:aws:iam::799467728277:/sai/\",\"createDate\":\"2021-02-12T21:17:21Z\"}}}";
+        String tenant1Res = "{\"account\":{\"data\":{\"id\":\"123123123123\",\"emailAddress\":\"org1@osis.account.com\",\"name\":\"sample-3\",\"arn\":\"arn:aws:iam::123123123123:/sample-3/\",\"createDate\":\"2021-02-12T21:17:21Z\"}}}";
 
-	OsisTenant tenant1 = ModelConverter.toOsisTenant(new Gson().fromJson(tenant1Res, CreateAccountResponseDTO.class));
+	    OsisTenant tenant1 = ModelConverter.toOsisTenant(new Gson().fromJson(tenant1Res, CreateAccountResponseDTO.class));
+	    tenant1.setCdTenantIds(Collections.singletonList("c0a25608-404e-484e-a16c-0a304fc3c6cc"));
 
         //tenant-2
-        String tenant2Res = "{\"account\":{\"data\":{\"id\":\"eb5d6308a7e64d6a813964534366a7ae\",\"emailAddress\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae@osis.account.com\",\"name\":\"sample-org__eb5d6308a7e64d6a813964534366a7ae\",\"arn\":\"arn:aws:iam::eb5d6308a7e64d6a813964534366a7ae:/sample-org__eb5d6308a7e64d6a813964534366a7ae/\",\"createDate\":\"2021-02-12T21:17:21Z\"}}}";
+        String tenant2Res = "{\"account\":{\"data\":{\"id\":\"123123123124\",\"emailAddress\":\"org2@osis.account.com\",\"name\":\"sample-org\",\"arn\":\"arn:aws:iam::123123123124:/sample-org/\",\"createDate\":\"2021-02-12T21:17:21Z\"}}}";
         OsisTenant tenant2 = ModelConverter.toOsisTenant(new Gson().fromJson(tenant2Res, CreateAccountResponseDTO.class));
+        tenant2.setCdTenantIds(Collections.singletonList("d4630aaf-65f1-4ab9-b41a-ae47a9c1e4b1"));
 
         //tenant-3
-        String tenant3Res = "{\"account\":{\"data\":{\"id\":\"8b45caac331d49deb1fc73e8cc77ddaa\",\"emailAddress\":\"8b45caac-331d-49de-b1fc-73e8cc77ddaa@osis.account.com\",\"name\":\"sample-tenant2__8b45caac331d49deb1fc73e8cc77ddaa\",\"arn\":\"arn:aws:iam::8b45caac331d49deb1fc73e8cc77ddaa:/sample-tenant2__8b45caac331d49deb1fc73e8cc77ddaa/\",\"createDate\":\"2021-02-12T21:17:21Z\"}}}";
+        String tenant3Res = "{\"account\":{\"data\":{\"id\":\"123123123125\",\"emailAddress\":\"org3@osis.account.com\",\"name\":\"sample-tenant2\",\"arn\":\"arn:aws:iam::123123123125:/sample-tenant2/\",\"createDate\":\"2021-02-12T21:17:21Z\"}}}";
         OsisTenant tenant3 = ModelConverter.toOsisTenant(new Gson().fromJson(tenant3Res, CreateAccountResponseDTO.class));
+        tenant3.setCdTenantIds(Collections.singletonList("eb5d6308-a7e6-4d6a-8139-64534366a7a"));
 
         List<OsisTenant> items = new ArrayList<>();
         items.add(tenant1);
@@ -123,28 +127,42 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public OsisUser createUser(OsisUser osisUser) {
-        if("5ef7c754-ba35-4058-9c3a-c36cce2796ad".equals(osisUser.getCdUserId())){
-            osisUser.setUserId("UHZP0XA52MK171I3KHLIZVRC9R1CK1C9");
-        } else{
-            osisUser.setUserId("O4ROVPVTLYECFV3WS9DC0GH7DP4NI3RU");
-        }
+        osisUser.setUserId("5ef7c754-ba35-4058-9c3a-c36cce2796ad");
+
         logger.info("create user request:"+ new Gson().toJson(osisUser));
         return osisUser;
     }
 
     @Override
     public PageOfUsers queryUsers(long offset, long limit, String filter) {
-        return mockListUsers(offset, limit);
+        String[] filters = filter.split(";");
+        String cdFilter = filters[0];
+        String cd = cdFilter.split("==") [1];
+
+        String osisUserNameFilter = filters[1];
+        String name = osisUserNameFilter.split("==") [1];
+
+        PageOfUsers pageOfUsers = mockListUsers(null, offset, limit);
+        pageOfUsers.getPageInfo().setTotal(1L);
+        pageOfUsers.getItems().get(0).setCdTenantId(cd);
+        pageOfUsers.getItems().get(0).setUsername(name);
+
+        pageOfUsers.setItems(Collections.singletonList(pageOfUsers.getItems().get(0)));
+        pageOfUsers.setPageInfo(pageOfUsers.getPageInfo());
+
+        return pageOfUsers;
     }
 
-    private PageOfUsers mockListUsers(long offset, long limit) {
+    private PageOfUsers mockListUsers(String tenantID, long offset, long limit) {
+        if(tenantID == null)
+            tenantID = "123123123123";
 
-        String user1 ="{\"userId\":\"UHZP0XA52MK171I3KHLIZVRC9R1CK1C9\",\"tenantId\":\"eb5d6308a7e64d6a813964534366a7ae\",\"active\":true,\"cdUserId\":\"5ef7c754-ba35-4058-9c3a-c36cce2796ad\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae\",\"username\":\"test\",\"role\":\"TENANT_USER\"}";
+        String user1 ="{\"userId\":\"5ef7c754-ba35-4058-9c3a-c36cce2796ad\",\"tenantId\":\"" + tenantID +"\",\"active\":true,\"cdUserId\":\"5ef7c754-ba35-4058-9c3a-c36cce2796ad\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7\",\"username\":\"test\",\"role\":\"TENANT_USER\"}";
         //user1
         OsisUser osisUser1 = new Gson().fromJson(user1,OsisUser.class);
 
 
-        String user2 ="{\"userId\":\"O4ROVPVTLYECFV3WS9DC0GH7DP4NI3RU\",\"tenantId\":\"eb5d6308a7e64d6a813964534366a7ae\",\"active\":true,\"cdUserId\":\"94bf30e3-f590-4911-96d5-41e3dc309c69\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae\",\"username\":\"d4it2awsb588go5j9t00\",\"role\":\"TENANT_USER\"}";
+        String user2 ="{\"userId\":\"94bf30e3-f590-4911-96d5-41e3dc309c69\",\"tenantId\":\"" + tenantID + "\",\"active\":true,\"cdUserId\":\"94bf30e3-f590-4911-96d5-41e3dc309c69\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7\",\"username\":\"d4it2awsb588go5j9t00\",\"role\":\"TENANT_USER\"}";
         //user2
         OsisUser osisUser2 = new Gson().fromJson(user2,OsisUser.class);
 
@@ -172,48 +190,39 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfS3Credentials queryS3Credentials(long offset, long limit, String filter) {
-        return mockS3Credentials(offset, limit,"eb5d6308a7e64d6a813964534366a7ae", "UHZP0XA52MK171I3KHLIZVRC9R1CK1C9");
+        String[] filters = filter.split(";");
+        String cdFilter = filters[0];
+        String cd = cdFilter.split("==") [1];
+
+        String osisUserNameFilter = filters[1];
+        String name = osisUserNameFilter.split("==") [1];
+
+        PageOfS3Credentials pageOfS3Credentials = mockS3Credentials(offset, limit,"12312312313", "5ef7c754-ba35-4058-9c3a-c36cce2796ad");
+        pageOfS3Credentials.getItems().get(0).setUsername(name);
+        pageOfS3Credentials.getItems().get(0).setCdTenantId(cd);
+
+        return pageOfS3Credentials;
     }
 
-    private PageOfS3Credentials mockS3Credentials(long offset, long limit, String tenantId, String userid) {
+    private PageOfS3Credentials mockS3Credentials(long offset, long limit, String tenantId, String userID) {
 
         OsisS3Credential cred1 = new OsisS3Credential();
-        cred1.setUserId("UHZP0XA52MK171I3KHLIZVRC9R1CK1C9");
-        cred1.setCdUserId("5ef7c754-ba35-4058-9c3a-c36cce2796ad");
+        cred1.setUserId(userID);
+        cred1.setCdUserId(userID);
         cred1.setSecretKey("W4Ya04LG=eq=PyWOeghEz/S7i+kWApq2WtlU+vbG");
         cred1.setAccessKey("FCZQ6TQIQT21KAIE8FAE");
         cred1.setActive(true);
-        cred1.setTenantId("eb5d6308a7e64d6a813964534366a7ae");
+        cred1.setTenantId(tenantId);
         cred1.setCdTenantId("eb5d6308-a7e6-4d6a-8139-64534366a7");
-        cred1.setUsername("test");
-
-
-        OsisS3Credential cred2 = new OsisS3Credential();
-        cred2.setUserId("O4ROVPVTLYECFV3WS9DC0GH7DP4NI3RU");
-        cred2.setCdUserId("94bf30e3-f590-4911-96d5-41e3dc309c69");
-        cred2.setSecretKey("W4Ya04LG=eq=PyWOeghEz/S7i+kWApq2WtlU+vbG");
-        cred2.setAccessKey("FCZQ6TQIQT21KAIE8FAE");
-        cred2.setActive(true);
-        cred2.setTenantId("eb5d6308a7e64d6a813964534366a7ae");
-        cred2.setCdTenantId("eb5d6308-a7e6-4d6a-8139-64534366a7");
-        cred2.setUsername("d4it2awsb588go5j9t00");
+        cred1.setUsername("test1");
 
         List<OsisS3Credential> creds = new ArrayList<>();
         creds.add(cred1);
-        creds.add(cred2);
-
-        if("eb5d6308a7e64d6a813964534366a7ae".equals(tenantId)){
-            if("UHZP0XA52MK171I3KHLIZVRC9R1CK1C9".equals(userid)){
-                creds.remove(cred2);
-            } else {
-                creds.remove(cred1);
-            }
-        }
 
         PageInfo pageInfo = new PageInfo();
         pageInfo.setLimit(limit);
         pageInfo.setOffset(offset);
-        pageInfo.setTotal(2l);
+        pageInfo.setTotal(1l);
 
         PageOfS3Credentials pageOfS3Credentials = new PageOfS3Credentials();
         pageOfS3Credentials.setItems(creds);
@@ -301,29 +310,20 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public OsisUser getUser(String tenantId, String userId) {
-       if("UHZP0XA52MK171I3KHLIZVRC9R1CK1C9".equals(userId)) {
-           String user1 = "{\"userId\":\"UHZP0XA52MK171I3KHLIZVRC9R1CK1C9\",\"tenantId\":\"eb5d6308a7e64d6a813964534366a7ae\",\"active\":true,\"cdUserId\":\"5ef7c754-ba35-4058-9c3a-c36cce2796ad\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae\",\"username\":\"test\",\"role\":\"TENANT_USER\"}";
+       String user1 = "{\"userId\":\"" + userId +"\",\"tenantId\":\""+ tenantId +"\",\"active\":true,\"cdUserId\":\"" + userId+
+                   "\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae\",\"username\":\"test1\",\"role\":\"TENANT_USER\"}";
            //user1
-           return new Gson().fromJson(user1, OsisUser.class);
-       } else if("O4ROVPVTLYECFV3WS9DC0GH7DP4NI3RU".equals(userId)) {
-
-           String user2 = "{\"userId\":\"O4ROVPVTLYECFV3WS9DC0GH7DP4NI3RU\",\"tenantId\":\"eb5d6308a7e64d6a813964534366a7ae\",\"active\":true,\"cdUserId\":\"94bf30e3-f590-4911-96d5-41e3dc309c69\",\"cdTenantId\":\"eb5d6308-a7e6-4d6a-8139-64534366a7ae\",\"username\":\"d4it2awsb588go5j9t00\",\"role\":\"TENANT_USER\"}";
-           //user2
-           return new Gson().fromJson(user2, OsisUser.class);
-       }
-       return null;
+      return new Gson().fromJson(user1, OsisUser.class);
     }
 
     @Override
     public boolean headTenant(String tenantId) {
-        return tenantId.equals("8b45caac331d49deb1fc73e8cc77ddaa") ||
-                tenantId.equals("eb5d6308a7e64d6a813964534366a7ae") ||
-                tenantId.equals("2c3e3e2908fb455893f09766977da58e");
+        return true;
     }
 
     @Override
     public boolean headUser(String tenantId, String userId) {
-        throw new NotImplementedException();
+        return true;
     }
 
     @Override
@@ -333,7 +333,7 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfUsers listUsers(String tenantId, long offset, long limit) {
-        return mockListUsers(offset,limit);
+        return mockListUsers(tenantId, offset,limit);
     }
 
     @Override

@@ -46,10 +46,9 @@ public final class ModelConverter {
     public static OsisTenant toOsisTenant(CreateAccountResponseDTO accountResponse) {
         AccountData account = accountResponse.getAccount().getData();
         return new OsisTenant()
-                .name(toOsisTenantName(account.getName()))
+                .name(account.getName())
                 .active(true)
-                .cdTenantIds(toOsisCDTenantIds(account.getEmailAddress()))
-                .tenantId(toOsisTenantId(account));
+                .tenantId(account.getId());
     }
 
     public static String toOsisTenantName(String accountName) {

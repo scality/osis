@@ -33,8 +33,6 @@ public class OsisController {
     @Autowired
     private OsisService osisService;
 
-    static int i =0;
-
     /**
      * POST /api/v1/tenants/{tenantId}/users/{userId}/s3credentials : Create S3 credential for the platform user
      * Operation ID: createCredential&lt;br&gt; Create S3 credential for the platform user
@@ -328,12 +326,7 @@ public class OsisController {
         logger.info("getInfo");
         StringBuffer url = request.getRequestURL();
         String domain = url.substring(0, url.lastIndexOf(request.getRequestURI()));
-        logger.info(domain + OsisController.i++);
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        logger.info(domain);
         return osisService.getInformation(domain);
     }
 
