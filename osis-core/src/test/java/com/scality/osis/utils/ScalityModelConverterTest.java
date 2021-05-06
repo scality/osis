@@ -4,7 +4,9 @@ import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.vaultclient.dto.GetAccountRequestDTO;
+import com.vmware.osis.model.OsisS3Credential;
 import com.vmware.osis.model.OsisTenant;
+import com.vmware.osis.model.OsisUser;
 import com.vmware.osis.model.exception.BadRequestException;
 import com.scality.vaultclient.dto.Account;
 import com.scality.vaultclient.dto.AccountData;
@@ -16,8 +18,11 @@ import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 
+import static com.scality.osis.utils.ScalityConstants.DEFAULT_USER_POLICY_DOCUMENT;
 import static com.scality.osis.utils.ScalityTestUtils.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -216,5 +221,126 @@ public class ScalityModelConverterTest {
         assertNull(result.getAccountArn());
         assertNull(result.getEmailAddress());
         assertNull(result.getCanonicalId());
+    }
+
+    @Test
+    public void  testToCreateUserRequest() {
+        final OsisUser osisUser = new OsisUser();
+        osisUser.setCanonicalUserId(TEST_USER_ID);
+        osisUser.setTenantId(TEST_TENANT_ID);
+        osisUser.setActive(true);
+        osisUser.setUsername(TEST_NAME);
+        osisUser.setCdUserId(TEST_USER_ID);
+        osisUser.setRole(OsisUser.RoleEnum.TENANT_USER);
+        osisUser.setEmail(SAMPLE_SCALITY_USER_EMAIL);
+        osisUser.setCdTenantId(TEST_TENANT_ID);
+
+        final CreateUserRequest createUserRequest =  ScalityModelConverter.toCreateUserRequest(osisUser);
+
+        assertEquals(TEST_USER_ID, createUserRequest.getUserName());
+        assertTrue(createUserRequest.getPath().contains(TEST_NAME));
+        assertTrue(createUserRequest.getPath().contains(OsisUser.RoleEnum.TENANT_USER.getValue()));
+        assertTrue(createUserRequest.getPath().contains(SAMPLE_SCALITY_USER_EMAIL));
+        assertTrue(createUserRequest.getPath().contains(TEST_TENANT_ID));
+    }
+
+    @Test
+    public void testToCreateUserAccessKeyRequest() {
+        // Setup
+        final CreateAccessKeyRequest expectedResult = new CreateAccessKeyRequest(TEST_USER_ID);
+
+        // Run the test
+        final CreateAccessKeyRequest result = ScalityModelConverter.toCreateUserAccessKeyRequest(TEST_USER_ID);
+
+        // Verify the results
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void testToGetPolicyRequest() {
+        // Setup
+        final GetPolicyRequest expectedResult = new GetPolicyRequest();
+        expectedResult.setPolicyArn("arn:aws:iam::" + TEST_TENANT_ID +":policy/userPolicy@" + TEST_TENANT_ID);
+
+        // Run the test
+        final GetPolicyRequest result = ScalityModelConverter.toGetPolicyRequest(TEST_TENANT_ID);
+
+        // Verify the results
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void testToCreateUserPolicyRequest() {
+        // Setup
+        final CreatePolicyRequest expectedResult = new CreatePolicyRequest();
+        expectedResult.setPolicyName("userPolicy@" + TEST_TENANT_ID);
+        expectedResult.setPolicyDocument(DEFAULT_USER_POLICY_DOCUMENT);
+        expectedResult.setDescription("This is a common user policy created by OSIS for all the users belonging to the "+ TEST_TENANT_ID +" account");
+
+        // Run the test
+        final CreatePolicyRequest result = ScalityModelConverter.toCreateUserPolicyRequest(TEST_TENANT_ID);
+
+        // Verify the results
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void testToAttachUserPolicyRequest() {
+        // Setup
+        final AttachUserPolicyRequest expectedResult = new AttachUserPolicyRequest();
+        expectedResult.setUserName(TEST_USER_ID);
+        expectedResult.setPolicyArn(TEST_POLICY_ARN);
+
+        // Run the test
+        final AttachUserPolicyRequest result = ScalityModelConverter.toAttachUserPolicyRequest(TEST_POLICY_ARN, TEST_USER_ID);
+
+        // Verify the results
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void testToOsisUser() {
+        // Setup
+        final CreateUserResult createUserResult = new CreateUserResult();
+        final String path = "/"+ TEST_NAME +"/"
+                + OsisUser.RoleEnum.TENANT_USER.getValue() +"/"
+                + SAMPLE_SCALITY_USER_EMAIL  + "/"
+                + TEST_TENANT_ID  + "/";
+        createUserResult.setUser(new User(path, TEST_USER_ID, TEST_USER_ID, "arn", new GregorianCalendar(2019, Calendar.JANUARY, 1).getTime()));
+
+        final OsisUser osisUser = new OsisUser();
+        osisUser.setTenantId(TEST_TENANT_ID);
+
+        // Run the test
+        final OsisUser result = ScalityModelConverter.toOsisUser(createUserResult, osisUser.getTenantId());
+
+        // Verify the results
+        assertEquals(TEST_USER_ID, result.getCdUserId());
+        assertEquals(TEST_USER_ID, result.getUserId());
+        assertEquals(TEST_NAME, result.getUsername());
+        assertEquals(TEST_TENANT_ID, result.getCdTenantId());
+        assertEquals(TEST_TENANT_ID, result.getTenantId());
+        assertEquals(OsisUser.RoleEnum.TENANT_USER, result.getRole());
+        assertEquals(SAMPLE_SCALITY_USER_EMAIL, result.getEmail());
+        assertTrue(result.getActive());
+    }
+
+    @Test
+    public void testToOsisS3Credentials() {
+        // Setup
+        final CreateAccessKeyResult createAccessKeyResult = new CreateAccessKeyResult();
+        createAccessKeyResult.setAccessKey(new AccessKey(TEST_USER_ID, TEST_ACCESS_KEY, "status", TEST_SECRET_KEY));
+
+        // Run the test
+        final OsisS3Credential result = ScalityModelConverter.toOsisS3Credentials(TEST_TENANT_ID, TEST_TENANT_ID, TEST_NAME, createAccessKeyResult);
+
+        // Verify the results
+        assertEquals(TEST_USER_ID, result.getCdUserId());
+        assertEquals(TEST_USER_ID, result.getUserId());
+        assertEquals(TEST_NAME, result.getUsername());
+        assertEquals(TEST_TENANT_ID, result.getTenantId());
+        assertEquals(TEST_TENANT_ID, result.getCdTenantId());
+        assertEquals(TEST_ACCESS_KEY, result.getAccessKey());
+        assertEquals(TEST_SECRET_KEY, result.getSecretKey());
     }
 }
