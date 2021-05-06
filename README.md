@@ -40,7 +40,7 @@ This project is for OSIS, which integrates [Scality RING](https://www.scality.co
        --env-file application.properties \
        -it \
        -p 8443:8443 \
-       --mount type=bind,source=<absolute_path_to_.p12_file>,target=/app/lib/osis.p12 \
+       -v <absolute_path_to_.p12_file>:/app/lib/osis.p12:ro,z \
        <local_image_name>
     ```
    dev:
@@ -49,7 +49,7 @@ This project is for OSIS, which integrates [Scality RING](https://www.scality.co
        --env-file application.properties \
        -it \
        -p 8443:8443 \
-       --mount type=bind,source=<absolute_path_to_.p12_file>,target=/app/lib/osis.p12 \
+       -v <absolute_path_to_.p12_file>:/app/lib/osis.p12:ro,z \
        registry.scality.com/vmware-ose-scality-dev/vmware-ose-scality:<short SHA-1 commit hash>
     ```
    Production image:
@@ -58,7 +58,7 @@ This project is for OSIS, which integrates [Scality RING](https://www.scality.co
        --env-file application.properties \
        -it \
        -p 8443:8443 \
-       --mount type=bind,source=<absolute_path_to_.p12_file>,target=/app/lib/osis.p12 \
+       -v <absolute_path_to_.p12_file>:/app/lib/osis.p12:ro,z \
        registry.scality.com/vmware-ose-scality/vmware-ose-scality:<tag>
     ```
 
