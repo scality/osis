@@ -41,9 +41,23 @@ The acceptance criteria are:
 ### Prerequisites
 
 1. Run Vault (check [How to Run Vault](https://github.com/scality/Vault/blob/development/7.10/TESTING.md#how-to-run-1))
-
+    ```sh
+        $ git clone git@github.com:scality/vault.git
+        $ cd vault
+        $ git checkout development/7.10
+        $ yarn install
+        $ chmod 400 ./tests/utils/keyfile
+        $ VAULT_DB_BACKEND=LEVELDB yarn start #if one wants database to persist
+        $ VAULT_DB_BACKEND=MEMORY yarn start #if one wants database to persist only in process memeory(while the service is running)
+    ```
 1. Run CloudServer (check [running CloudServer here](https://github.com/scality/cloudserver/tree/development/7.10#installation)) with env variable: `S3VAULT=scality` so that it can use Vault as an auth backend.
-
+    ```sh
+        git clone git@github.com:scality/cloudserver.git
+        cd cloudserver/
+        git checkout development/7.10
+        yarn install
+        S3VAULT=scality yarn start
+    ```
 1. Update the `application.properties` environment file with the Vault target URL (before starting the Scality OSIS application)
     * Set the Vault URL in the `osis.scality.vault.endpoint` property (see `application.properties` [here](../src/main/resources/application.properties))
     * Update the Vault super-admin credentials in the `osis.scality.vault.access-key` and `osis.scality.vault.secret-key` properties.
