@@ -5,19 +5,7 @@
 
 package com.scality.osis.utils;
 
-import com.amazonaws.services.identitymanagement.model.AttachUserPolicyRequest;
-import com.amazonaws.services.identitymanagement.model.CreateAccessKeyRequest;
-import com.amazonaws.services.identitymanagement.model.CreateAccessKeyResult;
-import com.amazonaws.services.identitymanagement.model.AttachRolePolicyRequest;
-import com.amazonaws.services.identitymanagement.model.CreatePolicyRequest;
-import com.amazonaws.services.identitymanagement.model.CreateRoleRequest;
-import com.amazonaws.services.identitymanagement.model.DeleteAccessKeyRequest;
-import com.amazonaws.services.identitymanagement.model.CreateUserRequest;
-import com.amazonaws.services.identitymanagement.model.CreateUserResult;
-import com.amazonaws.services.identitymanagement.model.GetPolicyRequest;
-import com.amazonaws.services.identitymanagement.model.User;
-import com.amazonaws.services.identitymanagement.model.ListUsersRequest;
-import com.amazonaws.services.identitymanagement.model.ListUsersResult;
+import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
@@ -107,6 +95,17 @@ public final class ScalityModelConverter {
         return new ListUsersRequest()
                 .withMarker(offset.toString())
                 .withMaxItems(limit.intValue());
+    }
+
+    /**
+     * Creates IAM Get User request
+     * @param username Vault username
+     *
+     * @return the IAM get user request dto
+     */
+    public static GetUserRequest toIAMGetUserRequest(String username) {
+        return new GetUserRequest()
+                .withUserName(username);
     }
 
     /**

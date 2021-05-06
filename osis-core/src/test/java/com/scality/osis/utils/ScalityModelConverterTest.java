@@ -411,4 +411,15 @@ public class ScalityModelConverterTest {
         // Verify the results
         assertEquals(TEST_NAME, osisUserName);
     }
+
+    @Test
+    public void testToGetUserRequest() {
+        // Setup
+
+        // Run the test
+        final GetUserRequest result = ScalityModelConverter.toIAMGetUserRequest(TEST_USER_ID);
+
+        // Verify the results
+        assertEquals(TEST_USER_ID, result.getUserName());
+    }
 }

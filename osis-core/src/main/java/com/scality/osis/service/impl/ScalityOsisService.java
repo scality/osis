@@ -373,7 +373,29 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public OsisUser getUser(String tenantId, String userId) {
-        throw new NotImplementedException();
+        try {
+            logger.info("Get User request received:: tenant ID:{}, userID:{}", tenantId, userId);
+
+            Credentials tempCredentials = getCredentials(tenantId);
+            final AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
+
+            GetUserRequest getUserRequest =  ScalityModelConverter.toIAMGetUserRequest(userId);
+
+            logger.debug("[Vault] Get User Request:{}", new Gson().toJson(getUserRequest));
+
+            GetUserResult getUserResult = iamClient.getUser(getUserRequest);
+
+            logger.debug("[Vault] Get User response:{}", new Gson().toJson(getUserResult));
+
+            OsisUser osisUser = ScalityModelConverter.toOsisUser(getUserResult.getUser(), tenantId);
+            logger.info("Get User response:{}", new Gson().toJson(osisUser));
+
+            return  osisUser;
+        } catch (Exception e){
+
+            logger.error("GetUser error. User not found. Error details: ", e);
+            throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        }
 
     }
 

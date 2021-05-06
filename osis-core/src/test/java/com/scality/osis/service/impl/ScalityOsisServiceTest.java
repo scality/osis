@@ -85,6 +85,7 @@ public class ScalityOsisServiceTest {
         initCreateAccessRequestMocks();
         initCreateUserMocks();
         initListUserMocks();
+        initGetUserMocks();
         initCaches();
     }
 
@@ -336,6 +337,32 @@ public class ScalityOsisServiceTest {
                             .withUsers(users)
                             .withIsTruncated(Boolean.TRUE)
                             .withMarker(markerVal + maxItems + "");
+
+                    return response;
+                });
+    }
+
+    private void initGetUserMocks() {
+
+        //initialize mock get user response
+        when(iamMock.getUser(any(GetUserRequest.class)))
+                .thenAnswer((Answer<GetUserResult>) invocation -> {
+                    final GetUserRequest request = invocation.getArgument(0);
+                    final String username = request.getUserName();
+
+                    final String path = "/"+ TEST_NAME +"/"
+                            + OsisUser.RoleEnum.TENANT_USER.getValue() +"/"
+                            + SAMPLE_SCALITY_USER_EMAIL  + "/"
+                            + TEST_TENANT_ID  + "/";
+
+                    final User user = new User()
+                            .withUserId(SAMPLE_ID)
+                            .withUserName(username)
+                            .withPath(path)
+                            .withCreateDate(new Date());
+
+                    final GetUserResult response = new GetUserResult()
+                            .withUser(user);
 
                     return response;
                 });
@@ -797,13 +824,49 @@ public class ScalityOsisServiceTest {
     }
 
     @Test
-    public void testGetUser2() {
+    public void testGetUserWithUserID() {
         // Setup
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getUser(TEST_TENANT_ID, TEST_USER_ID), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        final OsisUser osisUser = scalityOsisServiceUnderTest.getUser(TEST_TENANT_ID, TEST_USER_ID);
 
         // Verify the results
+        assertEquals(TEST_TENANT_ID, osisUser.getTenantId());
+        assertEquals(TEST_USER_ID, osisUser.getUserId());
+        assertEquals(TEST_USER_ID, osisUser.getCdUserId());
+        assertNotNull(osisUser.getUsername());
+        assertNotNull(osisUser.getCdTenantId());
+        assertNotNull(osisUser.getCanonicalUserId());
+        assertNotNull(osisUser.getRole());
+        assertNotNull(osisUser.getEmail());
+        assertTrue(osisUser.getActive());
+    }
+
+    @Test
+    public void testGetUserWithUserIDErr() {
+        // Setup
+        when(iamMock.getUser(any(GetUserRequest.class)))
+                .thenAnswer((Answer<GetUserResult>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Bad Request");
+                });
+
+        // Run the test
+        // Verify the results
+        assertThrows(VaultServiceException.class, () -> scalityOsisServiceUnderTest.getUser(TEST_TENANT_ID, TEST_USER_ID));
+    }
+
+    @Test
+    public void testGetUserWithUserIDNoUser() {
+        // Setup
+        when(iamMock.getUser(any(GetUserRequest.class)))
+                .thenAnswer((Answer<GetUserResult>) invocation -> {
+                    final GetUserRequest request = invocation.getArgument(0);
+                    throw new NoSuchEntityException("The user with name " + request.getUserName() +" cannot be found.");
+                });
+
+        // Run the test
+        // Verify the results
+        assertThrows(VaultServiceException.class, () -> scalityOsisServiceUnderTest.getUser(TEST_TENANT_ID, TEST_USER_ID));
     }
 
     @Test
