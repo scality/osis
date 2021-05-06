@@ -319,8 +319,8 @@ public class ScalityOsisService implements OsisService {
     @Override
     public boolean headTenant(String tenantId) {
         if(tenantId.equals("123123123123") || tenantId.equals("123123123124") || tenantId.equals("123123123125"))
-            return false;
-        return true;
+            return true;
+        return false;
     }
 
     @Override
