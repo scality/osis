@@ -63,8 +63,8 @@ public class ScalityOsisService implements OsisService {
         System.out.println("create account response:"+ new Gson().toJson(accountResponse));
 
         osisTenant = ModelConverter.toOsisTenant(accountResponse);
-	osisTenant.setTenantId("12345678910");
-	System.out.println("create Tenant response:"+ new Gson().toJson(osisTenant));
+	    osisTenant.setTenantId("123123123123");
+	    System.out.println("create Tenant response:"+ new Gson().toJson(osisTenant));
         return osisTenant;
     }
 
@@ -318,6 +318,8 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public boolean headTenant(String tenantId) {
+        if(tenantId.equals("123123123123") || tenantId.equals("123123123124") || tenantId.equals("123123123125"))
+            return false;
         return true;
     }
 
