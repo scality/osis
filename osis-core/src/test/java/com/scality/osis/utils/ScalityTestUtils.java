@@ -13,6 +13,7 @@ public final class ScalityTestUtils {
 
     public static final String SAMPLE_TENANT_ID = "123123123123";
     public static final String SAMPLE_ID = "bfc0d4a51e06481cbc917e9d96e52d81";
+    public static final String SAMPLE_CD_TENANT_ID = "e7ecb16e-f6b7-4d34-ad4e-5da5d5c8317";
     public static final String SAMPLE_TENANT_NAME = "tenant name";
     public static final List<String> SAMPLE_CD_TENANT_IDS = new ArrayList<>(
             Arrays.asList(

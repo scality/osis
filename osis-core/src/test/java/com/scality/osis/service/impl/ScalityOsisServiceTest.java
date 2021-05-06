@@ -302,14 +302,23 @@ public class ScalityOsisServiceTest {
         when(iamMock.listUsers(any(ListUsersRequest.class)))
                 .thenAnswer((Answer<ListUsersResult>) invocation -> {
                     final ListUsersRequest request = invocation.getArgument(0);
-                    final int maxItems = request.getMaxItems();
-                    final int markerVal = Integer.parseInt(request.getMarker());
+                    int maxItems = request.getMaxItems();
+                    final int markerVal = (request.getMarker() ==null) ? 0 : Integer.parseInt(request.getMarker());
+                    final String pathPrefix = request.getPathPrefix();
+
+                    if(!StringUtils.isEmpty(pathPrefix)){
+                        maxItems = 1;
+                    }
 
                     final List<User> users = new ArrayList<>();
 
                     // Generate Users with ids (markerVal + i) to maxItems count
                     for( int index = 0; index < maxItems; index++){
-                        final String path = "/"+ TEST_NAME + (index + markerVal) +"/"
+                        final String pathFirstSection = StringUtils.isEmpty(pathPrefix) ?
+                                                            "/"+ TEST_NAME + (index + markerVal) +"/" :
+                                                            pathPrefix;
+
+                        final String path = pathFirstSection
                                 + OsisUser.RoleEnum.TENANT_USER.getValue() +"/"
                                 + SAMPLE_SCALITY_USER_EMAIL  + "/"
                                 + TEST_TENANT_ID  + "/";
@@ -578,11 +587,67 @@ public class ScalityOsisServiceTest {
     @Test
     public void testQueryUsers() {
         // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + QUERY_USER_FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
+        // cd_tenant_id==e7ecb16e-f6b7-4d34-ad4e-5da5d5c8317;display_name%3D%3D==name
+
+        when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenReturn(SAMPLE_TENANT_ID);
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.queryUsers(0L, 0L, "filter"), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        final PageOfUsers response = scalityOsisServiceUnderTest.queryUsers(offset, limit, filter);
 
         // Verify the results
+        assertEquals(1, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(1, response.getItems().size());
+        assertEquals(TEST_NAME, response.getItems().get(0).getUsername());
+        assertTrue(response.getItems().get(0).getTenantId().contains(SAMPLE_TENANT_ID));
+    }
+
+    @Test
+    public void testQueryUsersInvalidCdTenantID() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + QUERY_USER_FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
+        // cd_tenant_id==e7ecb16e-f6b7-4d34-ad4e-5da5d5c8317;display_name%3D%3D==name
+
+        when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenThrow(
+                new VaultServiceException(HttpStatus.BAD_REQUEST, "Provided cd_tenant_id does not exist"));
+
+        // Run the test
+        final PageOfUsers response = scalityOsisServiceUnderTest.queryUsers(offset, limit, filter);
+
+        // Verify the results
+        assertEquals(0L, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(0L, response.getItems().size());
+    }
+
+    @Test
+    public void testQueryUsersInvalidDisplayName() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + QUERY_USER_FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
+        // cd_tenant_id==e7ecb16e-f6b7-4d34-ad4e-5da5d5c8317;display_name%3D%3D==name
+
+        when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenReturn(SAMPLE_TENANT_ID);
+
+        final ListUsersResult userNotFoundResponse = new ListUsersResult().withUsers(new ArrayList<>());
+        when(iamMock.listUsers(any(ListUsersRequest.class))).thenReturn(userNotFoundResponse);
+
+        // Run the test
+        final PageOfUsers response = scalityOsisServiceUnderTest.queryUsers(offset, limit, filter);
+
+        // Verify the results
+        assertEquals(0L, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(0L, response.getItems().size());
     }
 
     @Test

@@ -11,12 +11,14 @@ import com.scality.vaultclient.dto.*;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static com.scality.osis.vaultadmin.impl.VaultAdminImpl.CD_TENANT_ID_PREFIX;
 import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,9 +26,8 @@ import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ConstantConditions")
 public class VaultAdminImplTest extends BaseTest {
+    public static final String CACHE_FACTORY = "cacheFactory";
 
-
-    public static final String CD_TENANT_ID_PREFIX = "cd_tenant_id";
     @Test
     public void createAccount() {
 
@@ -232,7 +233,7 @@ public class VaultAdminImplTest extends BaseTest {
         final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
         when(cacheFactoryMock.getCache(NAME_LIST_ACCOUNTS_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
 
-        ReflectionTestUtils.setField(vaultAdminImpl, "cacheFactory", cacheFactoryMock);
+        ReflectionTestUtils.setField(vaultAdminImpl, CACHE_FACTORY, cacheFactoryMock);
         vaultAdminImpl.initCaches();
 
         final String marker = vaultAdminImpl.getAccountsMarker(1000, CD_TENANT_ID_PREFIX);
@@ -249,7 +250,7 @@ public class VaultAdminImplTest extends BaseTest {
         cache.put(4000,"M4000");
         when(cacheFactoryMock.getCache(NAME_LIST_ACCOUNTS_CACHE)).thenReturn(cache);
 
-        ReflectionTestUtils.setField(vaultAdminImpl, "cacheFactory", cacheFactoryMock);
+        ReflectionTestUtils.setField(vaultAdminImpl, CACHE_FACTORY, cacheFactoryMock);
         vaultAdminImpl.initCaches();
 
         final String marker = vaultAdminImpl.getAccountsMarker(3000, CD_TENANT_ID_PREFIX);
@@ -265,7 +266,7 @@ public class VaultAdminImplTest extends BaseTest {
         cache.put(4000,"M4000");
         when(cacheFactoryMock.getCache(NAME_LIST_ACCOUNTS_CACHE)).thenReturn(cache);
 
-        ReflectionTestUtils.setField(vaultAdminImpl, "cacheFactory", cacheFactoryMock);
+        ReflectionTestUtils.setField(vaultAdminImpl, CACHE_FACTORY, cacheFactoryMock);
         vaultAdminImpl.initCaches();
 
         final String marker = vaultAdminImpl.getAccountsMarker(500, CD_TENANT_ID_PREFIX);
@@ -278,7 +279,7 @@ public class VaultAdminImplTest extends BaseTest {
         final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
         when(cacheFactoryMock.getCache(NAME_LIST_ACCOUNTS_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
 
-        ReflectionTestUtils.setField(vaultAdminImpl, "cacheFactory", cacheFactoryMock);
+        ReflectionTestUtils.setField(vaultAdminImpl, CACHE_FACTORY, cacheFactoryMock);
         vaultAdminImpl.initCaches();
 
         final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
@@ -304,7 +305,7 @@ public class VaultAdminImplTest extends BaseTest {
         cache.put(2000,"M2000");
         when(cacheFactoryMock.getCache(NAME_LIST_ACCOUNTS_CACHE)).thenReturn(cache);
 
-        ReflectionTestUtils.setField(vaultAdminImpl, "cacheFactory", cacheFactoryMock);
+        ReflectionTestUtils.setField(vaultAdminImpl, CACHE_FACTORY, cacheFactoryMock);
         vaultAdminImpl.initCaches();
 
         final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
@@ -331,7 +332,7 @@ public class VaultAdminImplTest extends BaseTest {
         cache.put(4000,"M4000");
         when(cacheFactoryMock.getCache(NAME_LIST_ACCOUNTS_CACHE)).thenReturn(cache);
 
-        ReflectionTestUtils.setField(vaultAdminImpl, "cacheFactory", cacheFactoryMock);
+        ReflectionTestUtils.setField(vaultAdminImpl, CACHE_FACTORY, cacheFactoryMock);
         vaultAdminImpl.initCaches();
 
         final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
@@ -355,7 +356,7 @@ public class VaultAdminImplTest extends BaseTest {
         final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
         when(cacheFactoryMock.getCache(NAME_ASSUME_ROLE_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
 
-        ReflectionTestUtils.setField(vaultAdminImpl, "cacheFactory", cacheFactoryMock);
+        ReflectionTestUtils.setField(vaultAdminImpl, CACHE_FACTORY, cacheFactoryMock);
         vaultAdminImpl.initCaches();
 
         final AssumeRoleRequest assumeRoleRequest = new AssumeRoleRequest();
@@ -384,7 +385,7 @@ public class VaultAdminImplTest extends BaseTest {
 
         when(cacheFactoryMock.getCache(NAME_ASSUME_ROLE_CACHE)).thenReturn(cache);
 
-        ReflectionTestUtils.setField(vaultAdminImpl, "cacheFactory", cacheFactoryMock);
+        ReflectionTestUtils.setField(vaultAdminImpl, CACHE_FACTORY, cacheFactoryMock);
         vaultAdminImpl.initCaches();
 
         final AssumeRoleRequest assumeRoleRequest = new AssumeRoleRequest()
@@ -473,5 +474,76 @@ public class VaultAdminImplTest extends BaseTest {
 
         final AmazonIdentityManagement iam = vaultAdminImpl.getIAMClient(credentials, TEST_REGION);
         assertNotNull(iam);
+    }
+
+    @Test
+    public void testGetAccountIDEmptyCache() {
+
+        final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
+        when(cacheFactoryMock.getCache(NAME_ACCOUNT_ID_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
+
+        ReflectionTestUtils.setField(vaultAdminImpl, CACHE_FACTORY, cacheFactoryMock);
+        vaultAdminImpl.initCaches();
+
+        final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
+                .maxItems(1000)
+                .filterKey(CD_TENANT_ID_PREFIX + UUID.randomUUID())
+                .build();
+
+        final String response = vaultAdminImpl.getAccountID(listAccountsRequestDTO);
+        assertTrue(response.startsWith(DEFAULT_TEST_ACCOUNT_ID));
+    }
+
+    @Test
+    public void testGetAccountIDWithCache() {
+
+        final String cdTenantIDFilter1 = CD_TENANT_ID_PREFIX + UUID.randomUUID();
+        final String cdTenantIDFilter2 = CD_TENANT_ID_PREFIX + UUID.randomUUID();
+
+        final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
+        final CacheImpl<String, String> cache = new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY);
+        cache.put(cdTenantIDFilter1,DEFAULT_TEST_ACCOUNT_ID + "TEST1");
+        cache.put(cdTenantIDFilter2,DEFAULT_TEST_ACCOUNT_ID + "TEST2");
+
+        when(cacheFactoryMock.getCache(NAME_ACCOUNT_ID_CACHE)).thenReturn(cache);
+
+        ReflectionTestUtils.setField(vaultAdminImpl, CACHE_FACTORY, cacheFactoryMock);
+        vaultAdminImpl.initCaches();
+
+        final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
+                .maxItems(1000)
+                .filterKey(cdTenantIDFilter1)
+                .build();
+
+        final String response = vaultAdminImpl.getAccountID(listAccountsRequestDTO);
+        assertEquals(DEFAULT_TEST_ACCOUNT_ID + "TEST1", response);
+    }
+
+    @Test
+    public void testGetAccountIDNotFound() {
+
+        final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
+        when(cacheFactoryMock.getCache(NAME_ACCOUNT_ID_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
+
+        ReflectionTestUtils.setField(vaultAdminImpl, CACHE_FACTORY, cacheFactoryMock);
+        vaultAdminImpl.initCaches();
+
+        when(accountServicesClient.listAccounts(any(ListAccountsRequestDTO.class)))
+                .thenAnswer((Answer<Response<ListAccountsResponseDTO>>) invocation -> {
+                    final ListAccountsResponseDTO response = new ListAccountsResponseDTO();
+                    response.setAccounts(new ArrayList<>());
+
+                    final HttpResponse httpResponse = new HttpResponse(null, null);
+                    httpResponse.setStatusCode(200);
+                    httpResponse.setStatusText("OK");
+                    return new Response<>(response,httpResponse);
+                });
+
+        final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
+                .maxItems(1000)
+                .filterKey(CD_TENANT_ID_PREFIX + UUID.randomUUID())
+                .build();
+
+        assertThrows(VaultServiceException.class, () -> vaultAdminImpl.getAccountID(listAccountsRequestDTO));
     }
 }
