@@ -330,7 +330,8 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfS3Credentials listS3Credentials(String tenantId, String userId, Long offset, Long limit) {
-        return mockS3Credentials(offset,limit, tenantId,userId);
+        throw new NotImplementedException();
+	//return mockS3Credentials(offset,limit, tenantId,userId);
     }
 
     @Override
