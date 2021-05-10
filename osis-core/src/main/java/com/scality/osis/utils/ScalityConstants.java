@@ -79,8 +79,7 @@ public final class ScalityConstants {
                                                         "\"Statement\": [\n    {\n      " +
                                                                                     "\"Effect\": \"Allow\",\n      " +
                                                                                     "\"Action\": [\n        " +
-                                                                                        "\"s3:*\",\n        " +
-                                                                                        "\"kms:*\"\n      ],\n      " +
+                                                                                        "\"s3:*\"\n      ],\n      " +
                                                                                     "\"Resource\": \"*\"\n    }\n  " +
                                                                         "]\n}";
 }
