@@ -104,4 +104,12 @@ public interface VaultAdmin {
    * @return the account
    */
   AccountData getAccountWithID(GetAccountRequestDTO getAccountRequestDTO);
+
+  /**
+   * Searches all accounts and returns Vault accountID w.r.t cdTenantId filter key.
+   * @param listAccountsRequest with cdTenantIdFilter as filterKey
+   *
+   * @return the accountId
+   */
+  String getAccountID(ListAccountsRequestDTO listAccountsRequest);
 }

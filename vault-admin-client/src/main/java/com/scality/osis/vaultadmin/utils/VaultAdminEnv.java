@@ -75,4 +75,33 @@ public class VaultAdminEnv {
                 ? null : Long.parseLong(env.getProperty(CacheConstants.ENV_ASSUME_ROLE_CACHE_TTL));
     }
 
+    /**
+     * Is  accountID cache disabled boolean.
+     *
+     * @return the boolean
+     */
+    public boolean isAccountIDCacheDisabled(){
+        return Boolean.parseBoolean(env.getProperty(CacheConstants.ENV_ACCOUNT_ID_DISABLED));
+    }
+
+    /**
+     * Get  accountID max capacity integer.
+     *
+     * @return the integer
+     */
+    public Integer getAccountIDCacheMaxCapacity(){
+        return StringUtils.isEmpty(env.getProperty(CacheConstants.ENV_ACCOUNT_ID_MAX_CAPACITY))
+                ? null : Integer.parseInt(env.getProperty(CacheConstants.ENV_ACCOUNT_ID_MAX_CAPACITY));
+    }
+
+    /**
+     * Get  accountID cache expiration time.
+     *
+     * @return the integer
+     */
+    public Long getAccountIDCacheExpiration(){
+        return StringUtils.isEmpty(env.getProperty(CacheConstants.ENV_ACCOUNT_ID_CACHE_TTL))
+                ? null : Long.parseLong(env.getProperty(CacheConstants.ENV_ACCOUNT_ID_CACHE_TTL));
+    }
+
 }

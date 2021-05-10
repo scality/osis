@@ -40,11 +40,15 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
+import static com.scality.osis.utils.ScalityConstants.DISPLAY_NAME_PREFIX;
 import static com.scality.osis.utils.ScalityConstants.IAM_PREFIX;
 import static com.scality.osis.utils.ScalityConstants.NO_SUCH_ENTITY_ERR;
 import static com.scality.osis.utils.ScalityConstants.ROLE_DOES_NOT_EXIST_ERR;
 
 
+/**
+ * The type Scality osis service.
+ */
 @Service
 @Primary
 public class ScalityOsisService implements OsisService {
@@ -63,8 +67,18 @@ public class ScalityOsisService implements OsisService {
     @Autowired
     private AsyncScalityOsisService asyncScalityOsisService;
 
+    /**
+     * Instantiates a new Scality osis service.
+     */
     public ScalityOsisService(){}
 
+    /**
+     * Instantiates a new Scality osis service.
+     *
+     * @param appEnv          the app env
+     * @param vaultAdmin      the vault admin
+     * @param osisCapsManager the osis caps manager
+     */
     public ScalityOsisService(ScalityAppEnv appEnv, VaultAdmin vaultAdmin, OsisCapsManager osisCapsManager){
         this.appEnv = appEnv;
         this.vaultAdmin = vaultAdmin;
@@ -229,9 +243,64 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfUsers queryUsers(long offset, long limit, String filter) {
-        throw new NotImplementedException();
-    }
+        if(filter.contains(CD_TENANT_ID_PREFIX) && filter.contains(DISPLAY_NAME_PREFIX)) {
+            try {
+                logger.info("Query Users request received:: filter:{}, offset:{}, limit:{}", filter, offset, limit);
 
+                String osisUserName = ScalityModelConverter.extractOsisUserName(filter);
+
+                String cdTenantIdFilter = ScalityModelConverter.extractCdTenantIdFilter(filter);
+
+                ListAccountsRequestDTO queryAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit, cdTenantIdFilter);
+
+                String tenantId = vaultAdmin.getAccountID(queryAccountsRequest);
+
+                Credentials tempCredentials = getCredentials(tenantId);
+                final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
+
+                ListUsersRequest listUsersRequest =  ScalityModelConverter.toIAMListUsersRequest(offset, limit);
+
+                // Add path prefix with osis username to the listusers request
+                listUsersRequest.setPathPrefix("/" + osisUserName + "/");
+
+                logger.debug("[Vault] List Users Request with 'pathPrefix':{}", new Gson().toJson(listUsersRequest));
+
+                ListUsersResult listUsersResult = iam.listUsers(listUsersRequest);
+
+                logger.debug("[Vault] List Users response:{}", new Gson().toJson(listUsersResult));
+
+                PageOfUsers pageOfUsers = ScalityModelConverter.toPageOfUsers(listUsersResult, offset, limit, tenantId);
+                logger.info("Query Users response:{}", new Gson().toJson(pageOfUsers));
+
+                return pageOfUsers;
+
+            } catch (VaultServiceException e) {
+                logger.error("Query Users error. Return empty list. Error details: ", e);
+                // For errors, Query users should return empty PageOfUsers
+                PageInfo pageInfo = new PageInfo();
+                pageInfo.setLimit(limit);
+                pageInfo.setOffset(offset);
+                pageInfo.setTotal(0L);
+
+                PageOfUsers pageOfUsers = new PageOfUsers();
+                pageOfUsers.setItems(new ArrayList<>());
+                pageOfUsers.setPageInfo(pageInfo);
+                return pageOfUsers;
+            }
+        } else {
+            logger.error("QueryUsers requested with invalid filter. Returns empty set of users");
+            // For errors, Query Users should return empty PageOfUsers
+            PageInfo pageInfo = new PageInfo();
+            pageInfo.setLimit(limit);
+            pageInfo.setOffset(offset);
+            pageInfo.setTotal(0L);
+
+            PageOfUsers pageOfUsers = new PageOfUsers();
+            pageOfUsers.setItems(new ArrayList<>());
+            pageOfUsers.setPageInfo(pageInfo);
+            return pageOfUsers;
+        }
+    }
 
     @Override
     public OsisS3Credential createS3Credential(String tenantId, String userId) {
@@ -346,7 +415,7 @@ public class ScalityOsisService implements OsisService {
         } catch (Exception e){
 
             logger.error("ListUsers error. Returning empty list. Error details: ", e);
-            // For errors, List Tenants should return empty PageOfTenants
+            // For errors, List Users should return empty PageOfUsers
             PageInfo pageInfo = new PageInfo();
             pageInfo.setLimit(limit);
             pageInfo.setOffset(offset);
@@ -395,6 +464,12 @@ public class ScalityOsisService implements OsisService {
         return new OsisUsage();
     }
 
+    /**
+     * Gets credentials.
+     *
+     * @param accountID the account id
+     * @return the credentials
+     */
     public Credentials getCredentials(String accountID) {
         Credentials credentials = null;
         try {
@@ -416,6 +491,16 @@ public class ScalityOsisService implements OsisService {
         return credentials;
     }
 
+    /**
+     * Create osis credential osis s 3 credential.
+     *
+     * @param tenantId   the tenant id
+     * @param userId     the user id
+     * @param cdTenantId the cd tenant id
+     * @param username   the username
+     * @param iam        the iam
+     * @return the osis s 3 credential
+     */
     public OsisS3Credential createOsisCredential(String tenantId, String userId, String cdTenantId, String username, AmazonIdentityManagement iam) {
 
         CreateAccessKeyRequest createAccessKeyRequest =  ScalityModelConverter.toCreateUserAccessKeyRequest(userId);

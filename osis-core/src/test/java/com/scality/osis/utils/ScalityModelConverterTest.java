@@ -387,4 +387,28 @@ public class ScalityModelConverterTest {
         assertEquals(TEST_USER_ID, osisUser.getCanonicalUserId());
         assertTrue(osisUser.getActive());
     }
+
+    @Test
+    public void testExtractCdTenantIdFilter() {
+        // Setup
+        final String filter = "cd_tenant_id==" + SAMPLE_CD_TENANT_ID + ";display_name==" + TEST_NAME;
+
+        // Run the test
+        final String cdTenantIdFilter = ScalityModelConverter.extractCdTenantIdFilter(filter);
+
+        // Verify the results
+        assertEquals("cd_tenant_id==" + SAMPLE_CD_TENANT_ID, cdTenantIdFilter);
+    }
+
+    @Test
+    public void testExtractOsisUserName() {
+        // Setup
+        final String filter = "cd_tenant_id==" + SAMPLE_CD_TENANT_ID + ";display_name==" + TEST_NAME;
+
+        // Run the test
+        final String osisUserName = ScalityModelConverter.extractOsisUserName(filter);
+
+        // Verify the results
+        assertEquals(TEST_NAME, osisUserName);
+    }
 }

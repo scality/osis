@@ -49,7 +49,7 @@ import javax.annotation.PostConstruct;
 public class VaultAdminImpl implements VaultAdmin{
   private static final Logger logger = LoggerFactory.getLogger(VaultAdminImpl.class);
 
-  public static final String CD_TENANT_ID_PREFIX = "cd_tenant_id";
+  public static final String CD_TENANT_ID_PREFIX = "cd_tenant_id==";
 
   private final AccountServicesClient vaultAccountClient;
 
@@ -64,6 +64,8 @@ public class VaultAdminImpl implements VaultAdmin{
   private Cache<Integer, String> listAccountsMarkerCache;
 
   private Cache<String, Credentials> assumeRoleCache;
+
+  private Cache<String, String> accountIdCache;
 
   /**
    * Create a Vault administrator implementation
@@ -110,6 +112,7 @@ public class VaultAdminImpl implements VaultAdmin{
     if(cacheFactory !=null) {
       listAccountsMarkerCache = cacheFactory.getCache(CacheConstants.NAME_LIST_ACCOUNTS_CACHE);
       assumeRoleCache = cacheFactory.getCache(CacheConstants.NAME_ASSUME_ROLE_CACHE);
+      accountIdCache = cacheFactory.getCache(CacheConstants.NAME_ACCOUNT_ID_CACHE);
     }
   }
 
@@ -193,6 +196,35 @@ public class VaultAdminImpl implements VaultAdmin{
   }
 
   /**
+   * Searches all accounts and returns Vault accountID w.r.t cdTenantId filter key.
+   *
+   * @param queryAccountsRequest is list accounts request with cdTenantIdFilter as filterKey
+   * @return the accountId
+   */
+  @Override
+  public String getAccountID(ListAccountsRequestDTO queryAccountsRequest) throws VaultServiceException{
+    String cdTenantIDFilter = queryAccountsRequest.getFilterKey();
+
+    if(accountIdCache.get(cdTenantIDFilter) != null){
+      return accountIdCache.get(queryAccountsRequest.getFilterKey());
+    } else{
+      // Call listAccounts with queryAccountsRequest
+      ListAccountsResponseDTO queryAccountsResponse = listAccounts(0, queryAccountsRequest);
+
+      if(queryAccountsResponse.getAccounts().isEmpty()){
+        throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Provided cd_tenant_id does not exist");
+      }
+
+      String accountID = queryAccountsResponse.getAccounts().get(0).getId();
+      // Cache accountID w.r.t cdTenantID filter
+      cacheAccountID(cdTenantIDFilter, accountID);
+
+      return accountID;
+    }
+
+  }
+
+  /**
    * Returns account marker
    * <p>This method will return the accounts marker for the provided offset.
    *
@@ -257,6 +289,12 @@ public class VaultAdminImpl implements VaultAdmin{
   private void cacheAssumeRoleCredentials(String roleArn, Credentials credentials) {
     if(assumeRoleCache != null) {
       assumeRoleCache.put(roleArn, credentials);
+    }
+  }
+
+  private void cacheAccountID(String key, String accountID) {
+    if(accountIdCache != null) {
+      accountIdCache.put(key, accountID);
     }
   }
 
