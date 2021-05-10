@@ -7,6 +7,7 @@ import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.vmware.osis.model.OsisS3Credential;
 import com.vmware.osis.model.OsisTenant;
 import com.vmware.osis.model.OsisUser;
+import com.vmware.osis.model.PageOfS3Credentials;
 import com.vmware.osis.model.PageOfUsers;
 import com.vmware.osis.model.exception.BadRequestException;
 import com.scality.vaultclient.dto.Account;
@@ -421,5 +422,42 @@ public class ScalityModelConverterTest {
 
         // Verify the results
         assertEquals(TEST_USER_ID, result.getUserName());
+    }
+
+    @Test
+    public void testToIAMListAccessKeysRequest() {
+        // Setup
+        // Run the test
+        final ListAccessKeysRequest result = ScalityModelConverter.toIAMListAccessKeysRequest(TEST_USER_ID, 1000L);
+
+        // Verify the results
+        assertEquals(1000, result.getMaxItems());
+        assertEquals(TEST_USER_ID, result.getUserName());
+    }
+
+    @Test
+    public void testToPageOfS3Credentials() {
+        // Setup
+
+        final AccessKeyMetadata accesskeyMetaData = new AccessKeyMetadata()
+                .withAccessKeyId(TEST_ACCESS_KEY)
+                .withCreateDate(new Date())
+                .withStatus(StatusType.Active)
+                .withUserName(TEST_USER_ID);
+        final ListAccessKeysResult listAccessKeysResult = new ListAccessKeysResult()
+                                                                .withAccessKeyMetadata(Collections.singletonList(accesskeyMetaData));
+        // Run the test
+        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, SAMPLE_TENANT_ID);
+
+        // Verify the results
+        assertTrue(pageOfS3Credentials.getItems().size() > 0);
+        assertNotNull(pageOfS3Credentials.getPageInfo());
+
+        final OsisS3Credential result = pageOfS3Credentials.getItems().get(0);
+
+        assertEquals(TEST_USER_ID, result.getCdUserId());
+        assertEquals(TEST_USER_ID, result.getUserId());
+        assertEquals(SAMPLE_TENANT_ID, result.getTenantId());
+        assertEquals(TEST_ACCESS_KEY, result.getAccessKey());
     }
 }

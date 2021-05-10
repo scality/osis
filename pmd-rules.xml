@@ -44,6 +44,12 @@ http://pmd.sourceforge.net/ruleset/2.0.0 ">
         </properties>
     </rule>
 
+    <rule ref="category/java/design.xml/CouplingBetweenObjects">
+        <properties>
+            <property name="threshold" value="40" />
+        </properties>
+    </rule>
+
     <rule ref="category/java/design.xml">
         <exclude name="LawOfDemeter"/>
         <exclude name="TooManyMethods"/>

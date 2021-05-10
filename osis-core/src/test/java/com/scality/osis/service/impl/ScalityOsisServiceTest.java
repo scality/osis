@@ -86,6 +86,7 @@ public class ScalityOsisServiceTest {
         initCreateUserMocks();
         initListUserMocks();
         initGetUserMocks();
+        initListAccessKeysMocks();
         initCaches();
     }
 
@@ -293,6 +294,23 @@ public class ScalityOsisServiceTest {
                             .withUserName(request.getUserName());
                     final CreateAccessKeyResult response = new CreateAccessKeyResult()
                             .withAccessKey(accessKeyObj);
+                    return response;
+                });
+    }
+
+    private void initListAccessKeysMocks() {
+        when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
+                .thenAnswer((Answer<ListAccessKeysResult>) invocation -> {
+                    final ListAccessKeysRequest request = invocation.getArgument(0);
+
+                    final AccessKeyMetadata accessKeyMetadata = new AccessKeyMetadata()
+                            .withAccessKeyId(TEST_ACCESS_KEY)
+                            .withCreateDate(new Date())
+                            .withStatus(StatusType.Active)
+                            .withUserName(request.getUserName());
+
+                    final ListAccessKeysResult response = new ListAccessKeysResult()
+                            .withAccessKeyMetadata(Collections.singletonList(accessKeyMetadata));
                     return response;
                 });
     }
@@ -893,11 +911,43 @@ public class ScalityOsisServiceTest {
     @Test
     public void testListS3Credentials() {
         // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.listS3Credentials(TEST_TENANT_ID, TEST_USER_ID, 0L, 0L), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        final PageOfS3Credentials pageOfS3Credentials = scalityOsisServiceUnderTest.listS3Credentials(TEST_TENANT_ID, TEST_USER_ID, offset, limit);
 
         // Verify the results
+        assertNotNull(pageOfS3Credentials.getItems());
+        assertEquals(TEST_TENANT_ID, pageOfS3Credentials.getItems().get(0).getTenantId());
+        assertEquals(TEST_USER_ID, pageOfS3Credentials.getItems().get(0).getCdUserId());
+        assertEquals(TEST_USER_ID, pageOfS3Credentials.getItems().get(0).getUserId());
+        assertTrue(pageOfS3Credentials.getPageInfo().getTotal() > 0);
+        assertEquals(offset, pageOfS3Credentials.getPageInfo().getOffset());
+        assertEquals(limit, pageOfS3Credentials.getPageInfo().getLimit());
+        assertFalse(pageOfS3Credentials.getItems().isEmpty());
+    }
+
+    @Test
+    public void testListS3CredentialsErr() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
+                .thenAnswer((Answer<ListAccessKeysResult>) invocation -> {
+                    throw new NoSuchEntityException("The request was rejected because it referenced an entity that does not exist. The error message describes the entity.");
+                });
+
+        // Run the test
+        final PageOfS3Credentials response = scalityOsisServiceUnderTest.listS3Credentials(TEST_TENANT_ID, TEST_USER_ID, offset, limit);
+
+        // Verify the results
+        assertEquals(0L, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(0L, response.getItems().size());
+
     }
 
     @Test

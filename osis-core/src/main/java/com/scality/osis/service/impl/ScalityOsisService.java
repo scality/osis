@@ -411,7 +411,40 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public PageOfS3Credentials listS3Credentials(String tenantId, String userId, Long offset, Long limit) {
-        throw new NotImplementedException();
+        try {
+            logger.info("List s3 credentials request received:: tenant ID:{}, user ID:{}, offset:{}, limit:{}",
+                    tenantId, userId, offset, limit);
+
+            Credentials tempCredentials = getCredentials(tenantId);
+            final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
+
+            ListAccessKeysRequest listAccessKeysRequest =  ScalityModelConverter.toIAMListAccessKeysRequest(userId, limit);
+
+            logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
+
+            ListAccessKeysResult listAccessKeysResult = iam.listAccessKeys(listAccessKeysRequest);
+
+            logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
+
+            PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter
+                    .toPageOfS3Credentials(listAccessKeysResult, offset, limit, tenantId);
+            logger.info("List S3 credentials  response:{}", new Gson().toJson(pageOfS3Credentials));
+
+            return  pageOfS3Credentials;
+        } catch (Exception e){
+
+            logger.error("ListS3Credentials error. Returning empty list. Error details: ", e);
+            // For errors, ListS3Credentials should return empty PageOfS3Credentials
+            PageInfo pageInfo = new PageInfo();
+            pageInfo.setLimit(limit);
+            pageInfo.setOffset(offset);
+            pageInfo.setTotal(0L);
+
+            PageOfS3Credentials pageOfS3Credentials = new PageOfS3Credentials();
+            pageOfS3Credentials.setItems(new ArrayList<>());
+            pageOfS3Credentials.setPageInfo(pageInfo);
+            return pageOfS3Credentials;
+        }
     }
 
     @Override

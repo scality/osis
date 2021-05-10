@@ -17,6 +17,7 @@ import com.vmware.osis.model.OsisS3Credential;
 import com.vmware.osis.model.OsisTenant;
 import com.vmware.osis.model.OsisUser;
 import com.vmware.osis.model.PageInfo;
+import com.vmware.osis.model.PageOfS3Credentials;
 import com.vmware.osis.model.PageOfTenants;
 import com.vmware.osis.model.PageOfUsers;
 import com.vmware.osis.model.exception.BadRequestException;
@@ -94,6 +95,20 @@ public final class ScalityModelConverter {
     public static ListUsersRequest toIAMListUsersRequest(Long offset, Long limit) {
         return new ListUsersRequest()
                 .withMarker(offset.toString())
+                .withMaxItems(limit.intValue());
+    }
+
+    /**
+     * Creates Vault List Access Keys request
+     * @param limit the max number of items
+     *
+     * @param username the IAM User's username
+     * @param limit the max number of the access keys in the response
+     * @return the IAM list Access Keys request dto
+     */
+    public static ListAccessKeysRequest toIAMListAccessKeysRequest(String username, Long limit) {
+        return new ListAccessKeysRequest()
+                .withUserName(username)
                 .withMaxItems(limit.intValue());
     }
 
@@ -380,7 +395,7 @@ public final class ScalityModelConverter {
      * @return the cd tenant ids list. Example:<code>["9b7e3259-aace-414c-bfd8-94daa0efefaf","7b7e3259-aace-414c-bfd8-94daa0efefaf"]</code>
      */
     public static List<String> toOsisCDTenantIds(Map<String,String> customAttributes) {
-        if(customAttributes.size() == 0)
+        if(customAttributes==null || customAttributes.size() == 0)
             return new ArrayList<>();
 
         List<String> cdTenantIds = new ArrayList<String>(customAttributes.keySet()).stream().collect(Collectors.toList());
@@ -494,5 +509,39 @@ public final class ScalityModelConverter {
         pageOfUsers.items(userItems);
         pageOfUsers.setPageInfo(pageInfo);
         return pageOfUsers;
+    }
+
+    /**
+     * Converts IAM List access keys response to OSIS S3 Credentials
+     *
+     * @param listAccessKeysResult the list access keys response dto
+     * @param offset
+     * @param limit
+     * @return the page of users
+     */
+    public static PageOfS3Credentials toPageOfS3Credentials(ListAccessKeysResult listAccessKeysResult, long offset, long limit, String tenantId) {
+        List<OsisS3Credential> credentials = new ArrayList<>();
+
+        for(AccessKeyMetadata accessKeyMetadata: listAccessKeysResult.getAccessKeyMetadata()){
+            OsisS3Credential s3Credential = new OsisS3Credential()
+                                            .accessKey(accessKeyMetadata.getAccessKeyId())
+                                            .active(accessKeyMetadata.getStatus()
+                                                    .equalsIgnoreCase(StatusType.Active.toString()))
+                                            .userId(accessKeyMetadata.getUserName())
+                                            .cdUserId(accessKeyMetadata.getUserName())
+                                            .tenantId(tenantId)
+                                            .creationDate(accessKeyMetadata.getCreateDate().toInstant());
+            credentials.add(s3Credential);
+        }
+
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setLimit(limit);
+        pageInfo.setOffset(offset);
+        pageInfo.setTotal((long) credentials.size());
+
+        PageOfS3Credentials pageOfS3Credentials = new PageOfS3Credentials();
+        pageOfS3Credentials.items(credentials);
+        pageOfS3Credentials.setPageInfo(pageInfo);
+        return pageOfS3Credentials;
     }
 }
