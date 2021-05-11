@@ -700,9 +700,28 @@ public class ScalityOsisServiceTest {
         // Setup
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.createS3Credential(TEST_TENANT_ID, TEST_USER_ID), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        final OsisS3Credential response = scalityOsisServiceUnderTest.createS3Credential(SAMPLE_TENANT_ID, TEST_USER_ID);
 
         // Verify the results
+        assertNotNull(response.getAccessKey());
+        assertNotNull(response.getSecretKey());
+        assertEquals(TEST_USER_ID, response.getUserId());
+        assertEquals(TEST_USER_ID, response.getCdUserId());
+        assertEquals(SAMPLE_TENANT_ID, response.getTenantId());
+    }
+
+    @Test
+    public void testCreateS3CredentialErr() {
+        // Setup
+        when(iamMock.createAccessKey(any(CreateAccessKeyRequest.class)))
+                .thenThrow(
+                    new NoSuchEntityException("The request was rejected because it referenced an entity that does not exist. " +
+                            "The error message describes the entity."));
+
+        // Run the test
+        // Verify the results
+        assertThrows(VaultServiceException.class, () -> scalityOsisServiceUnderTest.createS3Credential(SAMPLE_TENANT_ID, TEST_USER_ID));
+
     }
 
     @Test
