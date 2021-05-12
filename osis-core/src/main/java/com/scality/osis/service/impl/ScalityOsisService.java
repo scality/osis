@@ -232,7 +232,6 @@ public class ScalityOsisService implements OsisService {
 
                 resOsisUser.setOsisS3Credentials(Arrays.asList(osisCredential));
 
-                logger.trace("Create User response with secret:{}", new Gson().toJson(resOsisUser));
             }
 
             return resOsisUser;
@@ -317,7 +316,6 @@ public class ScalityOsisService implements OsisService {
 
             OsisS3Credential credential =  createOsisCredential(tenantId, userId, null, null, iamClient);
 
-            logger.trace("Create S3 Credential response with secret:{}", new Gson().toJson(credential));
             logger.info("Create S3 Credential Success. Access key ID:{}, ", credential.getAccessKey());
 
             return credential;
