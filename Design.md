@@ -181,7 +181,9 @@ This API creates a user on Vault.
 1. The `get-policy` API will be called with the `userPolicy@[account-id]` policy name using assumed role credentials
 1. If the `get-policy` API does not return any policy, using the assumed role credentials creates an IAM managed policy with the `userPolicy@[account-id]` policy name with full S3 access.
 1. `attach-policy` for the new user will be called using the assumed role credentials and the policy arn formatted as `arn:aws:iam::[account-id]:policy/userPolicy@[account-id]`.
-1. `create-s3credentials` api will be called using assumed role credentials
+1. The IAM `generate-access-key` API will be called using assumed role credentials.
+1. Encrypt the secret key using the AES algorithm. Store the encrypted secret key on Redis Cache in the hash named "OSIS", with the hash key formatted as `<Username>__<AccessKeyID>`. 
+1. Log the access key ID _(Log location and tools for logging are yet to be decided)_
 
 ### Create User Example Activity Diagram
 ![Create User](Design_Files/OSE-OSIS-Create-User.png)
@@ -227,8 +229,22 @@ This API will enable or disable user on Vault.
 
 
 ### Create S3 Credential
-This API creates S3 credential for the user.
-1. `generate-access-key` api will be called using assumed role credentials.
+This API creates S3 credentials for the user.
+1.  The Generate Access Key API will be called using assumed role credentials.
+1. Encrypt the secret key using the AES algorithm. Store the encrypted secret key on Redis Cache in the hash named "OSIS", with the hash key formatted as `<Username>__<AccessKeyID>`.
+1. Log the access key ID _(Log location and tools for logging are yet to be decided)_
+
+**Important Notes:**
+* Redis cache is subject to an ongoing rolling deployment.
+* If Redis Sentinel fails or crashes, the vCloud Director's OSE service must be restarted with the following command:_
+    ```shell
+    $ ose service restart
+    ```
+  * All access keys created by OSIS before OSE restart time (`ose-restart-time`) are dead keys on the Vault DB, which OSE/OSIS cannot use and must be manually deleted from the Vault. 
+  * A log location for all the dead access key IDs created by OSIS, and a script to run manually, to delete these dead keys from Vault DB, will be provided.
+
+### Create S3 Credential Example Activity Diagram
+![Create S3 Credential](Design_Files/OSE-OSIS-Create-S3-Credential.png)
 
 ### Query S3 Credentials
 This API query S3 credentials of the  user using a `filter` parameter.
@@ -238,6 +254,12 @@ This API query S3 credentials of the  user using a `filter` parameter.
 ### List S3 Credentials
 This API list S3 credentials of the  user.
 1. `list-access-keys` api will be called using assumed role credentials.
+2. Retrieve the secret keys, formatted as `<Username>__<AccessKeyID>`, from Redis cache.
+3. Decrypt the secret keys using AES and add them to the response.
+4. Exclude the keys in the response that are not present in the Redis cache.
+
+### List S3 Credentials Example Activity Diagram
+![List S3 Credentials](Design_Files/OSE-OSIS-List-S3-Credentials.png)
 
 ### Delete S3 Credential
 This API deletes the S3 credential of the user.
