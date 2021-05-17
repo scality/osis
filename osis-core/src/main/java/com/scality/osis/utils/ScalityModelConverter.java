@@ -519,7 +519,8 @@ public final class ScalityModelConverter {
      * @param limit
      * @return the page of users
      */
-    public static PageOfS3Credentials toPageOfS3Credentials(ListAccessKeysResult listAccessKeysResult, long offset, long limit, String tenantId) {
+    public static PageOfS3Credentials toPageOfS3Credentials(ListAccessKeysResult listAccessKeysResult, long offset, long limit, String tenantId,
+                                                            Map<String,String> secretKeyMap) {
         List<OsisS3Credential> credentials = new ArrayList<>();
 
         for(AccessKeyMetadata accessKeyMetadata: listAccessKeysResult.getAccessKeyMetadata()){
@@ -531,6 +532,9 @@ public final class ScalityModelConverter {
                                             .cdUserId(accessKeyMetadata.getUserName())
                                             .tenantId(tenantId)
                                             .creationDate(accessKeyMetadata.getCreateDate().toInstant());
+            if(secretKeyMap != null) {
+                s3Credential.setSecretKey(secretKeyMap.get(accessKeyMetadata.getAccessKeyId()));
+            }
             credentials.add(s3Credential);
         }
 

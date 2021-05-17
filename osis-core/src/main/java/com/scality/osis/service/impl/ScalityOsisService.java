@@ -38,6 +38,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
@@ -55,6 +57,7 @@ import static com.scality.osis.utils.ScalityConstants.ROLE_DOES_NOT_EXIST_ERR;
 public class ScalityOsisService implements OsisService {
     private static final Logger logger = LoggerFactory.getLogger(ScalityOsisService.class);
     private static final String S3_CAPABILITIES_JSON = "s3capabilities.json";
+    private static Map<String, Map<String,String>>  userSecretKeyMap = new HashMap<>();
 
     @Autowired
     private ScalityAppEnv appEnv;
@@ -446,7 +449,7 @@ public class ScalityOsisService implements OsisService {
             logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
 
             PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter
-                    .toPageOfS3Credentials(listAccessKeysResult, offset, limit, tenantId);
+                    .toPageOfS3Credentials(listAccessKeysResult, offset, limit, tenantId, userSecretKeyMap.get(listAccessKeysRequest.getUserName()));
             logger.info("List S3 credentials  response:{}", new Gson().toJson(pageOfS3Credentials));
 
             return  pageOfS3Credentials;
@@ -588,6 +591,11 @@ public class ScalityOsisService implements OsisService {
 
         logger.debug("[Vault] Create User Access Key Success: AccessKeyID:{}, Status:{}", createAccessKeyResult.getAccessKey().getAccessKeyId(),
                                                                                 createAccessKeyResult.getAccessKey().getStatus());
+
+        logger.trace("[Vault] Create User Access Key result:{}", new Gson().toJson(createAccessKeyResult));
+        Map<String, String> secretKeyMap = userSecretKeyMap.getOrDefault(createAccessKeyRequest.getUserName(), new HashMap<>());
+        secretKeyMap.put(createAccessKeyResult.getAccessKey().getAccessKeyId(), createAccessKeyResult.getAccessKey().getSecretAccessKey());
+        userSecretKeyMap.put(createAccessKeyRequest.getUserName(), secretKeyMap);
 
         return ScalityModelConverter.toOsisS3Credentials(cdTenantId,
                 tenantId,

@@ -447,7 +447,7 @@ public class ScalityModelConverterTest {
         final ListAccessKeysResult listAccessKeysResult = new ListAccessKeysResult()
                                                                 .withAccessKeyMetadata(Collections.singletonList(accesskeyMetaData));
         // Run the test
-        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, SAMPLE_TENANT_ID);
+        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, SAMPLE_TENANT_ID, null);
 
         // Verify the results
         assertTrue(pageOfS3Credentials.getItems().size() > 0);
