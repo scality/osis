@@ -8,6 +8,7 @@ package com.scality.osis.service.impl;
 
 import com.amazonaws.services.identitymanagement.*;
 import com.amazonaws.services.identitymanagement.model.*;
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.amazonaws.util.StringUtils;
 import com.scality.osis.ScalityAppEnv;
@@ -226,9 +227,11 @@ public class ScalityOsisService implements OsisService {
                         resOsisUser.getUsername(),
                         iam);
 
+                // Logging the response first to not print credentials
+                logger.info("Create User response:{}", new Gson().toJson(resOsisUser));
+
                 resOsisUser.setOsisS3Credentials(Arrays.asList(osisCredential));
 
-                logger.info("Create User response:{}", new Gson().toJson(resOsisUser));
             }
 
             return resOsisUser;
@@ -304,7 +307,23 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public OsisS3Credential createS3Credential(String tenantId, String userId) {
-        throw new NotImplementedException();
+        try {
+            logger.info("Create S3 Credential request received:: tenant ID:{}, user ID:{}",
+                    tenantId, userId);
+
+            Credentials tempCredentials = getCredentials(tenantId);
+            final AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
+
+            OsisS3Credential credential =  createOsisCredential(tenantId, userId, null, null, iamClient);
+
+            logger.info("Create S3 Credential Success. Access key ID:{}, ", credential.getAccessKey());
+
+            return credential;
+        } catch (Exception e){
+            // Create S3 Credential supports only 400:BAD_REQUEST error
+            logger.error("Create S3 Credential error. Error details: ", e);
+            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        }
     }
 
     @Override
@@ -528,7 +547,10 @@ public class ScalityOsisService implements OsisService {
     public Credentials getCredentials(String accountID) {
         Credentials credentials = null;
         try {
-            credentials = vaultAdmin.getTempAccountCredentials(ScalityModelConverter.getAssumeRoleRequestForAccount(accountID, appEnv.getAssumeRoleName()));
+            AssumeRoleRequest assumeRoleRequest = ScalityModelConverter.getAssumeRoleRequestForAccount(accountID, appEnv.getAssumeRoleName());
+            logger.debug("[Vault] Assume Role request:{}", assumeRoleRequest);
+            credentials = vaultAdmin.getTempAccountCredentials(assumeRoleRequest);
+            logger.debug("[Vault] Assume Role response received with access key:{}, expiration:{}", credentials.getAccessKeyId(), credentials.getExpiration());
         } catch(VaultServiceException e) {
 
             if(!StringUtils.isNullOrEmpty(e.getErrorCode()) &&
@@ -564,7 +586,8 @@ public class ScalityOsisService implements OsisService {
 
         CreateAccessKeyResult createAccessKeyResult = iam.createAccessKey(createAccessKeyRequest);
 
-        logger.debug("[Vault] Create User Access Key response:{}", new Gson().toJson(createAccessKeyResult));
+        logger.debug("[Vault] Create User Access Key Success: AccessKeyID:{}, Status:{}", createAccessKeyResult.getAccessKey().getAccessKeyId(),
+                                                                                createAccessKeyResult.getAccessKey().getStatus());
 
         return ScalityModelConverter.toOsisS3Credentials(cdTenantId,
                 tenantId,
@@ -588,7 +611,7 @@ public class ScalityOsisService implements OsisService {
 
         } catch(com.amazonaws.services.identitymanagement.model.NoSuchEntityException e){
             /** Policy does not exists **/
-            logger.debug("[Vault] User policy does not exists.", e);
+            logger.debug("[Vault] User policy does not exists. A new user policy will be created");
         }
 
         if(userPolicy == null || StringUtils.isNullOrEmpty(userPolicy.getArn())){
