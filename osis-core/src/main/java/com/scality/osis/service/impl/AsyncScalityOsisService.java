@@ -75,36 +75,13 @@ public class AsyncScalityOsisService {
 
             logger.debug("[Vault] Create OSIS role response:{}", new Gson().toJson(createOSISRoleResponse));
 
-            /* Create Admin policy for account `adminPolicy@[account-id]`*/
-            CreatePolicyRequest createAdminPolicyRequest = ScalityModelConverter.toCreateAdminPolicyRequest(tenantId);
-            logger.debug("[Vault] Create Admin Policy Request:{}", new Gson().toJson(createAdminPolicyRequest));
-
-            CreatePolicyResult adminPolicyResult = null;
-            try {
-                adminPolicyResult = iamClient.createPolicy(createAdminPolicyRequest);
-                logger.debug("[Vault] Create Admin Policy response:{}", new Gson().toJson(adminPolicyResult));
-
-            } catch (Exception e){
-                logger.error("Cannot create admin policy for Tenant ID:{}. Admin policy may already exists for this Tenant." +
-                        " Exception details:{}", tenantId, e.getMessage());
-            }
-             /*Attach admin policy to `osis` role*/
-            AttachRolePolicyRequest attachAdminPolicyRequest = ScalityModelConverter.
-                    toAttachAdminPolicyRequest(
-                            (adminPolicyResult != null) ?
-                                        adminPolicyResult.getPolicy().getArn() :
-                                        ScalityModelConverter.toAdminPolicyArn(tenantId),
-                            createOSISRoleResponse.getRole().getRoleName());
-
-            logger.debug("[Vault] Attach Admin Policy Request:{}", new Gson().toJson(attachAdminPolicyRequest));
-
-            AttachRolePolicyResult attachAdminPolicyResult = iamClient.attachRolePolicy(attachAdminPolicyRequest);
-            logger.debug("[Vault] Attach Admin Policy response:{}", new Gson().toJson(attachAdminPolicyResult));
+            // Create and Attach Admin policy to the OSIS admin role
+            createAttachAdminPolicy(tenantId, createOSISRoleResponse.getRole().getRoleName(), iamClient);
 
             // Delete the newly created Access Key for the account
             DeleteAccessKeyRequest deleteAccessKeyRequest = ScalityModelConverter.
                     toDeleteAccessKeyRequest(credentials.getAccessKeyId(), null);
-            logger.debug("[Vault] Delete Access key Request:{}", new Gson().toJson(attachAdminPolicyRequest));
+            logger.debug("[Vault] Delete Access key Request:{}", new Gson().toJson(deleteAccessKeyRequest));
 
             DeleteAccessKeyResult deleteAccessKeyResult = iamClient.deleteAccessKey(deleteAccessKeyRequest);
             logger.debug("[Vault] Delete Access key response:{}", new Gson().toJson(deleteAccessKeyResult));
@@ -115,5 +92,69 @@ public class AsyncScalityOsisService {
         } catch (Exception e) {
             logger.error("setupAssumeRole error for Tenant id:{}. Error details: ", tenantId, e);
         }
+    }
+
+    public void setupAdminPolicy(String tenantId, String tenantName, String assumeRoleName) throws Exception {
+        logger.info(" Started [setupAdminPolicy] for the Tenant:{}", tenantId);
+
+        /* Call generateAccountAccessKey() and extract credentials from `generateAccountAccessKeyResponse`*/
+        GenerateAccountAccessKeyRequest generateAccountAccessKeyRequest =
+                ScalityModelConverter.toGenerateAccountAccessKeyRequest(
+                        tenantName,
+                        appEnv.getAccountAKDurationSeconds());
+        logger.debug("[Vault] Generate Account AccessKey Request:{}", new Gson().toJson(generateAccountAccessKeyRequest));
+
+        GenerateAccountAccessKeyResponse generateAccountAccessKeyResponse = vaultAdmin.getAccountAccessKey(generateAccountAccessKeyRequest);
+
+        logger.info("Generated temporary Account AccessKey accessKey={} for account ID={} with expiration={}",
+                generateAccountAccessKeyResponse.getData().getId(), tenantId, generateAccountAccessKeyResponse.getData().getNotAfter());
+        logger.trace("[Vault] Generate Account AccessKey full response:{}", new Gson().toJson(generateAccountAccessKeyResponse));
+
+        Credentials credentials = ScalityModelConverter.toCredentials(generateAccountAccessKeyResponse);
+
+        AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(credentials, appEnv.getRegionInfo().get(0));
+
+        // Create and Attach Admin policy to the OSIS admin role
+        createAttachAdminPolicy(tenantId, assumeRoleName, iamClient);
+
+        // Delete the newly created Access Key for the account
+        DeleteAccessKeyRequest deleteAccessKeyRequest = ScalityModelConverter.
+                toDeleteAccessKeyRequest(credentials.getAccessKeyId(), null);
+        logger.debug("[Vault] Delete Access key Request:{}", new Gson().toJson(deleteAccessKeyRequest));
+
+        DeleteAccessKeyResult deleteAccessKeyResult = iamClient.deleteAccessKey(deleteAccessKeyRequest);
+        logger.debug("[Vault] Delete Access key response:{}", new Gson().toJson(deleteAccessKeyResult));
+
+
+        logger.info(" Finished [setupAdminPolicy] for the Tenant:{}", tenantId);
+
+    }
+
+    private void createAttachAdminPolicy(String tenantId, String assumeRoleName, AmazonIdentityManagement iamClient) {
+        /* Create Admin policy for account `adminPolicy@[account-id]`*/
+        CreatePolicyRequest createAdminPolicyRequest = ScalityModelConverter.toCreateAdminPolicyRequest(tenantId);
+        logger.debug("[Vault] Create Admin Policy Request:{}", new Gson().toJson(createAdminPolicyRequest));
+
+        CreatePolicyResult adminPolicyResult = null;
+        try {
+            adminPolicyResult = iamClient.createPolicy(createAdminPolicyRequest);
+            logger.debug("[Vault] Create Admin Policy response:{}", new Gson().toJson(adminPolicyResult));
+
+        } catch (Exception e){
+            logger.error("Cannot create admin policy for Tenant ID:{}. Admin policy may already exists for this Tenant." +
+                    " Exception details:{}", tenantId, e.getMessage());
+        }
+        /*Attach admin policy to `osis` role*/
+        AttachRolePolicyRequest attachAdminPolicyRequest = ScalityModelConverter.
+                toAttachAdminPolicyRequest(
+                        (adminPolicyResult != null) ?
+                                adminPolicyResult.getPolicy().getArn() :
+                                ScalityModelConverter.toAdminPolicyArn(tenantId),
+                        assumeRoleName);
+
+        logger.debug("[Vault] Attach Admin Policy Request:{}", new Gson().toJson(attachAdminPolicyRequest));
+
+        AttachRolePolicyResult attachAdminPolicyResult = iamClient.attachRolePolicy(attachAdminPolicyRequest);
+        logger.debug("[Vault] Attach Admin Policy response:{}", new Gson().toJson(attachAdminPolicyResult));
     }
 }
