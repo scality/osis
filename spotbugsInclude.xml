@@ -224,9 +224,6 @@
     <Bug pattern="RC_REF_COMPARISON_BAD_PRACTICE"/>
     </Match>
     <Match>
-    <Bug pattern="MS_SHOULD_BE_FINAL"/>
-    </Match>
-    <Match>
     <Bug pattern="LI_LAZY_INIT_STATIC"/>
     </Match>
     <Match>
