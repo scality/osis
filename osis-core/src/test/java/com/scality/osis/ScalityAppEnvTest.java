@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -394,5 +395,97 @@ public class ScalityAppEnvTest {
 
         // Verify the results
         assertEquals(result, "osis", "testGetAssumeRoleName failed");
+    }
+
+    @Test
+    public void testGetAccountAKDurationSeconds() {
+        // Setup
+        when(mockEnv.getProperty("osis.scality.vault.account.accessKey.durationSeconds")).thenReturn("120");
+
+        // Run the test
+        final long result = appEnvUnderTest.getAccountAKDurationSeconds();
+
+        // Verify the results
+        assertThat(result).isEqualTo(120L);
+    }
+
+    @Test
+    public void testGetAccountAKDurationSecondsEnvironmentReturnsNull() {
+        // Setup
+
+        // Run the test
+        final long result = appEnvUnderTest.getAccountAKDurationSeconds();
+
+        // Verify the results
+        assertThat(result).isEqualTo(120L);
+    }
+
+    @Test
+    public void testGetAsyncExecutorCorePoolSize() {
+        // Setup
+        when(mockEnv.getProperty("osis.scality.async.corePoolSize")).thenReturn("10");
+
+        // Run the test
+        final int result = appEnvUnderTest.getAsyncExecutorCorePoolSize();
+
+        // Verify the results
+        assertThat(result).isEqualTo(10);
+    }
+
+    @Test
+    public void testGetAsyncExecutorCorePoolSizeEnvironmentReturnsNull() {
+        // Setup
+
+        // Run the test
+        final int result = appEnvUnderTest.getAsyncExecutorCorePoolSize();
+
+        // Verify the results
+        assertThat(result).isEqualTo(10);
+    }
+
+    @Test
+    public void testGetAsyncExecutorMaxPoolSize() {
+        // Setup
+        when(mockEnv.getProperty("osis.scality.async.maxPoolSize")).thenReturn("10");
+
+        // Run the test
+        final int result = appEnvUnderTest.getAsyncExecutorMaxPoolSize();
+
+        // Verify the results
+        assertThat(result).isEqualTo(10);
+    }
+
+    @Test
+    public void testGetAsyncExecutorMaxPoolSizeEnvironmentReturnsNull() {
+        // Setup
+
+        // Run the test
+        final int result = appEnvUnderTest.getAsyncExecutorMaxPoolSize();
+
+        // Verify the results
+        assertThat(result).isEqualTo(10);
+    }
+
+    @Test
+    public void testGetAsyncExecutorQueueCapacity() {
+        // Setup
+        when(mockEnv.getProperty("osis.scality.async.queueCapacity")).thenReturn("500");
+
+        // Run the test
+        final int result = appEnvUnderTest.getAsyncExecutorQueueCapacity();
+
+        // Verify the results
+        assertThat(result).isEqualTo(500);
+    }
+
+    @Test
+    public void testGetAsyncExecutorQueueCapacityEnvironmentReturnsNull() {
+        // Setup
+
+        // Run the test
+        final int result = appEnvUnderTest.getAsyncExecutorQueueCapacity();
+
+        // Verify the results
+        assertThat(result).isEqualTo(500);
     }
 }
