@@ -237,6 +237,14 @@ public class ScalityOsisService implements OsisService {
             return resOsisUser;
 
         } catch (Exception e){
+            if(isAdminPolicyError(e) && !StringUtils.isNullOrEmpty(osisUser.getTenantId())){
+                try {
+                    generateAdminPolicy(osisUser.getTenantId());
+                    return createUser(osisUser);
+                } catch (Exception ex) {
+                    e = ex;
+                }
+            }
             // Create User supports only 400:BAD_REQUEST error, change status code in the VaultServiceException
             logger.error("Create User error. Error details: ", e);
             throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
@@ -247,6 +255,7 @@ public class ScalityOsisService implements OsisService {
     @Override
     public PageOfUsers queryUsers(long offset, long limit, String filter) {
         if(filter.contains(CD_TENANT_ID_PREFIX) && filter.contains(DISPLAY_NAME_PREFIX)) {
+            String tenantId = null;
             try {
                 logger.info("Query Users request received:: filter:{}, offset:{}, limit:{}", filter, offset, limit);
 
@@ -256,7 +265,7 @@ public class ScalityOsisService implements OsisService {
 
                 ListAccountsRequestDTO queryAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit, cdTenantIdFilter);
 
-                String tenantId = vaultAdmin.getAccountID(queryAccountsRequest);
+                tenantId = vaultAdmin.getAccountID(queryAccountsRequest);
 
                 Credentials tempCredentials = getCredentials(tenantId);
                 final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
@@ -277,7 +286,17 @@ public class ScalityOsisService implements OsisService {
 
                 return pageOfUsers;
 
-            } catch (VaultServiceException e) {
+            } catch (Exception e) {
+
+                if(isAdminPolicyError(e) && !StringUtils.isNullOrEmpty(tenantId)){
+                    try {
+                        generateAdminPolicy(tenantId);
+                        return queryUsers(offset, limit, filter);
+                    } catch (Exception ex) {
+                        e = ex;
+                    }
+                }
+
                 logger.error("Query Users error. Return empty list. Error details: ", e);
                 // For errors, Query users should return empty PageOfUsers
                 PageInfo pageInfo = new PageInfo();
@@ -320,6 +339,15 @@ public class ScalityOsisService implements OsisService {
 
             return credential;
         } catch (Exception e){
+            if(isAdminPolicyError(e)){
+                try {
+                    generateAdminPolicy(tenantId);
+                    return createS3Credential(tenantId, userId);
+                } catch (Exception ex) {
+                    e = ex;
+                }
+            }
+
             // Create S3 Credential supports only 400:BAD_REQUEST error
             logger.error("Create S3 Credential error. Error details: ", e);
             throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
@@ -412,6 +440,15 @@ public class ScalityOsisService implements OsisService {
             return  osisUser;
         } catch (Exception e){
 
+            if(isAdminPolicyError(e)){
+                try {
+                    generateAdminPolicy(tenantId);
+                    return getUser(tenantId, userId);
+                } catch (Exception ex) {
+                    e = ex;
+                }
+            }
+
             logger.error("GetUser error. User not found. Error details: ", e);
             throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
@@ -452,6 +489,15 @@ public class ScalityOsisService implements OsisService {
             return  pageOfS3Credentials;
         } catch (Exception e){
 
+            if(isAdminPolicyError(e)) {
+                try {
+                    generateAdminPolicy(tenantId);
+                    return listS3Credentials(tenantId, userId, offset, limit);
+                } catch (Exception ex) {
+                    e = ex;
+                }
+            }
+
             logger.error("ListS3Credentials error. Returning empty list. Error details: ", e);
             // For errors, ListS3Credentials should return empty PageOfS3Credentials
             PageInfo pageInfo = new PageInfo();
@@ -487,6 +533,15 @@ public class ScalityOsisService implements OsisService {
 
             return  pageOfUsers;
         } catch (Exception e){
+
+            if(isAdminPolicyError(e)) {
+                try {
+                    generateAdminPolicy(tenantId);
+                    return listUsers(tenantId, offset, limit);
+                } catch (Exception ex) {
+                    e = ex;
+                }
+            }
 
             logger.error("ListUsers error. Returning empty list. Error details: ", e);
             // For errors, List Users should return empty PageOfUsers
@@ -626,5 +681,15 @@ public class ScalityOsisService implements OsisService {
 
         }
         return userPolicy;
+    }
+
+    private void generateAdminPolicy(String tenantId) throws Exception {
+        AccountData account = vaultAdmin.getAccountWithID(ScalityModelConverter.toGetAccountRequestWithID(tenantId));
+        asyncScalityOsisService.setupAdminPolicy(tenantId, account.getName(), appEnv.getAssumeRoleName());
+    }
+
+    private boolean isAdminPolicyError(Exception e) {
+        return e instanceof AmazonIdentityManagementException &&
+                (HttpStatus.FORBIDDEN.value() == ((AmazonIdentityManagementException) e).getStatusCode());
     }
 }
