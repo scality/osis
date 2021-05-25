@@ -293,6 +293,10 @@ public final class ScalityModelConverter {
         return DEFAULT_USER_POLICY_DESCRIPTION.replace(ACCOUNT_ID_REGEX, accountID);
     }
 
+    public static String toRepoKeyForCredentials(String userId, String accessKeyId) {
+        return userId + REPO_KEY_SEPARATOR + accessKeyId;
+    }
+
     public static String toRedisHashName(String osisRedisHashKey) {
         return DEFAULT_REDIS_PREFIX + osisRedisHashKey;
     }
@@ -521,21 +525,26 @@ public final class ScalityModelConverter {
      * @param listAccessKeysResult the list access keys response dto
      * @param offset
      * @param limit
+     * @param secretKeyMap
      * @return the page of users
      */
-    public static PageOfS3Credentials toPageOfS3Credentials(ListAccessKeysResult listAccessKeysResult, long offset, long limit, String tenantId) {
+    public static PageOfS3Credentials toPageOfS3Credentials(ListAccessKeysResult listAccessKeysResult, long offset, long limit, String tenantId, Map<String, String> secretKeyMap) {
         List<OsisS3Credential> credentials = new ArrayList<>();
 
         for(AccessKeyMetadata accessKeyMetadata: listAccessKeysResult.getAccessKeyMetadata()){
-            OsisS3Credential s3Credential = new OsisS3Credential()
-                                            .accessKey(accessKeyMetadata.getAccessKeyId())
-                                            .active(accessKeyMetadata.getStatus()
-                                                    .equalsIgnoreCase(StatusType.Active.toString()))
-                                            .userId(accessKeyMetadata.getUserName())
-                                            .cdUserId(accessKeyMetadata.getUserName())
-                                            .tenantId(tenantId)
-                                            .creationDate(accessKeyMetadata.getCreateDate().toInstant());
-            credentials.add(s3Credential);
+            // Do not add credential object to list if no secret key available
+            if(null != secretKeyMap.get(accessKeyMetadata.getAccessKeyId())) {
+                OsisS3Credential s3Credential = new OsisS3Credential()
+                        .accessKey(accessKeyMetadata.getAccessKeyId())
+                        .secretKey(secretKeyMap.get(accessKeyMetadata.getAccessKeyId()))
+                        .active(accessKeyMetadata.getStatus()
+                                .equalsIgnoreCase(StatusType.Active.toString()))
+                        .userId(accessKeyMetadata.getUserName())
+                        .cdUserId(accessKeyMetadata.getUserName())
+                        .tenantId(tenantId)
+                        .creationDate(accessKeyMetadata.getCreateDate().toInstant());
+                credentials.add(s3Credential);
+            }
         }
 
         PageInfo pageInfo = new PageInfo();

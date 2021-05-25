@@ -23,7 +23,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_USER_POLICY_DOCUMENT;
 import static com.scality.osis.utils.ScalityTestUtils.*;
@@ -446,8 +448,11 @@ public class ScalityModelConverterTest {
                 .withUserName(TEST_USER_ID);
         final ListAccessKeysResult listAccessKeysResult = new ListAccessKeysResult()
                                                                 .withAccessKeyMetadata(Collections.singletonList(accesskeyMetaData));
+
+        final Map<String, String> secretKeyMap = new HashMap<>();
+        secretKeyMap.put(TEST_ACCESS_KEY, TEST_SECRET_KEY);
         // Run the test
-        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, SAMPLE_TENANT_ID);
+        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, SAMPLE_TENANT_ID, secretKeyMap);
 
         // Verify the results
         assertTrue(pageOfS3Credentials.getItems().size() > 0);
@@ -459,5 +464,28 @@ public class ScalityModelConverterTest {
         assertEquals(TEST_USER_ID, result.getUserId());
         assertEquals(SAMPLE_TENANT_ID, result.getTenantId());
         assertEquals(TEST_ACCESS_KEY, result.getAccessKey());
+        assertEquals(TEST_SECRET_KEY, result.getSecretKey());
+    }
+
+    @Test
+    public void testToPageOfS3CredentialsEmptySecretMap() {
+        // Setup
+
+        final AccessKeyMetadata accesskeyMetaData = new AccessKeyMetadata()
+                .withAccessKeyId(TEST_ACCESS_KEY)
+                .withCreateDate(new Date())
+                .withStatus(StatusType.Active)
+                .withUserName(TEST_USER_ID);
+        final ListAccessKeysResult listAccessKeysResult = new ListAccessKeysResult()
+                .withAccessKeyMetadata(Collections.singletonList(accesskeyMetaData));
+
+        final Map<String, String> secretKeyMap = new HashMap<>();
+        // Run the test
+        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, SAMPLE_TENANT_ID, secretKeyMap);
+
+        // Verify the results
+        assertEquals(0, pageOfS3Credentials.getItems().size());
+        assertNotNull(pageOfS3Credentials.getPageInfo());
+
     }
 }
