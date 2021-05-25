@@ -22,6 +22,7 @@ import static com.scality.osis.utils.ScalityConstants.DEFAULT_ACCOUNT_AK_DURATIO
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_ASYNC_EXECUTOR_CORE_POOL_SIZE;
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_ASYNC_EXECUTOR_MAX_POOL_SIZE;
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_ASYNC_EXECUTOR_QUEUE_CAPACITY;
+import static com.scality.osis.utils.ScalityConstants.DEFAULT_SPRING_CACHE_TYPE;
 
 @Component
 @Primary
@@ -135,5 +136,13 @@ public class ScalityAppEnv extends AppEnv {
             asyncExecutorQueueCapacity = DEFAULT_ASYNC_EXECUTOR_QUEUE_CAPACITY;
         }
         return Integer.parseInt(asyncExecutorQueueCapacity);
+    }
+
+    public String getSpringCacheType() {
+        String cacheType = env.getProperty("spring.cache.type");
+        if(StringUtils.isBlank(cacheType)) {
+            cacheType = DEFAULT_SPRING_CACHE_TYPE;
+        }
+        return cacheType;
     }
 }

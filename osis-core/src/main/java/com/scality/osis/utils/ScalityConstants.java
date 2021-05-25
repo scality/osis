@@ -30,6 +30,8 @@ public final class ScalityConstants {
 
     public static final String FILTER_KEY_VALUE_SEPARATOR = "==";
 
+    public static final String REPO_KEY_SEPARATOR = "__";
+
     public static final String ICON_PATH = "/scalitylogo.png";
 
     public static final String IAM_PREFIX = "/";
@@ -91,4 +93,6 @@ public final class ScalityConstants {
 
     public static final String DEFAULT_REDIS_HASH_KEY = "s3credentials";
     public static final String DEFAULT_REDIS_PREFIX = "osis:";
+    public static final String DEFAULT_SPRING_CACHE_TYPE = "local";
+    public static final String REDIS_SPRING_CACHE_TYPE = "redis";
 }

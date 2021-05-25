@@ -53,7 +53,7 @@ public class CacheFactory {
                     ? env.getListAccountsCacheMaxCapacity() : DEFAULT_CACHE_MAX_CAPACITY;
 
             long expirationTime = env.getListAccountsCacheExpiration() !=null
-                    ? env.getListAccountsCacheExpiration() : DEFAULT_CACHE_MAX_CAPACITY;
+                    ? env.getListAccountsCacheExpiration() : DEFAULT_CACHE_TTL_IN_MS;
             listAccountsMarkerCache = new CacheImpl<>(maxCapacity, expirationTime);
         }
     }
@@ -64,7 +64,7 @@ public class CacheFactory {
                 ? env.getAssumeRoleCacheMaxCapacity() : DEFAULT_CACHE_MAX_CAPACITY;
 
         long expirationTime = env.getAssumeRoleCacheExpiration() !=null
-                ? env.getAssumeRoleCacheExpiration() : DEFAULT_CACHE_MAX_CAPACITY;
+                ? env.getAssumeRoleCacheExpiration() : DEFAULT_CACHE_TTL_IN_MS;
         assumeRoleCache = new CacheImpl<>(maxCapacity, expirationTime);
     }
 
@@ -76,7 +76,7 @@ public class CacheFactory {
                     ? env.getAccountIDCacheMaxCapacity() : DEFAULT_CACHE_MAX_CAPACITY;
 
             long expirationTime = env.getAccountIDCacheExpiration() !=null
-                    ? env.getAccountIDCacheExpiration() : DEFAULT_CACHE_MAX_CAPACITY;
+                    ? env.getAccountIDCacheExpiration() : DEFAULT_CACHE_TTL_IN_MS;
             accountIdCache = new CacheImpl<>(maxCapacity, expirationTime);
         }
     }
