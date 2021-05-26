@@ -1,0 +1,9 @@
+osis:
+  security:
+    keys:
+      - # ID for key rotation
+        id: 1
+        # cipher algorithm name
+        cipher: AES256GCM
+        # Secret Key
+        secretKey: dGhpc2lzYXJlYWxseWxvbmdhbmRzZXk=

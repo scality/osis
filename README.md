@@ -32,6 +32,10 @@ This project is for OSIS, which integrates [Scality RING](https://www.scality.co
     - A sample `application.properties` file can be found [here](src/main/resources/application.properties).
     - Update `server.ssl.key-store-password` and `server.ssl.key-alias` with the `.p12` file's key-store password and key-store alias, respectively. 
 
+1. Create an `crypto.yml` environment variables file.
+   - A sample `crypto.yml` file can be found [here](src/main/resources/crypto.yml).
+   - Update `osis.security.keys.cipher` with a 32 byte password
+
 1. To run the Docker image locally using a local build image, or from either the dev namespace (using the hash) or the production namespace (with the `application.properties` environment file):
 
    Local build image:
@@ -41,6 +45,7 @@ This project is for OSIS, which integrates [Scality RING](https://www.scality.co
        -it \
        -p 8443:8443 \
        -v <absolute_path_to_.p12_file>:/app/lib/osis.p12:ro,z \
+       -v <absolute_path_to_crypto.yml_file>:/app/config/crypto.yml:ro,z \
        <local_image_name>
     ```
    dev:
@@ -50,6 +55,7 @@ This project is for OSIS, which integrates [Scality RING](https://www.scality.co
        -it \
        -p 8443:8443 \
        -v <absolute_path_to_.p12_file>:/app/lib/osis.p12:ro,z \
+       -v <absolute_path_to_crypto.yml_file>:/app/config/crypto.yml:ro,z \
        registry.scality.com/vmware-ose-scality-dev/vmware-ose-scality:<short SHA-1 commit hash>
     ```
    Production image:
@@ -59,6 +65,7 @@ This project is for OSIS, which integrates [Scality RING](https://www.scality.co
        -it \
        -p 8443:8443 \
        -v <absolute_path_to_.p12_file>:/app/lib/osis.p12:ro,z \
+       -v <absolute_path_to_crypto.yml_file>:/app/config/crypto.yml:ro,z \
        registry.scality.com/vmware-ose-scality/vmware-ose-scality:<tag>
     ```
 
