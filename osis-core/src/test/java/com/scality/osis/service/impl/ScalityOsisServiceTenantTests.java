@@ -49,7 +49,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
     }
 
     @Test
-    public void testCreateTenant409(){
+    public void testCreateTenant409() throws Exception {
 
         when(vaultAdminMock.createAccount(any(CreateAccountRequestDTO.class)))
                 .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
@@ -60,8 +60,6 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
             scalityOsisServiceUnderTest.createTenant(createSampleOsisTenantObj());
         });
 
-        //resetting mocks to original
-        init();
     }
 
     @Test

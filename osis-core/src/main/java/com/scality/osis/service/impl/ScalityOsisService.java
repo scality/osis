@@ -12,6 +12,8 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.amazonaws.util.StringUtils;
 import com.scality.osis.ScalityAppEnv;
+import com.scality.osis.redis.service.ScalityRedisRepository;
+import com.scality.osis.utils.CipherFactory;
 import com.scality.osis.utils.ScalityUtils;
 import com.google.gson.Gson;
 import com.scality.osis.utils.ScalityModelConverter;
@@ -27,6 +29,7 @@ import com.vmware.osis.model.*;
 import com.vmware.osis.model.exception.NotImplementedException;
 import com.vmware.osis.resource.OsisCapsManager;
 import com.vmware.osis.service.OsisService;
+import com.scality.osis.security.crypto.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +76,12 @@ public class ScalityOsisService implements OsisService {
     private AsyncScalityOsisService asyncScalityOsisService;
 
     @Autowired
-    private ScalityRedisRepository redisRepository;
+    private ScalityRedisRepository<SecretKeyRepoData> redisRepository;
 
-    private Map<String, String> springLocalCache = new ConcurrentHashMap<>();
+    @Autowired
+    private CipherFactory cipherFactory;
+
+    private Map<String, SecretKeyRepoData> springLocalCache = new ConcurrentHashMap<>();
 
     /**
      * Instantiates a new Scality osis service.
@@ -650,7 +656,7 @@ public class ScalityOsisService implements OsisService {
      * @param iam        the iam
      * @return the osis s 3 credential
      */
-    public OsisS3Credential createOsisCredential(String tenantId, String userId, String cdTenantId, String username, AmazonIdentityManagement iam) {
+    public OsisS3Credential createOsisCredential(String tenantId, String userId, String cdTenantId, String username, AmazonIdentityManagement iam) throws Exception {
 
         CreateAccessKeyRequest createAccessKeyRequest =  ScalityModelConverter.toCreateUserAccessKeyRequest(userId);
 
@@ -714,26 +720,43 @@ public class ScalityOsisService implements OsisService {
                 (HttpStatus.FORBIDDEN.value() == ((AmazonIdentityManagementException) e).getStatusCode());
     }
 
-    private void storeSecretKey(String repoKey, String secretAccessKey) {
-        // TODO: encrypt the secretAccessKey
+    private void storeSecretKey(String repoKey, String secretAccessKey) throws Exception {
+        // Using `repoKey` for Associated Data during encryption
+        SecretKeyRepoData encryptedRepoData = cipherFactory.getCipher().encrypt(secretAccessKey,
+                                                                cipherFactory.getLatestSecretCipherKey(),
+                                                                repoKey);
+
+        encryptedRepoData.setKeyID(cipherFactory.getLatestCipherID());
+        encryptedRepoData.getCipherInfo().setCipherName(cipherFactory.getLatestCipherName());
+        // Prefix Cipher ID to the encrypted value
+
         if(REDIS_SPRING_CACHE_TYPE.equalsIgnoreCase(appEnv.getSpringCacheType())) {
-            redisRepository.save(repoKey, secretAccessKey);
+            redisRepository.save(repoKey, encryptedRepoData);
         } else {
-            springLocalCache.put(repoKey, secretAccessKey);
+            springLocalCache.put(repoKey, encryptedRepoData);
         }
     }
 
-    private String retrieveSecretKey(String repoKey) {
-        String secretKey = null;
+    private String retrieveSecretKey(String repoKey) throws Exception {
+        SecretKeyRepoData repoVal = null;
         if(REDIS_SPRING_CACHE_TYPE.equalsIgnoreCase(appEnv.getSpringCacheType())) {
             if(redisRepository.hasKey(repoKey)){
-                secretKey = redisRepository.get(repoKey);
+                repoVal = redisRepository.get(repoKey);
             }
         } else {
-            secretKey = springLocalCache.get(repoKey);
+            repoVal = springLocalCache.get(repoKey);
         }
 
-        // TODO: decrept the secretKey
+        String secretKey = null;
+
+        if(repoVal != null) {
+
+            // Using `repoKey` for Associated Data during encryption
+            secretKey = cipherFactory.getCipherByID(repoVal.getKeyID())
+                                    .decrypt(repoVal,
+                                            cipherFactory.getSecretCipherKeyByID(repoVal.getKeyID()),
+                                            repoKey);
+        }
         return secretKey;
     }
 }
