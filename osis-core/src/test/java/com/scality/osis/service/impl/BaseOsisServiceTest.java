@@ -2,33 +2,33 @@ package com.scality.osis.service.impl;
 
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.*;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.Credentials;
+import com.amazonaws.services.securitytoken.model.*;
 import com.scality.osis.ScalityAppEnv;
+import com.scality.osis.redis.service.ScalityRedisRepository;
+import com.scality.osis.security.crypto.BaseCipher;
+import com.scality.osis.security.crypto.model.CipherInformation;
+import com.scality.osis.security.crypto.model.SecretKeyRepoData;
+import com.scality.osis.utils.CipherFactory;
 import com.scality.osis.vaultadmin.impl.VaultAdminImpl;
-import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
-import com.scality.osis.vaultadmin.impl.cache.CacheImpl;
+import com.scality.osis.vaultadmin.impl.cache.*;
 import com.scality.vaultclient.dto.*;
 import com.vmware.osis.model.OsisUser;
 import com.vmware.osis.resource.OsisCapsManager;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.security.SecureRandom;
 import java.util.*;
 
-import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
+import static com.scality.osis.utils.ScalityConstants.*;
 import static com.scality.osis.utils.ScalityTestUtils.*;
-import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.DEFAULT_CACHE_MAX_CAPACITY;
-import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.NAME_LIST_ACCOUNTS_CACHE;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 public class BaseOsisServiceTest {
     //vault admin mock object
@@ -48,8 +48,17 @@ public class BaseOsisServiceTest {
     @Mock
     protected AmazonIdentityManagement iamMock;
 
+    @Mock
+    protected ScalityRedisRepository<SecretKeyRepoData> redisRepositoryMock;
+
+    @Mock
+    protected CipherFactory cipherFactoryMock;
+
+    @Mock
+    protected BaseCipher baseCipherMock;
+
     @BeforeEach
-    protected void init(){
+    protected void init() {
         MockitoAnnotations.initMocks( this );
         initMocks();
         scalityOsisServiceUnderTest = new ScalityOsisService(appEnvMock, vaultAdminMock, osisCapsManagerMock);
@@ -59,9 +68,11 @@ public class BaseOsisServiceTest {
         ReflectionTestUtils.setField(asyncScalityOsisServiceUnderTest, "appEnv", appEnvMock);
 
         ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "asyncScalityOsisService", asyncScalityOsisServiceUnderTest);
+        ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "scalityRedisRepository", redisRepositoryMock);
+        ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "cipherFactory", cipherFactoryMock);
     }
 
-    protected void initMocks() {
+    protected void initMocks(){
         when(appEnvMock.getConsoleEndpoint()).thenReturn(TEST_CONSOLE_URL);
         when(appEnvMock.isApiTokenEnabled()).thenReturn(false);
         when(appEnvMock.getStorageInfo()).thenReturn(Collections.singletonList("standard"));
@@ -71,6 +82,7 @@ public class BaseOsisServiceTest {
         when(appEnvMock.getApiVersion()).thenReturn(API_VERSION);
         when(appEnvMock.getS3InterfaceEndpoint()).thenReturn(TEST_S3_INTERFACE_URL);
         when(appEnvMock.getAssumeRoleName()).thenReturn(SAMPLE_ASSUME_ROLE_NAME);
+        when(appEnvMock.getSpringCacheType()).thenReturn(REDIS_SPRING_CACHE_TYPE);
         when(osisCapsManagerMock.getNotImplements()).thenReturn(new ArrayList<>());
         when(vaultAdminMock.getIAMClient(any(Credentials.class),any())).thenReturn(iamMock);
 
@@ -90,6 +102,49 @@ public class BaseOsisServiceTest {
         initGetUserMocks();
         initListAccessKeysMocks();
         initCaches();
+        initBaseCipherMocks();
+        initCipherFactoryMocks();
+        initRedisMocks();
+    }
+
+    private void initBaseCipherMocks() {
+        try {
+            when(baseCipherMock.encrypt(any(),any(),any())).thenReturn(mockSecretKeyRepoData());
+            when(baseCipherMock.decrypt(any(),any(),any())).thenReturn(TEST_SECRET_KEY);
+        } catch (Exception e) {
+            init();
+        }
+    }
+
+    private void initCipherFactoryMocks() {
+        when(cipherFactoryMock.getCipher()).thenReturn(baseCipherMock);
+        when(cipherFactoryMock.getCipherByID(any())).thenReturn(baseCipherMock);
+        when(cipherFactoryMock.getCipherByName(any())).thenReturn(baseCipherMock);
+        when(cipherFactoryMock.getLatestCipherID()).thenReturn("1");
+        when(cipherFactoryMock.getSecretCipherKeyByID(any())).thenReturn(TEST_CIPHER_SECRET_KEY);
+        when(cipherFactoryMock.getLatestSecretCipherKey()).thenReturn(TEST_CIPHER_SECRET_KEY);
+        when(cipherFactoryMock.getLatestCipherName()).thenReturn(NAME_AES_256_GCM_CIPHER);
+    }
+
+    private void initRedisMocks() {
+        when(redisRepositoryMock.get(any())).thenReturn(mockSecretKeyRepoData());
+        when(redisRepositoryMock.hasKey(any())).thenReturn(Boolean.TRUE);
+    }
+
+    private SecretKeyRepoData mockSecretKeyRepoData() {
+        final SecretKeyRepoData secretKeyRepoData = new SecretKeyRepoData();
+
+        secretKeyRepoData.setKeyID("1");
+
+        final byte[] encryptedBytes = new byte[DEFAULT_AES_GCM_TAG_LENGTH];
+        new SecureRandom().nextBytes(encryptedBytes);
+        secretKeyRepoData.setEncryptedBytes(encryptedBytes);
+
+        final CipherInformation cipherInfo = new CipherInformation();
+        cipherInfo.setCipherName(NAME_AES_256_GCM_CIPHER);
+        secretKeyRepoData.setCipherInfo(cipherInfo);
+
+        return secretKeyRepoData;
     }
 
     protected void initCreateTenantMocks() {

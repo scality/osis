@@ -34,7 +34,6 @@ jacocoTestReport {
                     "**/com/scality/osis/*.*",
                     "**/com/scality/osis/security/basic/*.*",
                     "**/com/scality/osis/utils/YamlPropertySourceFactory.*"
-
             ])
         }))
     }

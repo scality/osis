@@ -25,7 +25,8 @@ import java.util.List;
 @EnableConfigurationProperties(value = CryptoEnv.class)
 @ConfigurationProperties(prefix="osis.security")
 @PropertySources({
-        @PropertySource(value="classpath:crypto.yml", factory = YamlPropertySourceFactory.class),
+        /* Uncomment below line for only testing purposes */
+//        @PropertySource(value="classpath:crypto.yml", factory = YamlPropertySourceFactory.class),
         @PropertySource(value="file:/app/config/crypto.yml", factory = YamlPropertySourceFactory.class, ignoreResourceNotFound=true)
 })
 @Component

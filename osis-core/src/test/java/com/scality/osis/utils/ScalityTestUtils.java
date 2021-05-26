@@ -61,6 +61,10 @@ public final class ScalityTestUtils {
     public static final String ACTIVE_STR = "Active";
     public static final String NA_STR = "N/A";
 
+    public static final String TEST_CIPHER_SECRET_KEY = "dGhpc2lzYXJlYWxseWxvbmdhbmRzZXk=";
+    public static final String TEST_INVALID_CIPHER_SECRET_KEY = "dGhpc2lzYXJlYWxseWxvbmdhbmRzZXk=hgJfad==";
+    public static final String TEST_CIPHER_ID = "1";
+
 
     private ScalityTestUtils(){
 
