@@ -6,6 +6,7 @@
 package com.scality.osis.service.impl;
 
 import com.scality.osis.service.IRedisRepository;
+import com.scality.osis.utils.ScalityModelConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -19,27 +20,27 @@ public class ScalityRedisRepository implements IRedisRepository {
     @Autowired
     StringRedisTemplate redisTemplate;
 
-    @Value("${osis.scality.redis.hashKey}")
+    @Value("${osis.scality.redis.credentials.hashKey}")
     String osisRedisHashKey = DEFAULT_REDIS_HASH_KEY;
 
     @Override
     public void save(String key, String value) {
-        redisTemplate.opsForHash().put(osisRedisHashKey, key, value);
+        redisTemplate.opsForHash().put(ScalityModelConverter.toRedisHashName(osisRedisHashKey), key, value);
     }
 
     @Override
     public String get(String key) {
-        return (String) redisTemplate.opsForHash().get(osisRedisHashKey, key);
+        return (String) redisTemplate.opsForHash().get(ScalityModelConverter.toRedisHashName(osisRedisHashKey), key);
     }
 
     @Override
     public void delete(String key) {
-        redisTemplate.opsForHash().delete(osisRedisHashKey, key);
+        redisTemplate.opsForHash().delete(ScalityModelConverter.toRedisHashName(osisRedisHashKey), key);
     }
 
     @Override
     public Boolean hasKey(String key) {
-        return redisTemplate.opsForHash().hasKey(osisRedisHashKey, key);
+        return redisTemplate.opsForHash().hasKey(ScalityModelConverter.toRedisHashName(osisRedisHashKey), key);
     }
 
 }

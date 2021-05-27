@@ -89,5 +89,6 @@ public final class ScalityConstants {
                                                                                     "\"Resource\": \"*\"\n    }\n  " +
                                                                         "]\n}";
 
-    public static final String DEFAULT_REDIS_HASH_KEY = "OSIS";
+    public static final String DEFAULT_REDIS_HASH_KEY = "s3credentials";
+    public static final String DEFAULT_REDIS_PREFIX = "osis:";
 }
