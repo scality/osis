@@ -3,12 +3,12 @@
  *SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.scality.osis.service;
+package com.scality.osis.redis.service;
 
-public interface IRedisRepository {
-    void save(String key, String value);
+public interface IRedisRepository<T> {
+    void save(String key, T value);
 
-    String get(String key);
+    T get(String key);
 
     void delete(String key);
 

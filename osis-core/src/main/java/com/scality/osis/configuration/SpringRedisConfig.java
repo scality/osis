@@ -13,7 +13,10 @@ import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 import java.util.HashSet;
 
@@ -39,8 +42,19 @@ public class SpringRedisConfig {
     }
 
     @Bean
-    public StringRedisTemplate redisTemplate() {
-        StringRedisTemplate redisTemplate = new StringRedisTemplate(redisConnectionFactory());
+    public <T> RedisTemplate<String, T> redisTemplate() {
+        RedisTemplate<String, T> redisTemplate = new RedisTemplate<>();
+
+        redisTemplate.setDefaultSerializer(RedisSerializer.json());
+        redisTemplate.setKeySerializer(RedisSerializer.string());
+        redisTemplate.setValueSerializer(RedisSerializer.string());
+        redisTemplate.setHashKeySerializer(RedisSerializer.string());
+        // Setting JSON to/from Redis byte[] Serialization/Deserialization
+        redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+
+        redisTemplate.setConnectionFactory(redisConnectionFactory());
+        redisTemplate.afterPropertiesSet();
+
         return redisTemplate;
     }
 }

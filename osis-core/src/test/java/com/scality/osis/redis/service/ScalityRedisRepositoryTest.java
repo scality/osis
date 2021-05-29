@@ -1,11 +1,11 @@
-package com.scality.osis.service.impl;
+package com.scality.osis.redis.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
+
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -14,10 +14,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class ScalityRedisRepositoryTest {
 
     @Mock
-    private StringRedisTemplate mockRedisTemplate;
-
-    @Mock
-    private HashOperations mockHashOperations;
+    private HashOperations<String, String, String> mockHashOperations;
 
     @InjectMocks
     private ScalityRedisRepository scalityRedisRepositoryUnderTest;
@@ -25,9 +22,7 @@ public class ScalityRedisRepositoryTest {
     @BeforeEach
     public void setUp() {
         initMocks(this);
-
-        when(mockRedisTemplate.opsForHash()).thenReturn(mockHashOperations);
-        ReflectionTestUtils.setField(scalityRedisRepositoryUnderTest, "redisTemplate", mockRedisTemplate);
+        ReflectionTestUtils.setField(scalityRedisRepositoryUnderTest, "hashOperations", mockHashOperations);
     }
 
     @Test
@@ -47,7 +42,7 @@ public class ScalityRedisRepositoryTest {
         when(mockHashOperations.get(any(), any())).thenReturn("value");
 
         // Run the test
-        final String result = scalityRedisRepositoryUnderTest.get("key");
+        final String result = (String) scalityRedisRepositoryUnderTest.get("key");
 
         // Verify the results
         assertEquals("value", result);
