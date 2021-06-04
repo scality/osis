@@ -32,8 +32,6 @@ public final class ScalityConstants {
 
     public static final String REPO_KEY_SEPARATOR = "__";
 
-    public static final String REPO_VALUE_SEPARATOR = ";;";
-
     public static final String ICON_PATH = "/scalitylogo.png";
 
     public static final String IAM_PREFIX = "/";
