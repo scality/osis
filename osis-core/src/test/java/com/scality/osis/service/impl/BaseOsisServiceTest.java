@@ -68,7 +68,7 @@ public class BaseOsisServiceTest {
         ReflectionTestUtils.setField(asyncScalityOsisServiceUnderTest, "appEnv", appEnvMock);
 
         ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "asyncScalityOsisService", asyncScalityOsisServiceUnderTest);
-        ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "redisRepository", redisRepositoryMock);
+        ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "scalityRedisRepository", redisRepositoryMock);
         ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "cipherFactory", cipherFactoryMock);
     }
 

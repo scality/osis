@@ -12,7 +12,7 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.amazonaws.util.StringUtils;
 import com.scality.osis.ScalityAppEnv;
-import com.scality.osis.redis.service.ScalityRedisRepository;
+import com.scality.osis.redis.service.IRedisRepository;
 import com.scality.osis.utils.CipherFactory;
 import com.scality.osis.utils.ScalityUtils;
 import com.google.gson.Gson;
@@ -76,7 +76,7 @@ public class ScalityOsisService implements OsisService {
     private AsyncScalityOsisService asyncScalityOsisService;
 
     @Autowired
-    private ScalityRedisRepository<SecretKeyRepoData> redisRepository;
+    private IRedisRepository<SecretKeyRepoData> scalityRedisRepository;
 
     @Autowired
     private CipherFactory cipherFactory;
@@ -731,7 +731,7 @@ public class ScalityOsisService implements OsisService {
         // Prefix Cipher ID to the encrypted value
 
         if(REDIS_SPRING_CACHE_TYPE.equalsIgnoreCase(appEnv.getSpringCacheType())) {
-            redisRepository.save(repoKey, encryptedRepoData);
+            scalityRedisRepository.save(repoKey, encryptedRepoData);
         } else {
             springLocalCache.put(repoKey, encryptedRepoData);
         }
@@ -740,8 +740,8 @@ public class ScalityOsisService implements OsisService {
     private String retrieveSecretKey(String repoKey) throws Exception {
         SecretKeyRepoData repoVal = null;
         if(REDIS_SPRING_CACHE_TYPE.equalsIgnoreCase(appEnv.getSpringCacheType())) {
-            if(redisRepository.hasKey(repoKey)){
-                repoVal = redisRepository.get(repoKey);
+            if(scalityRedisRepository.hasKey(repoKey)){
+                repoVal = scalityRedisRepository.get(repoKey);
             }
         } else {
             repoVal = springLocalCache.get(repoKey);
