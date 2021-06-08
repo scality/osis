@@ -33,6 +33,8 @@ The acceptance criteria are:
   Storage Tenant, mapped with a Vault Account, to a VMware Cloud Director
   tenant organization.
 
+## [API compatibility matrix](api-compatibility-matrix.md)
+
 ## Milestone-1 Validation
 
 * Scality Object Storage Interoperability Service (**Scality OSIS**)
