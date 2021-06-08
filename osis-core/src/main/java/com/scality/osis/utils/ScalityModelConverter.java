@@ -530,21 +530,30 @@ public final class ScalityModelConverter {
      */
     public static PageOfS3Credentials toPageOfS3Credentials(ListAccessKeysResult listAccessKeysResult, long offset, long limit, String tenantId, Map<String, String> secretKeyMap) {
         List<OsisS3Credential> credentials = new ArrayList<>();
+        List<OsisS3Credential> credentialsNoSK = new ArrayList<>();
 
         for(AccessKeyMetadata accessKeyMetadata: listAccessKeysResult.getAccessKeyMetadata()){
-            // Do not add credential object to list if no secret key available
-            if(null != secretKeyMap.get(accessKeyMetadata.getAccessKeyId())) {
-                OsisS3Credential s3Credential = new OsisS3Credential()
+            // First add credential object to list if only secret key available
+            OsisS3Credential s3Credential = new OsisS3Credential()
                         .accessKey(accessKeyMetadata.getAccessKeyId())
-                        .secretKey(secretKeyMap.get(accessKeyMetadata.getAccessKeyId()))
+//                        .secretKey(secretKeyMap.get(accessKeyMetadata.getAccessKeyId()))
                         .active(accessKeyMetadata.getStatus()
                                 .equalsIgnoreCase(StatusType.Active.toString()))
                         .userId(accessKeyMetadata.getUserName())
                         .cdUserId(accessKeyMetadata.getUserName())
                         .tenantId(tenantId)
                         .creationDate(accessKeyMetadata.getCreateDate().toInstant());
+            if(null != secretKeyMap.get(accessKeyMetadata.getAccessKeyId())) {
+                s3Credential.setSecretKey(secretKeyMap.get(accessKeyMetadata.getAccessKeyId()));
                 credentials.add(s3Credential);
+            } else {
+                s3Credential.setSecretKey("Not Available");
+                credentialsNoSK.add(s3Credential);
             }
+        }
+
+        if(!credentialsNoSK.isEmpty()) {
+            credentials.addAll(credentialsNoSK);
         }
 
         PageInfo pageInfo = new PageInfo();
