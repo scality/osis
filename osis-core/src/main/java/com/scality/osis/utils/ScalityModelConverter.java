@@ -572,7 +572,7 @@ public final class ScalityModelConverter {
                 .withAccessKeyId(accessKey.getAccessKeyId())
                 .withUserName(accessKey.getUserName())
                 .withStatus(accessKey.getStatus())
-                .withCreateDate(accessKey.getCreateDate());
+                .withCreateDate(accessKey.getCreateDate()!=null ? accessKey.getCreateDate() : new Date());
         return accessKeyMetadata;
     }
 }
