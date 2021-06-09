@@ -505,6 +505,15 @@ public class ScalityOsisService implements OsisService {
                 }
             }
 
+            if(secretKeyMap.isEmpty()) {
+                CreateAccessKeyResult createAccessKeyResult = createAccessKey(userId, iam);
+
+                AccessKeyMetadata newAccessKeyMetadata = ScalityModelConverter.toAccessKeyMetadata(createAccessKeyResult.getAccessKey());
+                listAccessKeysResult.getAccessKeyMetadata().add(newAccessKeyMetadata);
+
+                secretKeyMap.put(createAccessKeyResult.getAccessKey().getAccessKeyId(), createAccessKeyResult.getAccessKey().getSecretAccessKey());
+            }
+
             PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter
                     .toPageOfS3Credentials(listAccessKeysResult, offset, limit, tenantId, secretKeyMap);
             logger.info("List S3 credentials  response:{}", new Gson().toJson(pageOfS3Credentials));
@@ -658,6 +667,23 @@ public class ScalityOsisService implements OsisService {
      */
     public OsisS3Credential createOsisCredential(String tenantId, String userId, String cdTenantId, String username, AmazonIdentityManagement iam) throws Exception {
 
+        CreateAccessKeyResult createAccessKeyResult =  createAccessKey(userId, iam);
+
+        return ScalityModelConverter.toOsisS3Credentials(cdTenantId,
+                tenantId,
+                username,
+                createAccessKeyResult);
+    }
+
+    /**
+     * Create access key on iam.
+     *
+     * @param userId     the user id
+     * @param iam        the iam
+     * @return the iam access key
+     */
+    public CreateAccessKeyResult createAccessKey(String userId, AmazonIdentityManagement iam) throws Exception {
+
         CreateAccessKeyRequest createAccessKeyRequest =  ScalityModelConverter.toCreateUserAccessKeyRequest(userId);
 
         logger.debug("[Vault] Create User Access Key Request:{}", new Gson().toJson(createAccessKeyRequest));
@@ -665,16 +691,13 @@ public class ScalityOsisService implements OsisService {
         CreateAccessKeyResult createAccessKeyResult = iam.createAccessKey(createAccessKeyRequest);
 
         logger.debug("[Vault] Create User Access Key Success: AccessKeyID:{}, Status:{}", createAccessKeyResult.getAccessKey().getAccessKeyId(),
-                                                                                createAccessKeyResult.getAccessKey().getStatus());
+                createAccessKeyResult.getAccessKey().getStatus());
 
         storeSecretKey(
                 ScalityModelConverter.toRepoKeyForCredentials(userId, createAccessKeyResult.getAccessKey().getAccessKeyId()),
-                        createAccessKeyResult.getAccessKey().getSecretAccessKey());
+                createAccessKeyResult.getAccessKey().getSecretAccessKey());
 
-        return ScalityModelConverter.toOsisS3Credentials(cdTenantId,
-                tenantId,
-                username,
-                createAccessKeyResult);
+        return createAccessKeyResult;
     }
 
     public Policy getOrCreateUserPolicy(AmazonIdentityManagement iam, String tenantId) {

@@ -566,4 +566,13 @@ public final class ScalityModelConverter {
         pageOfS3Credentials.setPageInfo(pageInfo);
         return pageOfS3Credentials;
     }
+
+    public static AccessKeyMetadata toAccessKeyMetadata(AccessKey accessKey) {
+        AccessKeyMetadata accessKeyMetadata = new AccessKeyMetadata()
+                .withAccessKeyId(accessKey.getAccessKeyId())
+                .withUserName(accessKey.getUserName())
+                .withStatus(accessKey.getStatus())
+                .withCreateDate(accessKey.getCreateDate());
+        return accessKeyMetadata;
+    }
 }
