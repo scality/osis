@@ -181,7 +181,8 @@ This API creates a user on Vault.
 1. The `get-policy` API will be called with the `userPolicy@[account-id]` policy name using assumed role credentials
 1. If the `get-policy` API does not return any policy, using the assumed role credentials creates an IAM managed policy with the `userPolicy@[account-id]` policy name with full S3 access.
 1. `attach-policy` for the new user will be called using the assumed role credentials and the policy arn formatted as `arn:aws:iam::[account-id]:policy/userPolicy@[account-id]`.
-1. `create-s3credentials` api will be called using assumed role credentials
+1. The IAM `generate-access-key` API will be called using assumed role credentials.
+1. Encrypt the secret key (For more, see [SecretKey-Encryption-Strategy](#SecretKey-Encryption-Strategy)). Store the encrypted secret key on Redis Sentinel in the hash named "osis:s3credentials", with the hash key formatted as `<Username>__<AccessKeyID>`.
 
 ### Create User Example Activity Diagram
 ![Create User](Design_Files/OSE-OSIS-Create-User.png)
@@ -227,8 +228,23 @@ This API will enable or disable user on Vault.
 
 
 ### Create S3 Credential
-This API creates S3 credential for the user.
-1. `generate-access-key` api will be called using assumed role credentials.
+This API creates S3 credentials for the user.
+1. The Generate Access Key API will be called using assumed role credentials.
+1. Encrypt the secret key (For more, see [SecretKey-Encryption-Strategy](#SecretKey-Encryption-Strategy)). Store the encrypted secret key on Redis Sentinel in the hash named `osis:s3credentials`, with the hash key formatted as `<Username>__<AccessKeyID>`.
+
+**Important Notes:**
+* Redis Sentinel is subject to an ongoing rolling upgrade.
+* If the entire Redis Sentinel cluster fails or crashes, the vCloud Director's OSE service must be restarted with the following command:
+    ```shell
+    $ ose service restart
+    ```
+  * Once OSE service restart process is finished,
+     * OSE will invoke `listS3Credentials` API to identify the keys for object storage operations. As no key is available for the user on Redis, OSIS will create a new key for object storage operations and returns along with all the other keys on Vault DB. (For more, see [List S3 Credentials](#List-S3-Credentials))
+  * Access keys created by OSIS before Redis crash will be listed with `secretKey` value as `Not Available`. vCloud Director Tenant Users are responsible to clean up "Not Available" access keys using S3 console or IAM API because only they know if the access keys are in use or not.
+* Redis Sentinel only supports storing **4294967295** (approx. 4.2 billion) keys in the hash.
+
+### Create S3 Credential Example Activity Diagram
+![Create S3 Credential](Design_Files/OSE-OSIS-Create-S3-Credential.png)
 
 ### Query S3 Credentials
 This API query S3 credentials of the  user using a `filter` parameter.
@@ -238,6 +254,13 @@ This API query S3 credentials of the  user using a `filter` parameter.
 ### List S3 Credentials
 This API list S3 credentials of the  user.
 1. `list-access-keys` api will be called using assumed role credentials.
+2. Retrieve the secret keys, formatted as `<Username>__<AccessKeyID>`, from Redis Sentinel.
+3. Decrypt the secret keys (For more, see [SecretKey-Encryption-Strategy](#SecretKey-Encryption-Strategy)) and add them to the response.
+4. If no key is available for the user on Redis, OSIS will invoke `createS3Credentials` API in the backend to create a new key for object storage operations and adds the new key to the response.
+5. Add all the keys that are not present in the Redis Sentinel at the bottom of the list in the response with `secretKey` value as `Not Available`.
+
+### List S3 Credentials Example Activity Diagram
+![List S3 Credentials](Design_Files/OSE-OSIS-List-S3-Credentials.png)
 
 ### Delete S3 Credential
 This API deletes the S3 credential of the user.
@@ -309,3 +332,36 @@ Get the platform usage of global (without query parameter), tenant (with tenant_
         * `key` : `offset` and `value` : `marker`
     1. `AssumeRoleCache` for all the `User` and `S3 Credential` APIs
         * `key` : `RoleArn` and `value` : `Credentials`
+
+## SecretKey Encryption Strategy
+
+1. `secret-key` value in the form of plaintext will be encrypted and decrypted using the cipher algorithm (property: `cipher`), and corresponding cryptographic key (property: `secretKey`) of the latest key slot in the `osis.security.keys` list provided in the `crypto.yml` config file.
+1. A `id` property will be provided for each key slot entry in the `osis.security.keys` list in the `crypto.yml` config file to maintain the version of the key and will be used in the Key rotation.
+    1. Example `crypto.yml`
+        ```yaml
+        keys:
+          - id: 2
+            cipher: AES256GCM
+            secretKey: YW5vdGhlcmxpbmVvZnBhc3N3b3JkZm9yYW5vdG==
+          - id: 1
+            cipher: AES256GCM
+            secretKey: dGhpc2lzYXJlYWxseWxvbmdhbmRzdHJvbmdrZXk=
+       ```
+1. A java object of class `SecretKeyRepoData` will be created with variables `keyId`, `encryptedData` and `cipherInformation`
+    * `keyId` variable will be of type String and stores the `id` property of the key used.
+    * `encryptedData` will be a byte array and stores the encrypted data bytes.
+    * `cipherInformation` will be an encapsulation to store all the additional information used by the cipher algorithm.
+        * Example: For `AES256GCM` algorithm, `cipherInformation` encapsulates the `nonce` variable, which will be a byte array and stores the nonce bytes.
+1. Java object of class `SecretKeyRepoData` will be serialized and stored as binary in Redis
+1. During decryption, `keyId` in the meta information will be used to identify applied the cipher algorithm.
+1. Initially, only the AES256GCM cipher algorithm is supported. (The Secretbox algorithm is suggested for future releases)
+1. An ability to change the cipher algorithm will be provided.
+1. **Key Rotation:**
+    * Key rotation is used to replace a key with another one once the original key is compromised or too old to use.
+    * `crypto.yml` file will be updated with a new key slot on top of `keys` list with an incremented `id` value.
+    * A key rotation application jar file will be provided to do the key rotation of all the encrypted `secret-key` data on Redis database. 
+        1. Key rotation application will use the meta-information of the encrypted data to identify the `keyId` used.
+        1. Each `secret-key` will be decrypted using the old cipher algorithm (identified using the `keyId`).
+        1. `secret-key` value will be re-encrypted using the latest cipher algorithm and updated on Redis.
+        1. This key rotation application need to be re-run until it returns success which means all the `secret-key` values on Redis are re-encrypted. 
+    * During decryption, if a new `keyId` is found, `OSIS` application will reload the `crypto.yml` file
