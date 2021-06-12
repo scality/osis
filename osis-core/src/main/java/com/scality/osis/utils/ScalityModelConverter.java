@@ -293,6 +293,10 @@ public final class ScalityModelConverter {
         return DEFAULT_USER_POLICY_DESCRIPTION.replace(ACCOUNT_ID_REGEX, accountID);
     }
 
+    public static String toRedisHashName(String osisRedisHashKey) {
+        return DEFAULT_REDIS_PREFIX + osisRedisHashKey;
+    }
+
     /**
      * Generates tenant email string using tenant name.
      *  example email address: tenant.name@osis.scality.com
