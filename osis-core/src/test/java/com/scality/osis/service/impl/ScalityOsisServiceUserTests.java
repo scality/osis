@@ -378,6 +378,59 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
     }
 
     @Test
+    public void testListS3CredentialsWithNoKeyOnRedis() {
+        // Setup
+        when(redisRepositoryMock.hasKey(any())).thenReturn(Boolean.FALSE);
+
+        when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
+                .thenAnswer((Answer<ListAccessKeysResult>) invocation -> {
+                    final ListAccessKeysRequest request = invocation.getArgument(0);
+
+                    final AccessKeyMetadata accessKeyMetadata = new AccessKeyMetadata()
+                            .withAccessKeyId(TEST_ACCESS_KEY_2)
+                            .withCreateDate(new Date())
+                            .withStatus(StatusType.Active)
+                            .withUserName(request.getUserName());
+
+                    return new ListAccessKeysResult()
+                            .withAccessKeyMetadata(Collections.singletonList(accessKeyMetadata));
+                });
+
+        final long offset = 0L;
+        final long limit = 1000L;
+
+
+        // Run the test
+        final PageOfS3Credentials pageOfS3Credentials = scalityOsisServiceUnderTest.listS3Credentials(TEST_TENANT_ID, TEST_USER_ID, offset, limit);
+
+        // Verify the results
+        assertNotNull(pageOfS3Credentials.getItems());
+        assertFalse(pageOfS3Credentials.getItems().isEmpty());
+
+        // create-access-key should have been called
+        verify(iamMock).createAccessKey(any());
+
+        // First entry always should have secret key
+        final OsisS3Credential resultWithSecret = pageOfS3Credentials.getItems().get(0);
+
+        assertEquals(TEST_USER_ID, resultWithSecret.getCdUserId());
+        assertEquals(TEST_USER_ID, resultWithSecret.getUserId());
+        assertEquals(TEST_TENANT_ID, resultWithSecret.getTenantId());
+        assertEquals(TEST_ACCESS_KEY, resultWithSecret.getAccessKey());
+        assertEquals(TEST_SECRET_KEY, resultWithSecret.getSecretKey());
+
+        // Last entry should have secret key as "Not Available"
+        final OsisS3Credential resultWithNoSecret = pageOfS3Credentials.getItems().get(pageOfS3Credentials.getItems().size()-1);
+
+        assertEquals(TEST_USER_ID, resultWithNoSecret.getCdUserId());
+        assertEquals(TEST_USER_ID , resultWithNoSecret.getUserId());
+        assertEquals(TEST_TENANT_ID, resultWithNoSecret.getTenantId());
+        assertEquals(TEST_ACCESS_KEY_2, resultWithNoSecret.getAccessKey());
+        assertEquals(NOT_AVAILABLE, resultWithNoSecret.getSecretKey());
+
+    }
+
+    @Test
     public void testListS3CredentialsErr() {
         // Setup
         final long offset = 0L;

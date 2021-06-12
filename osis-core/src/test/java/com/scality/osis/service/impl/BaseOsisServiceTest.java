@@ -352,7 +352,8 @@ public class BaseOsisServiceTest {
                 .withAccessKeyId(TEST_ACCESS_KEY)
                 .withSecretAccessKey(TEST_SECRET_KEY)
                 .withCreateDate(new Date())
-                .withUserName(request.getUserName());
+                .withUserName(request.getUserName())
+                .withStatus(StatusType.Active);
         return new CreateAccessKeyResult()
                 .withAccessKey(accessKeyObj);
     }
