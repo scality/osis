@@ -576,4 +576,8 @@ public final class ScalityModelConverter {
                 .withCreateDate(accessKey.getCreateDate() != null ? accessKey.getCreateDate() : new Date());
         return accessKeyMetadata;
     }
+
+    public static String maskSecretKey(String logStatement) {
+        return logStatement.replaceAll(SECRET_KEY_REGEX, "$1" + MASKED_SENSITIVE_DATA_STR);
+    }
 }
