@@ -242,10 +242,9 @@ public class ScalityOsisService implements OsisService {
                         resOsisUser.getUsername(),
                         iam);
 
-                // Logging the response first to not print credentials
-                logger.info("Create User response:{}", new Gson().toJson(resOsisUser));
-
                 resOsisUser.setOsisS3Credentials(Arrays.asList(osisCredential));
+
+                logger.info("Create User response:{}", ScalityModelConverter.maskSecretKey(new Gson().toJson(resOsisUser)));
 
             }
 
@@ -350,7 +349,7 @@ public class ScalityOsisService implements OsisService {
 
             OsisS3Credential credential =  createOsisCredential(tenantId, userId, null, null, iamClient);
 
-            logger.info("Create S3 Credential Success. Access key ID:{}, ", credential.getAccessKey());
+            logger.info("Create S3 Credential response:{}, ", ScalityModelConverter.maskSecretKey(new Gson().toJson(credential)));
 
             return credential;
         } catch (Exception e){
@@ -517,7 +516,7 @@ public class ScalityOsisService implements OsisService {
 
             PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter
                     .toPageOfS3Credentials(listAccessKeysResult, offset, limit, tenantId, secretKeyMap);
-            logger.info("List S3 credentials  response:{}", new Gson().toJson(pageOfS3Credentials));
+            logger.info("List S3 credentials  response:{}", ScalityModelConverter.maskSecretKey(new Gson().toJson(pageOfS3Credentials)));
 
             return  pageOfS3Credentials;
         } catch (Exception e){
@@ -691,8 +690,7 @@ public class ScalityOsisService implements OsisService {
 
         CreateAccessKeyResult createAccessKeyResult = iam.createAccessKey(createAccessKeyRequest);
 
-        logger.debug("[Vault] Create User Access Key Success: AccessKeyID:{}, Status:{}", createAccessKeyResult.getAccessKey().getAccessKeyId(),
-                createAccessKeyResult.getAccessKey().getStatus());
+        logger.debug("[Vault] Create User Access Key Response:{}", createAccessKeyResult);
 
         storeSecretKey(
                 ScalityModelConverter.toRepoKeyForCredentials(userId, createAccessKeyResult.getAccessKey().getAccessKeyId()),

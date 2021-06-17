@@ -3,20 +3,9 @@ package com.scality.osis.utils;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
-import com.scality.vaultclient.dto.GetAccountRequestDTO;
-import com.vmware.osis.model.OsisS3Credential;
-import com.vmware.osis.model.OsisTenant;
-import com.vmware.osis.model.OsisUser;
-import com.vmware.osis.model.PageOfS3Credentials;
-import com.vmware.osis.model.PageOfUsers;
+import com.vmware.osis.model.*;
 import com.vmware.osis.model.exception.BadRequestException;
-import com.scality.vaultclient.dto.Account;
-import com.scality.vaultclient.dto.AccountData;
-import com.scality.vaultclient.dto.CreateAccountRequestDTO;
-import com.scality.vaultclient.dto.CreateAccountResponseDTO;
-import com.scality.vaultclient.dto.AccountSecretKeyData;
-import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
-import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
+import com.scality.vaultclient.dto.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -29,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_USER_POLICY_DOCUMENT;
+import static com.scality.osis.utils.ScalityConstants.MASKED_SENSITIVE_DATA_STR;
 import static com.scality.osis.utils.ScalityTestUtils.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -518,5 +508,18 @@ public class ScalityModelConverterTest {
         assertEquals(TEST_ACCESS_KEY_2, resultWithNoSecret.getAccessKey());
         assertEquals(ScalityConstants.NOT_AVAILABLE, resultWithNoSecret.getSecretKey());
 
+    }
+
+    @Test
+    public void testMaskSecretKey() {
+        // Setup
+        final String sampleLog = "{\"items\":[{\"accessKey\":\"MGUWBY4ORDS8RKUQM86P\",\"secretKey\":\"4t3peduUGjO4HYIKJZ54\\u003dGmsfgIP8HCyMS6coVfc\",\"active\":true,\"creationDate\":{\"seconds\":1623302064,\"nanos\":0},\"tenantId\":\"475396941524\",\"userId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\",\"cdUserId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\"},{\"accessKey\":\"WWA4UPWFA5EM1MKZE8ZC\",\"secretKey\":\"zjwsRPUA3SUP9aRcVc/+NUO/PPz+F77sVICwCKi\\u003d\",\"active\":true,\"creationDate\":{\"seconds\":1623301987,\"nanos\":0},\"tenantId\":\"475396941524\",\"userId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\",\"cdUserId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\"}],\"pageInfo\":{\"limit\":1000,\"offset\":0,\"total\":2}}" ;
+        final String maskedLog = "{\"items\":[{\"accessKey\":\"MGUWBY4ORDS8RKUQM86P\",\"secretKey\":\"" + MASKED_SENSITIVE_DATA_STR + "\",\"active\":true,\"creationDate\":{\"seconds\":1623302064,\"nanos\":0},\"tenantId\":\"475396941524\",\"userId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\",\"cdUserId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\"},{\"accessKey\":\"WWA4UPWFA5EM1MKZE8ZC\",\"secretKey\":\"" + MASKED_SENSITIVE_DATA_STR + "\",\"active\":true,\"creationDate\":{\"seconds\":1623301987,\"nanos\":0},\"tenantId\":\"475396941524\",\"userId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\",\"cdUserId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\"}],\"pageInfo\":{\"limit\":1000,\"offset\":0,\"total\":2}}" ;
+
+        // Run the test
+        final String result = ScalityModelConverter.maskSecretKey(sampleLog);
+
+        // Verify the results
+        assertEquals(maskedLog, result);
     }
 }

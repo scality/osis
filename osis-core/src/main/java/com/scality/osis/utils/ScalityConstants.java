@@ -97,6 +97,8 @@ public final class ScalityConstants {
     public static final String DEFAULT_REDIS_PREFIX = "osis:";
     public static final String DEFAULT_SPRING_CACHE_TYPE = "local";
     public static final String REDIS_SPRING_CACHE_TYPE = "redis";
+    public static final String MASKED_SENSITIVE_DATA_STR = "***Sensitive Data Redacted***";
+    public static final String SECRET_KEY_REGEX = "(secretKey\\\":\\\")([^\\\"]+)";
 
     // Cipher Constants
     public static final String NAME_AES_256_GCM_CIPHER = "AES256GCM";
