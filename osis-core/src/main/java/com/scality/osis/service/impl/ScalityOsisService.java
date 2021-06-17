@@ -12,6 +12,8 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.amazonaws.util.StringUtils;
 import com.scality.osis.ScalityAppEnv;
+import com.scality.osis.redis.service.IRedisRepository;
+import com.scality.osis.utils.CipherFactory;
 import com.scality.osis.utils.ScalityUtils;
 import com.google.gson.Gson;
 import com.scality.osis.utils.ScalityModelConverter;
@@ -27,6 +29,7 @@ import com.vmware.osis.model.*;
 import com.vmware.osis.model.exception.NotImplementedException;
 import com.vmware.osis.resource.OsisCapsManager;
 import com.vmware.osis.service.OsisService;
+import com.scality.osis.security.crypto.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,12 +41,16 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
 import static com.scality.osis.utils.ScalityConstants.DISPLAY_NAME_PREFIX;
 import static com.scality.osis.utils.ScalityConstants.IAM_PREFIX;
 import static com.scality.osis.utils.ScalityConstants.NO_SUCH_ENTITY_ERR;
+import static com.scality.osis.utils.ScalityConstants.REDIS_SPRING_CACHE_TYPE;
 import static com.scality.osis.utils.ScalityConstants.ROLE_DOES_NOT_EXIST_ERR;
 
 
@@ -67,6 +74,14 @@ public class ScalityOsisService implements OsisService {
 
     @Autowired
     private AsyncScalityOsisService asyncScalityOsisService;
+
+    @Autowired
+    private IRedisRepository<SecretKeyRepoData> scalityRedisRepository;
+
+    @Autowired
+    private CipherFactory cipherFactory;
+
+    private Map<String, SecretKeyRepoData> springLocalCache = new ConcurrentHashMap<>();
 
     /**
      * Instantiates a new Scality osis service.
@@ -482,8 +497,26 @@ public class ScalityOsisService implements OsisService {
 
             logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
 
+            Map<String, String> secretKeyMap = new HashMap<>();
+            for(AccessKeyMetadata accessKey: listAccessKeysResult.getAccessKeyMetadata()) {
+                String secretKey = retrieveSecretKey(ScalityModelConverter.toRepoKeyForCredentials(userId, accessKey.getAccessKeyId()));
+                if(!StringUtils.isNullOrEmpty(secretKey)){
+                    secretKeyMap.put(accessKey.getAccessKeyId(), secretKey);
+                }
+            }
+
+            // If no secret keys are present in Redis, create a new key and add it to secretKeyMap
+            if(secretKeyMap.isEmpty()) {
+                CreateAccessKeyResult createAccessKeyResult = createAccessKey(userId, iam);
+
+                AccessKeyMetadata newAccessKeyMetadata = ScalityModelConverter.toAccessKeyMetadata(createAccessKeyResult.getAccessKey());
+                listAccessKeysResult.getAccessKeyMetadata().add(newAccessKeyMetadata);
+
+                secretKeyMap.put(createAccessKeyResult.getAccessKey().getAccessKeyId(), createAccessKeyResult.getAccessKey().getSecretAccessKey());
+            }
+
             PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter
-                    .toPageOfS3Credentials(listAccessKeysResult, offset, limit, tenantId);
+                    .toPageOfS3Credentials(listAccessKeysResult, offset, limit, tenantId, secretKeyMap);
             logger.info("List S3 credentials  response:{}", new Gson().toJson(pageOfS3Credentials));
 
             return  pageOfS3Credentials;
@@ -633,7 +666,24 @@ public class ScalityOsisService implements OsisService {
      * @param iam        the iam
      * @return the osis s 3 credential
      */
-    public OsisS3Credential createOsisCredential(String tenantId, String userId, String cdTenantId, String username, AmazonIdentityManagement iam) {
+    public OsisS3Credential createOsisCredential(String tenantId, String userId, String cdTenantId, String username, AmazonIdentityManagement iam) throws Exception {
+
+        CreateAccessKeyResult createAccessKeyResult =  createAccessKey(userId, iam);
+
+        return ScalityModelConverter.toOsisS3Credentials(cdTenantId,
+                tenantId,
+                username,
+                createAccessKeyResult);
+    }
+
+    /**
+     * Create access key on iam.
+     *
+     * @param userId     the user id
+     * @param iam        the iam
+     * @return the iam access key
+     */
+    private CreateAccessKeyResult createAccessKey(String userId, AmazonIdentityManagement iam) throws Exception {
 
         CreateAccessKeyRequest createAccessKeyRequest =  ScalityModelConverter.toCreateUserAccessKeyRequest(userId);
 
@@ -642,12 +692,13 @@ public class ScalityOsisService implements OsisService {
         CreateAccessKeyResult createAccessKeyResult = iam.createAccessKey(createAccessKeyRequest);
 
         logger.debug("[Vault] Create User Access Key Success: AccessKeyID:{}, Status:{}", createAccessKeyResult.getAccessKey().getAccessKeyId(),
-                                                                                createAccessKeyResult.getAccessKey().getStatus());
+                createAccessKeyResult.getAccessKey().getStatus());
 
-        return ScalityModelConverter.toOsisS3Credentials(cdTenantId,
-                tenantId,
-                username,
-                createAccessKeyResult);
+        storeSecretKey(
+                ScalityModelConverter.toRepoKeyForCredentials(userId, createAccessKeyResult.getAccessKey().getAccessKeyId()),
+                createAccessKeyResult.getAccessKey().getSecretAccessKey());
+
+        return createAccessKeyResult;
     }
 
     public Policy getOrCreateUserPolicy(AmazonIdentityManagement iam, String tenantId) {
@@ -691,5 +742,45 @@ public class ScalityOsisService implements OsisService {
     private boolean isAdminPolicyError(Exception e) {
         return e instanceof AmazonIdentityManagementException &&
                 (HttpStatus.FORBIDDEN.value() == ((AmazonIdentityManagementException) e).getStatusCode());
+    }
+
+    private void storeSecretKey(String repoKey, String secretAccessKey) throws Exception {
+        // Using `repoKey` for Associated Data during encryption
+        SecretKeyRepoData encryptedRepoData = cipherFactory.getCipher().encrypt(secretAccessKey,
+                                                                cipherFactory.getLatestSecretCipherKey(),
+                                                                repoKey);
+
+        encryptedRepoData.setKeyID(cipherFactory.getLatestCipherID());
+        encryptedRepoData.getCipherInfo().setCipherName(cipherFactory.getLatestCipherName());
+        // Prefix Cipher ID to the encrypted value
+
+        if(REDIS_SPRING_CACHE_TYPE.equalsIgnoreCase(appEnv.getSpringCacheType())) {
+            scalityRedisRepository.save(repoKey, encryptedRepoData);
+        } else {
+            springLocalCache.put(repoKey, encryptedRepoData);
+        }
+    }
+
+    private String retrieveSecretKey(String repoKey) throws Exception {
+        SecretKeyRepoData repoVal = null;
+        if(REDIS_SPRING_CACHE_TYPE.equalsIgnoreCase(appEnv.getSpringCacheType())) {
+            if(scalityRedisRepository.hasKey(repoKey)){
+                repoVal = scalityRedisRepository.get(repoKey);
+            }
+        } else {
+            repoVal = springLocalCache.get(repoKey);
+        }
+
+        String secretKey = null;
+
+        if(repoVal != null) {
+
+            // Using `repoKey` for Associated Data during encryption
+            secretKey = cipherFactory.getCipherByID(repoVal.getKeyID())
+                                    .decrypt(repoVal,
+                                            cipherFactory.getSecretCipherKeyByID(repoVal.getKeyID()),
+                                            repoKey);
+        }
+        return secretKey;
     }
 }

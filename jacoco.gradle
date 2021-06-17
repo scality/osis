@@ -32,7 +32,8 @@ jacocoTestReport {
                     /*Ignore config classes*/
                     "**/com/scality/osis/configuration/*.*",
                     "**/com/scality/osis/*.*",
-                    "**/com/scality/osis/security/**/*.*"
+                    "**/com/scality/osis/security/basic/*.*",
+                    "**/com/scality/osis/utils/YamlPropertySourceFactory.*"
             ])
         }))
     }

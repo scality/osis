@@ -293,6 +293,10 @@ public final class ScalityModelConverter {
         return DEFAULT_USER_POLICY_DESCRIPTION.replace(ACCOUNT_ID_REGEX, accountID);
     }
 
+    public static String toRepoKeyForCredentials(String userId, String accessKeyId) {
+        return userId + REPO_KEY_SEPARATOR + accessKeyId;
+    }
+
     public static String toRedisHashName(String osisRedisHashKey) {
         return DEFAULT_REDIS_PREFIX + osisRedisHashKey;
     }
@@ -521,21 +525,36 @@ public final class ScalityModelConverter {
      * @param listAccessKeysResult the list access keys response dto
      * @param offset
      * @param limit
+     * @param secretKeyMap
      * @return the page of users
      */
-    public static PageOfS3Credentials toPageOfS3Credentials(ListAccessKeysResult listAccessKeysResult, long offset, long limit, String tenantId) {
+    public static PageOfS3Credentials toPageOfS3Credentials(ListAccessKeysResult listAccessKeysResult, long offset, long limit, String tenantId, Map<String, String> secretKeyMap) {
         List<OsisS3Credential> credentials = new ArrayList<>();
+        List<OsisS3Credential> credentialsNoSK = new ArrayList<>();
 
         for(AccessKeyMetadata accessKeyMetadata: listAccessKeysResult.getAccessKeyMetadata()){
+
             OsisS3Credential s3Credential = new OsisS3Credential()
-                                            .accessKey(accessKeyMetadata.getAccessKeyId())
-                                            .active(accessKeyMetadata.getStatus()
-                                                    .equalsIgnoreCase(StatusType.Active.toString()))
-                                            .userId(accessKeyMetadata.getUserName())
-                                            .cdUserId(accessKeyMetadata.getUserName())
-                                            .tenantId(tenantId)
-                                            .creationDate(accessKeyMetadata.getCreateDate().toInstant());
-            credentials.add(s3Credential);
+                        .accessKey(accessKeyMetadata.getAccessKeyId())
+                        .active(accessKeyMetadata.getStatus()
+                                .equalsIgnoreCase(StatusType.Active.toString()))
+                        .userId(accessKeyMetadata.getUserName())
+                        .cdUserId(accessKeyMetadata.getUserName())
+                        .tenantId(tenantId)
+                        .creationDate(accessKeyMetadata.getCreateDate().toInstant());
+            if(null != secretKeyMap.get(accessKeyMetadata.getAccessKeyId())) {
+                // If secret key is available, add credential object to the list
+                s3Credential.setSecretKey(secretKeyMap.get(accessKeyMetadata.getAccessKeyId()));
+                credentials.add(s3Credential);
+            } else {
+                s3Credential.setSecretKey(ScalityConstants.NOT_AVAILABLE);
+                credentialsNoSK.add(s3Credential);
+            }
+        }
+
+        // Add credential objects with no secret keys to the bottom of the list
+        if(!credentialsNoSK.isEmpty()) {
+            credentials.addAll(credentialsNoSK);
         }
 
         PageInfo pageInfo = new PageInfo();
@@ -547,5 +566,14 @@ public final class ScalityModelConverter {
         pageOfS3Credentials.items(credentials);
         pageOfS3Credentials.setPageInfo(pageInfo);
         return pageOfS3Credentials;
+    }
+
+    public static AccessKeyMetadata toAccessKeyMetadata(AccessKey accessKey) {
+        AccessKeyMetadata accessKeyMetadata = new AccessKeyMetadata()
+                .withAccessKeyId(accessKey.getAccessKeyId())
+                .withUserName(accessKey.getUserName())
+                .withStatus(accessKey.getStatus())
+                .withCreateDate(accessKey.getCreateDate() != null ? accessKey.getCreateDate() : new Date());
+        return accessKeyMetadata;
     }
 }

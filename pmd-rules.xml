@@ -55,6 +55,7 @@ http://pmd.sourceforge.net/ruleset/2.0.0 ">
         <exclude name="TooManyMethods"/>
         <exclude name="ExcessivePublicCount"/>
         <exclude name="ExcessiveClassLength"/>
+        <exclude name="AvoidCatchingGenericException"/>
     </rule>
 
 </ruleset>

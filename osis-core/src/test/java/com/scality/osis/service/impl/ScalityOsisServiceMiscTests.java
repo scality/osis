@@ -286,7 +286,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest{
     }
 
     @Test
-    public void testCreateOsisCredential() {
+    public void testCreateOsisCredential() throws Exception {
         // Setup
         // Modify get policy to return no entity found
 

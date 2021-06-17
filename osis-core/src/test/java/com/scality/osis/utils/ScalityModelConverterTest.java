@@ -19,11 +19,14 @@ import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_USER_POLICY_DOCUMENT;
 import static com.scality.osis.utils.ScalityTestUtils.*;
@@ -446,8 +449,11 @@ public class ScalityModelConverterTest {
                 .withUserName(TEST_USER_ID);
         final ListAccessKeysResult listAccessKeysResult = new ListAccessKeysResult()
                                                                 .withAccessKeyMetadata(Collections.singletonList(accesskeyMetaData));
+
+        final Map<String, String> secretKeyMap = new HashMap<>();
+        secretKeyMap.put(TEST_ACCESS_KEY, TEST_SECRET_KEY);
         // Run the test
-        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, SAMPLE_TENANT_ID);
+        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, SAMPLE_TENANT_ID, secretKeyMap);
 
         // Verify the results
         assertTrue(pageOfS3Credentials.getItems().size() > 0);
@@ -459,5 +465,58 @@ public class ScalityModelConverterTest {
         assertEquals(TEST_USER_ID, result.getUserId());
         assertEquals(SAMPLE_TENANT_ID, result.getTenantId());
         assertEquals(TEST_ACCESS_KEY, result.getAccessKey());
+        assertEquals(TEST_SECRET_KEY, result.getSecretKey());
+    }
+
+    @Test
+    public void testToPageOfS3CredentialsNotAvailableKey() {
+        // Setup
+
+        final AccessKeyMetadata accesskeyMetaData = new AccessKeyMetadata()
+                .withAccessKeyId(TEST_ACCESS_KEY)
+                .withCreateDate(new Date())
+                .withStatus(StatusType.Active)
+                .withUserName(TEST_USER_ID);
+        final AccessKeyMetadata accesskeyMetaData2 = new AccessKeyMetadata()
+                .withAccessKeyId(TEST_ACCESS_KEY_2)
+                .withCreateDate(new Date())
+                .withStatus(StatusType.Active)
+                .withUserName(TEST_USER_ID);
+
+        final List<AccessKeyMetadata> accessKeyMetadataList = new ArrayList<>();
+        accessKeyMetadataList.add(accesskeyMetaData);
+        accessKeyMetadataList.add(accesskeyMetaData2);
+
+        final ListAccessKeysResult listAccessKeysResult = new ListAccessKeysResult()
+                .withAccessKeyMetadata(accessKeyMetadataList);
+
+        final Map<String, String> secretKeyMap = new HashMap<>();
+        // Secret key only for accesskeyMetaData
+        secretKeyMap.put(TEST_ACCESS_KEY, TEST_SECRET_KEY);
+        // Run the test
+        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, SAMPLE_TENANT_ID, secretKeyMap);
+
+        // Verify the results
+        assertTrue(pageOfS3Credentials.getItems().size() > 0);
+        assertNotNull(pageOfS3Credentials.getPageInfo());
+
+        // First entry always should have secret key
+        final OsisS3Credential resultWithSecret = pageOfS3Credentials.getItems().get(0);
+
+        assertEquals(TEST_USER_ID, resultWithSecret.getCdUserId());
+        assertEquals(TEST_USER_ID, resultWithSecret.getUserId());
+        assertEquals(SAMPLE_TENANT_ID, resultWithSecret.getTenantId());
+        assertEquals(TEST_ACCESS_KEY, resultWithSecret.getAccessKey());
+        assertEquals(TEST_SECRET_KEY, resultWithSecret.getSecretKey());
+
+        // Last entry should have secret key as "Not Available"
+        final OsisS3Credential resultWithNoSecret = pageOfS3Credentials.getItems().get(pageOfS3Credentials.getItems().size()-1);
+
+        assertEquals(TEST_USER_ID, resultWithNoSecret.getCdUserId());
+        assertEquals(TEST_USER_ID , resultWithNoSecret.getUserId());
+        assertEquals(SAMPLE_TENANT_ID, resultWithNoSecret.getTenantId());
+        assertEquals(TEST_ACCESS_KEY_2, resultWithNoSecret.getAccessKey());
+        assertEquals(ScalityConstants.NOT_AVAILABLE, resultWithNoSecret.getSecretKey());
+
     }
 }

@@ -50,6 +50,7 @@ public final class ScalityTestUtils {
     public static final String TEST_NAME ="name";
     public static final String TEST_POLICY_ARN ="policy-arn";
     public static final String TEST_ACCESS_KEY = "access_key";
+    public static final String TEST_ACCESS_KEY_2 = "access_key_2";
     public static final String TEST_SECRET_KEY = "secret_key";
     public static final String TEST_SESSION_TOKEN = "session_token";
     public static final String TEST_CONSOLE_URL ="https://example.console.ose.scality.com";
@@ -60,6 +61,10 @@ public final class ScalityTestUtils {
     public static final long SAMPLE_DURATION_SECONDS = 120L;
     public static final String ACTIVE_STR = "Active";
     public static final String NA_STR = "N/A";
+
+    public static final String TEST_CIPHER_SECRET_KEY = "dGhpc2lzYXJlYWxseWxvbmdhbmRzZXk=";
+    public static final String TEST_INVALID_CIPHER_SECRET_KEY = "dGhpc2lzYXJlYWxseWxvbmdhbmRzZXk=hgJfad==";
+    public static final String TEST_CIPHER_ID = "1";
 
 
     private ScalityTestUtils(){
