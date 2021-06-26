@@ -104,6 +104,9 @@ public final class ScalityConstants {
     public static final String MASKED_SENSITIVE_DATA_STR = "***Sensitive Data Redacted***";
     public static final String SECRET_KEY_REGEX = "(secretKey\\\":\\\")([^\\\"]+)";
 
+    public static final long DEFAULT_MIN_OFFSET = 0l;
+    public static final long DEFAULT_MAX_LIMIT = 1000l;
+
     // Cipher Constants
     public static final String NAME_AES_256_GCM_CIPHER = "AES256GCM";
     public final static int DEFAULT_AES_GCM_NONCE_LENGTH = 12;

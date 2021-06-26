@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_USER_POLICY_DOCUMENT;
 import static com.scality.osis.utils.ScalityConstants.MASKED_SENSITIVE_DATA_STR;
 import static com.scality.osis.utils.ScalityTestUtils.*;
@@ -220,6 +221,20 @@ public class ScalityModelConverterTest {
     }
 
     @Test
+    public void testToGetAccountRequestWithCanonicalID() {
+        // Setup
+        // Run the test
+        final GetAccountRequestDTO result = ScalityModelConverter.toGetAccountRequestWithCanonicalID(TEST_CANONICAL_ID);
+
+        // Verify the results
+        assertEquals(TEST_CANONICAL_ID, result.getCanonicalId());
+        assertNull(result.getAccountName());
+        assertNull(result.getAccountArn());
+        assertNull(result.getEmailAddress());
+        assertNull(result.getAccountId());
+    }
+
+    @Test
     public void  testToCreateUserRequest() {
         final OsisUser osisUser = new OsisUser();
         osisUser.setCanonicalUserId(TEST_CANONICAL_ID);
@@ -353,6 +368,37 @@ public class ScalityModelConverterTest {
     }
 
     @Test
+    public void testToCanonicalOsisUser() {
+        // Setup
+        final AccountData account = new AccountData();
+        account.setName(SAMPLE_TENANT_NAME);
+        account.setEmailAddress(SAMPLE_SCALITY_ACCOUNT_EMAIL);
+        account.setId(SAMPLE_TENANT_ID);
+        account.setCustomAttributes(Collections.singletonMap(CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID , ""));
+        account.setCanonicalId(TEST_CANONICAL_ID);
+
+        final OsisUser osisUser = new OsisUser();
+        osisUser.setUsername(TEST_NAME);
+        osisUser.setCdUserId(TEST_USER_ID);
+        osisUser.setUserId(TEST_USER_ID);
+
+        // Run the test
+        final OsisUser result = ScalityModelConverter.toCanonicalOsisUser(account, Collections.singletonList(osisUser));
+
+        // Verify the results
+
+        // Verify the results
+        assertEquals(TEST_USER_ID, result.getCdUserId());
+        assertEquals(TEST_USER_ID, result.getUserId());
+        assertEquals(TEST_NAME, result.getUsername());
+        assertEquals(SAMPLE_CD_TENANT_ID, result.getCdTenantId());
+        assertEquals(SAMPLE_TENANT_ID, result.getTenantId());
+        assertEquals(OsisUser.RoleEnum.TENANT_ADMIN, result.getRole());
+        assertEquals(TEST_CANONICAL_ID, result.getCanonicalUserId());
+        assertTrue(result.getActive());
+    }
+
+    @Test
     public void testToPageOfUsers() {
         // Setup
         final String path = "/"+ TEST_NAME +"/"
@@ -387,19 +433,19 @@ public class ScalityModelConverterTest {
     @Test
     public void testExtractCdTenantIdFilter() {
         // Setup
-        final String filter = "cd_tenant_id==" + SAMPLE_CD_TENANT_ID + ";display_name==" + TEST_NAME;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + ";display_name==" + TEST_NAME;
 
         // Run the test
         final String cdTenantIdFilter = ScalityModelConverter.extractCdTenantIdFilter(filter);
 
         // Verify the results
-        assertEquals("cd_tenant_id==" + SAMPLE_CD_TENANT_ID, cdTenantIdFilter);
+        assertEquals(CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID, cdTenantIdFilter);
     }
 
     @Test
     public void testExtractOsisUserName() {
         // Setup
-        final String filter = "cd_tenant_id==" + SAMPLE_CD_TENANT_ID + ";display_name==" + TEST_NAME;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + ";display_name==" + TEST_NAME;
 
         // Run the test
         final String osisUserName = ScalityModelConverter.extractOsisUserName(filter);
@@ -411,7 +457,7 @@ public class ScalityModelConverterTest {
     @Test
     public void testExtractCdTenantId() {
         // Setup
-        final String filter = "cd_tenant_id==" + SAMPLE_CD_TENANT_ID ;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID ;
 
         // Run the test
         final String cdTenantId = ScalityModelConverter.extractCdTenantId(filter);

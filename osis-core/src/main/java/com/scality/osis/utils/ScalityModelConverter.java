@@ -231,6 +231,18 @@ public final class ScalityModelConverter {
                 .build();
     }
 
+    /**
+     * Creates GetAccountRequestDTO using canonicalID
+     * @param canonicalID the canonicalID
+     *
+     * @return the GetAccountRequestDTO
+     */
+    public static GetAccountRequestDTO toGetAccountRequestWithCanonicalID(String canonicalID) {
+        return GetAccountRequestDTO.builder()
+                .canonicalId(canonicalID)
+                .build();
+    }
+
     public static String toAdminPolicyArn(String accountID) {
         return ACCOUNT_ADMIN_POLICY_ARN_REGEX
                 .replace(ACCOUNT_ID_REGEX, accountID);
@@ -401,6 +413,33 @@ public final class ScalityModelConverter {
                 .displayName(nameFromUserPath(user.getPath()))
                 .role(roleFromUserPath(user.getPath()))
                 .email(emailFromUserPath(user.getPath()));
+    }
+
+    /**
+     * Converts IAM User object to OSIS User object for get user with canonical id
+     *
+     * @return the osis User
+     */
+    public static OsisUser toCanonicalOsisUser(AccountData account, List<OsisUser> users) {
+        final OsisUser osisUser = new OsisUser();
+
+        osisUser.setTenantId(account.getId());
+        if(!account.getCustomAttributes().isEmpty()) {
+            osisUser.setCdTenantId(ScalityModelConverter.toOsisCDTenantIds(account.getCustomAttributes()).get(0));
+        }
+        osisUser.setCanonicalUserId(account.getCanonicalId());
+
+        if(!users.isEmpty()) {
+            OsisUser user = users.get(users.size() - 1);
+            osisUser.setUsername(user.getUsername());
+            osisUser.setUserId(user.getUserId());
+            osisUser.setCdUserId(user.getCdUserId());
+            osisUser.setEmail(user.getEmail());
+        }
+        osisUser.setRole(OsisUser.RoleEnum.TENANT_ADMIN);
+        osisUser.setActive(Boolean.TRUE);
+
+        return osisUser;
     }
 
     /**
@@ -613,4 +652,5 @@ public final class ScalityModelConverter {
     public static String maskSecretKey(String logStatement) {
         return logStatement.replaceAll(SECRET_KEY_REGEX, "$1" + MASKED_SENSITIVE_DATA_STR);
     }
+
 }
