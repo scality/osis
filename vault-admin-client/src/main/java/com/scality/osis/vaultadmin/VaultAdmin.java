@@ -103,7 +103,7 @@ public interface VaultAdmin {
    * @param getAccountRequestDTO the get account request dto
    * @return the account
    */
-  AccountData getAccountWithID(GetAccountRequestDTO getAccountRequestDTO);
+  AccountData getAccount(GetAccountRequestDTO getAccountRequestDTO);
 
   /**
    * Searches all accounts and returns Vault accountID w.r.t cdTenantId filter key.

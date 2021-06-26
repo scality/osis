@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -249,12 +250,16 @@ public final class ScalityModelConverter {
         return new CreateUserRequest()
                 .withUserName(osisUser.getCdUserId())
                 .withPath(
-                        toUserPath(osisUser.getUsername(), role,
-                                osisUser.getEmail(), osisUser.getCdTenantId()));
+                        toUserPath(osisUser.getUsername(),
+                                    role,
+                                    osisUser.getEmail(),
+                                    osisUser.getCdTenantId(),
+                                    osisUser.getCanonicalUserId()));
     }
 
-    private static String toUserPath(String username, OsisUser.RoleEnum role, String email, String cdTenantId) {
-        return "/" + username + "/" + role.getValue() + "/" + email + "/" + cdTenantId + "/" ;
+    private static String toUserPath(String username, OsisUser.RoleEnum role, String email, String cdTenantId, String canonicalUserId) {
+        return USER_PATH_SEPARATOR + username + USER_PATH_SEPARATOR + role.getValue() + USER_PATH_SEPARATOR + email + USER_PATH_SEPARATOR + cdTenantId + USER_PATH_SEPARATOR
+                + canonicalUserId + USER_PATH_SEPARATOR;
     }
 
     public static CreateAccessKeyRequest toCreateUserAccessKeyRequest(String userID) {
@@ -350,6 +355,10 @@ public final class ScalityModelConverter {
         return osisUserNameFilter.split(FILTER_KEY_VALUE_SEPARATOR) [1];
     }
 
+    public static String extractCdTenantId(String filter) {
+        return filter.split(FILTER_KEY_VALUE_SEPARATOR) [1];
+    }
+
     /* Converter methods below will convert Vault/Scality responses to OSIS model objects @param accountResponse the account response */
 
 
@@ -384,7 +393,7 @@ public final class ScalityModelConverter {
     public static OsisUser toOsisUser(User user, String tenantId) {
         return new OsisUser()
                 .cdUserId(user.getUserName())
-                .canonicalUserId(user.getUserName())
+                .canonicalUserId(canonicalIDFromUserPath(user.getPath(), user.getUserName()))
                 .userId(user.getUserName())
                 .active(Boolean.TRUE)
                 .cdTenantId(cdTenantIDFromUserPath(user.getPath()))
@@ -438,6 +447,26 @@ public final class ScalityModelConverter {
     }
 
     /**
+     * Converts Vault List Accounts response to OSIS page of tenants
+     *
+     * @param accountData the account data
+     * @return the page of tenants
+     */
+    public static PageOfTenants toPageOfTenants(AccountData accountData, long offset, long limit) {
+        List<OsisTenant> tenantItems = Collections.singletonList(toOsisTenant(accountData));
+
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setLimit(limit);
+        pageInfo.setOffset(offset);
+        pageInfo.setTotal((long) tenantItems.size());
+
+        PageOfTenants pageOfTenants = new PageOfTenants();
+        pageOfTenants.items(tenantItems);
+        pageOfTenants.setPageInfo(pageInfo);
+        return pageOfTenants;
+    }
+
+    /**
      * Converts Vault Generate Account AccessKey response to AWS Credentials
      *
      * @param generateAccountAccessKeyResponse the Generate Account AccessKey response dto
@@ -454,7 +483,7 @@ public final class ScalityModelConverter {
         User vaultUser = createUserResult.getUser();
         return new OsisUser()
                 .cdUserId(vaultUser.getUserName())
-                .canonicalUserId(vaultUser.getUserName())
+                .canonicalUserId(canonicalIDFromUserPath(vaultUser.getPath(), vaultUser.getUserName()))
                 .userId(vaultUser.getUserName())
                 .active(Boolean.TRUE)
                 .cdTenantId(cdTenantIDFromUserPath(vaultUser.getPath()))
@@ -478,6 +507,10 @@ public final class ScalityModelConverter {
 
     private static String cdTenantIDFromUserPath(String path) {
         return path.split("/").length > 4 ? path.split("/")[4] : "";
+    }
+
+    private static String canonicalIDFromUserPath(String path, String userId) {
+        return path.split("/").length > 5 ? path.split("/")[5] : userId;
     }
 
     public static OsisS3Credential toOsisS3Credentials(String cdTenantId, String tenantId, String username, CreateAccessKeyResult createAccessKeyResult) {
