@@ -1,15 +1,16 @@
 /**
- * Copyright 2020 VMware, Inc.
- * SPDX-License-Identifier: Apache License 2.0
+ *Copyright 2020 VMware, Inc.
+ *Copyright 2021 Scality, Inc.
+ *SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.resource;
+package com.scality.osis.resource;
 
+import com.scality.osis.service.ScalityOsisService;
 import com.vmware.osis.annotation.NotImplement;
 import com.vmware.osis.model.*;
 import com.vmware.osis.model.exception.*;
 import com.vmware.osis.validation.Update;
-import com.vmware.osis.service.OsisService;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +27,12 @@ import java.util.Optional;
 
 @Api(tags = "OSIS")
 @RestController
-public class OsisController {
-    private static final Logger logger = LoggerFactory.getLogger(OsisController.class);
+public class ScalityOsisController {
+    private static final Logger logger = LoggerFactory.getLogger(com.scality.osis.resource.ScalityOsisController.class);
 
 
     @Autowired
-    private OsisService osisService;
+    private ScalityOsisService osisService;
 
     /**
      * POST /api/v1/tenants/{tenantId}/users/{userId}/s3credentials : Create S3 credential for the platform user

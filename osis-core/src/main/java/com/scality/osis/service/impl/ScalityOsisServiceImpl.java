@@ -13,6 +13,7 @@ import com.amazonaws.services.securitytoken.model.Credentials;
 import com.amazonaws.util.StringUtils;
 import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.redis.service.IRedisRepository;
+import com.scality.osis.service.ScalityOsisService;
 import com.scality.osis.utils.CipherFactory;
 import com.scality.osis.utils.ScalityConstants;
 import com.scality.osis.utils.ScalityUtils;
@@ -30,7 +31,6 @@ import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.vmware.osis.model.*;
 import com.vmware.osis.model.exception.NotImplementedException;
 import com.vmware.osis.resource.OsisCapsManager;
-import com.vmware.osis.service.OsisService;
 import com.scality.osis.security.crypto.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,8 +62,8 @@ import static com.scality.osis.utils.ScalityConstants.ROLE_DOES_NOT_EXIST_ERR;
  */
 @Service
 @Primary
-public class ScalityOsisService implements OsisService {
-    private static final Logger logger = LoggerFactory.getLogger(ScalityOsisService.class);
+public class ScalityOsisServiceImpl implements ScalityOsisService {
+    private static final Logger logger = LoggerFactory.getLogger(ScalityOsisServiceImpl.class);
     private static final String S3_CAPABILITIES_JSON = "s3capabilities.json";
 
     @Autowired
@@ -89,7 +89,7 @@ public class ScalityOsisService implements OsisService {
     /**
      * Instantiates a new Scality osis service.
      */
-    public ScalityOsisService(){}
+    public ScalityOsisServiceImpl(){}
 
     /**
      * Instantiates a new Scality osis service.
@@ -98,7 +98,7 @@ public class ScalityOsisService implements OsisService {
      * @param vaultAdmin      the vault admin
      * @param osisCapsManager the osis caps manager
      */
-    public ScalityOsisService(ScalityAppEnv appEnv, VaultAdmin vaultAdmin, OsisCapsManager osisCapsManager){
+    public ScalityOsisServiceImpl(ScalityAppEnv appEnv, VaultAdmin vaultAdmin, OsisCapsManager osisCapsManager){
         this.appEnv = appEnv;
         this.vaultAdmin = vaultAdmin;
         this.osisCapsManager = osisCapsManager;
