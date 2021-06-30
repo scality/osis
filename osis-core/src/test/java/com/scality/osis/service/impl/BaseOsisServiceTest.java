@@ -287,7 +287,7 @@ public class BaseOsisServiceTest {
     }
 
     protected void initGetAccountMocks() {
-        when(vaultAdminMock.getAccountWithID(any(GetAccountRequestDTO.class)))
+        when(vaultAdminMock.getAccount(any(GetAccountRequestDTO.class)))
                 .thenAnswer((Answer<AccountData>) invocation -> {
 
                     final GetAccountRequestDTO request = invocation.getArgument(0);
@@ -297,7 +297,7 @@ public class BaseOsisServiceTest {
                     final String emailAddress = request.getEmailAddress() ==null ? SAMPLE_SCALITY_ACCOUNT_EMAIL : request.getEmailAddress();
                     final String canonicalId = request.getCanonicalId() ==null ? SAMPLE_ID : request.getCanonicalId();
                     final Map<String, String> customAttributestes  = new HashMap<>() ;
-                    customAttributestes.put(CD_TENANT_ID_PREFIX + UUID.randomUUID(), "");
+                    customAttributestes.put(CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID, "");
 
                     final AccountData data = new AccountData();
                     data.setEmailAddress(emailAddress);

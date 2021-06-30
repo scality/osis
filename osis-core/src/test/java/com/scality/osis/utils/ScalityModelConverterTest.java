@@ -222,7 +222,7 @@ public class ScalityModelConverterTest {
     @Test
     public void  testToCreateUserRequest() {
         final OsisUser osisUser = new OsisUser();
-        osisUser.setCanonicalUserId(TEST_USER_ID);
+        osisUser.setCanonicalUserId(TEST_CANONICAL_ID);
         osisUser.setTenantId(TEST_TENANT_ID);
         osisUser.setActive(true);
         osisUser.setUsername(TEST_NAME);
@@ -238,6 +238,7 @@ public class ScalityModelConverterTest {
         assertTrue(createUserRequest.getPath().contains(OsisUser.RoleEnum.TENANT_USER.getValue()));
         assertTrue(createUserRequest.getPath().contains(SAMPLE_SCALITY_USER_EMAIL));
         assertTrue(createUserRequest.getPath().contains(TEST_TENANT_ID));
+        assertTrue(createUserRequest.getPath().contains(TEST_CANONICAL_ID));
     }
 
     @Test
@@ -357,7 +358,8 @@ public class ScalityModelConverterTest {
         final String path = "/"+ TEST_NAME +"/"
                 + OsisUser.RoleEnum.TENANT_USER.getValue() +"/"
                 + SAMPLE_SCALITY_USER_EMAIL  + "/"
-                + TEST_TENANT_ID  + "/";
+                + TEST_TENANT_ID  + "/"
+                + TEST_CANONICAL_ID  + "/";
 
         final User user = new User(path, TEST_USER_ID, TEST_USER_ID, "arn", new GregorianCalendar(2019, Calendar.JANUARY, 1).getTime());
 
@@ -378,7 +380,7 @@ public class ScalityModelConverterTest {
         assertEquals(SAMPLE_SCALITY_USER_EMAIL, osisUser.getEmail());
         assertEquals(TEST_TENANT_ID, osisUser.getCdTenantId());
         assertEquals(OsisUser.RoleEnum.TENANT_USER, osisUser.getRole());
-        assertEquals(TEST_USER_ID, osisUser.getCanonicalUserId());
+        assertEquals(TEST_CANONICAL_ID, osisUser.getCanonicalUserId());
         assertTrue(osisUser.getActive());
     }
 
@@ -404,6 +406,18 @@ public class ScalityModelConverterTest {
 
         // Verify the results
         assertEquals(TEST_NAME, osisUserName);
+    }
+
+    @Test
+    public void testExtractCdTenantId() {
+        // Setup
+        final String filter = "cd_tenant_id==" + SAMPLE_CD_TENANT_ID ;
+
+        // Run the test
+        final String cdTenantId = ScalityModelConverter.extractCdTenantId(filter);
+
+        // Verify the results
+        assertEquals(SAMPLE_CD_TENANT_ID, cdTenantId);
     }
 
     @Test

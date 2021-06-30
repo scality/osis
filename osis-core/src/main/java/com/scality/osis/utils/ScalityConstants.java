@@ -32,6 +32,10 @@ public final class ScalityConstants {
 
     public static final String REPO_KEY_SEPARATOR = "__";
 
+    public static final String USER_PATH_SEPARATOR = "/";
+
+    public static final String UUID_REGEX = "^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$";
+
     public static final String ICON_PATH = "/scalitylogo.png";
 
     public static final String IAM_PREFIX = "/";

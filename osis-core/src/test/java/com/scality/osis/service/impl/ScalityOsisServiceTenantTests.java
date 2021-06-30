@@ -136,7 +136,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        final String filter = CD_TENANT_ID_PREFIX + TEST_STR;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID;
 
         // Run the test
         // Call Scality Osis service to query tenants
@@ -147,7 +147,26 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
         assertEquals(offset, response.getPageInfo().getOffset());
         assertEquals(limit, response.getPageInfo().getLimit());
         assertEquals(1, response.getItems().size());
-        assertEquals(TEST_STR, response.getItems().get(0).getCdTenantIds().get(0));
+        assertEquals(SAMPLE_CD_TENANT_ID, response.getItems().get(0).getCdTenantIds().get(0));
+    }
+
+    @Test
+    public void testQueryTenantsWithNonUUID() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_TENANT_ID;
+
+        // Run the test
+        // Call Scality Osis service to query tenants
+        final PageOfTenants response = scalityOsisServiceUnderTest.queryTenants(offset, limit, filter);
+
+        // Verify the results
+        assertEquals(1, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(1, response.getItems().size());
+        assertEquals(SAMPLE_CD_TENANT_ID, response.getItems().get(0).getCdTenantIds().get(0));
     }
 
     @Test
@@ -155,7 +174,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 2000L;
         final long limit = 1000L;
-        final String filter = CD_TENANT_ID_PREFIX + TEST_STR;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID;
         // Run the test
         // Call Scality Osis service to list tenants
         final PageOfTenants response = scalityOsisServiceUnderTest.queryTenants(offset, limit, filter);
@@ -166,7 +185,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
         assertEquals(offset, response.getPageInfo().getOffset());
         assertEquals(limit, response.getPageInfo().getLimit());
         assertEquals(1, response.getItems().size());
-        assertEquals(TEST_STR, response.getItems().get(0).getCdTenantIds().get(0));
+        assertEquals(SAMPLE_CD_TENANT_ID, response.getItems().get(0).getCdTenantIds().get(0));
     }
 
     @Test
@@ -193,7 +212,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 3000L;
         final long limit = 1000L;
-        final String filter = CD_TENANT_ID_PREFIX + TEST_STR;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID;
 
         when(vaultAdminMock.listAccounts(anyLong(),any(ListAccountsRequestDTO.class)))
                 .thenAnswer((Answer<ListAccountsResponseDTO>) invocation -> {

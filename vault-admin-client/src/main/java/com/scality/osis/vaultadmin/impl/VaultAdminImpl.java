@@ -354,7 +354,7 @@ public class VaultAdminImpl implements VaultAdmin{
    * @return the account
    */
   @Override
-  public AccountData getAccountWithID(GetAccountRequestDTO getAccountRequestDTO) {
+  public AccountData getAccount(GetAccountRequestDTO getAccountRequestDTO) {
     return ExternalServiceFactory.executeVaultService(vaultAccountClient::getAccount, getAccountRequestDTO);
   }
 }

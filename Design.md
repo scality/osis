@@ -91,6 +91,9 @@ This API will query tenants on Vault using a `filter` parameter.
     * `limit`: Maximum number of tenants to return (optional)
     * `filter` parameter
         * Usually the OSE passes only the `cd_tenant_id` field with a value under `filter` parameter
+        * If `cd_tenant_id` filter parameter is passed, `cd_tenant_id` value will be validated for UUID format.
+        * If `cd_tenant_id` filter value is in UUID format, `list-accounts` api will be invoked.
+        * If `cd_tenant_id` filter value is not in UUID format, `get-account` api will be invoked with the provided value.
     
 1. Vault `list-accounts` api will be called using vaultclient with parameters
     1. `marker` (if exists from `markerCache`)
@@ -177,7 +180,7 @@ This API will update the existing storage tenant with the provided `cd_tenant_id
 This API creates a user on Vault.
 1. `create-user` api will be called using assumed role credentials.
     * The tenant user's `cdUserId` is stored as `username` in the corresponding Vault user.
-    * The tenant user's `username`, `role` enum value, `emailAddress` and `cdTenantID` are stored in the Vault user path as `/<tenantUsername>/<roleEnumValue>/<email>/<cdTenantID>/`.
+    * The tenant user's `username`, `role` enum value, `emailAddress`, `cdTenantID` and account's `canonicalID` are stored in the Vault user path as `/<tenantUsername>/<roleEnumValue>/<email>/<cdTenantID>/<canonicalID>/`.
 1. The `get-policy` API will be called with the `userPolicy@[account-id]` policy name using assumed role credentials
 1. If the `get-policy` API does not return any policy, using the assumed role credentials creates an IAM managed policy with the `userPolicy@[account-id]` policy name with full S3 access.
 1. `attach-policy` for the new user will be called using the assumed role credentials and the policy arn formatted as `arn:aws:iam::[account-id]:policy/userPolicy@[account-id]`.
@@ -197,7 +200,9 @@ This API will list users on Vault.
 
 ### Query Users
 This API will query users on Vault using a `filter` parameter with the filters of `cd_tenant_id` and `display_name`.
-1. Extract the `cd_tenant_id` filter from the `filter` parameter to call `list-accounts` using vaultclient to retrieve the `accountID`.
+1. Extract the `cd_tenant_id` filter from the `filter` parameter.
+    1. If `cd_tenant_id` filter value is in the UUID format, it will be used to call `list-accounts` using vaultclient to retrieve the `accountID`.
+    1. If `cd_tenant_id` filter value is not in the UUID format, it will be considered as `accountID`.
 1. Use `accountID` to generate assumed role credentials for that particular account.
 1. Extract the `displayname` value from the `filter` parameter.
 1. The `list-users` API will be called using assumed role credentials with the `path-prefix` as `/<display_name>/`.

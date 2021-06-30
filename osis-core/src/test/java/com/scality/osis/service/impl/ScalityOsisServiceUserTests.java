@@ -128,6 +128,26 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
     }
 
     @Test
+    public void testQueryUsersWithNonUUID() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_TENANT_ID + QUERY_USER_FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
+        // cd_tenant_id==e7ecb16e-f6b7-4d34-ad4e-5da5d5c8317;display_name%3D%3D==name
+
+        // Run the test
+        final PageOfUsers response = scalityOsisServiceUnderTest.queryUsers(offset, limit, filter);
+
+        // Verify the results
+        assertEquals(1, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(1, response.getItems().size());
+        assertEquals(TEST_NAME, response.getItems().get(0).getUsername());
+        assertTrue(response.getItems().get(0).getTenantId().contains(SAMPLE_TENANT_ID));
+    }
+
+    @Test
     public void testQueryUsersInvalidCdTenantID() {
         // Setup
         final long offset = 0L;

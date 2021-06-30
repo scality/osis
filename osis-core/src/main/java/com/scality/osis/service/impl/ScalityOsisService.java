@@ -23,6 +23,7 @@ import com.scality.vaultclient.dto.AccountData;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.vmware.osis.model.*;
@@ -139,14 +140,28 @@ public class ScalityOsisService implements OsisService {
         if(filter.contains(CD_TENANT_ID_PREFIX)) {
             try {
                 logger.info("Query Tenants request received: offset={}, limit={}, filter ={}", offset, limit, filter);
-                ListAccountsRequestDTO listAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit, filter);
 
-                logger.debug("[Vault] List Accounts Request:{}", new Gson().toJson(listAccountsRequest));
-                ListAccountsResponseDTO listAccountsResponseDTO = vaultAdmin.listAccounts(offset, listAccountsRequest);
+                String cdTenantId = ScalityModelConverter.extractCdTenantId(filter);
 
-                logger.debug("[Vault] List Accounts response:{}", new Gson().toJson(listAccountsResponseDTO));
+                PageOfTenants pageOfTenants = null;
+                if(ScalityUtils.isValidUUID(cdTenantId)) {
 
-                PageOfTenants pageOfTenants = ScalityModelConverter.toPageOfTenants(listAccountsResponseDTO, offset, limit);
+                    ListAccountsRequestDTO listAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit, filter);
+
+                    logger.debug("[Vault] List Accounts Request:{}", new Gson().toJson(listAccountsRequest));
+                    ListAccountsResponseDTO listAccountsResponseDTO = vaultAdmin.listAccounts(offset, listAccountsRequest);
+
+                    logger.debug("[Vault] List Accounts response:{}", new Gson().toJson(listAccountsResponseDTO));
+
+                    pageOfTenants = ScalityModelConverter.toPageOfTenants(listAccountsResponseDTO, offset, limit);
+                } else {
+                    GetAccountRequestDTO getAccountRequest = ScalityModelConverter.toGetAccountRequestWithID(cdTenantId);
+
+                    logger.debug("[Vault] Get Account Request:{}", new Gson().toJson(getAccountRequest));
+
+                    AccountData account = vaultAdmin.getAccount(getAccountRequest);
+                    pageOfTenants = ScalityModelConverter.toPageOfTenants(account, offset, limit);
+                }
 
                 logger.info("Query Tenants response:{}", new Gson().toJson(pageOfTenants));
 
@@ -207,6 +222,9 @@ public class ScalityOsisService implements OsisService {
     public OsisUser createUser(OsisUser osisUser) {
         try {
             logger.info("Create User request received:{}", new Gson().toJson(osisUser));
+
+            AccountData accountData = vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(osisUser.getTenantId()));
+            osisUser.setCanonicalUserId(accountData.getCanonicalId());
 
             Credentials tempCredentials = getCredentials(osisUser.getTenantId());
             final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
@@ -277,9 +295,15 @@ public class ScalityOsisService implements OsisService {
 
                 String cdTenantIdFilter = ScalityModelConverter.extractCdTenantIdFilter(filter);
 
-                ListAccountsRequestDTO queryAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit, cdTenantIdFilter);
+                String cdTenantId = ScalityModelConverter.extractCdTenantId(cdTenantIdFilter);
 
-                tenantId = vaultAdmin.getAccountID(queryAccountsRequest);
+                if(ScalityUtils.isValidUUID(cdTenantId)) {
+                    ListAccountsRequestDTO queryAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit, cdTenantIdFilter);
+
+                    tenantId = vaultAdmin.getAccountID(queryAccountsRequest);
+                } else {
+                    tenantId = cdTenantId;
+                }
 
                 Credentials tempCredentials = getCredentials(tenantId);
                 final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
@@ -646,7 +670,7 @@ public class ScalityOsisService implements OsisService {
                 // If role does not exists, invoke setupAssumeRole
                 logger.error(ROLE_DOES_NOT_EXIST_ERR + ". Recreating the role");
                 // Call get Account with Account ID to retrieve account name
-                AccountData account = vaultAdmin.getAccountWithID(ScalityModelConverter.toGetAccountRequestWithID(accountID));
+                AccountData account = vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(accountID));
                 asyncScalityOsisService.setupAssumeRole(accountID, account.getName());
                 return getCredentials(accountID);
             }
@@ -733,7 +757,7 @@ public class ScalityOsisService implements OsisService {
     }
 
     private void generateAdminPolicy(String tenantId) throws Exception {
-        AccountData account = vaultAdmin.getAccountWithID(ScalityModelConverter.toGetAccountRequestWithID(tenantId));
+        AccountData account = vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId));
         asyncScalityOsisService.setupAdminPolicy(tenantId, account.getName(), appEnv.getAssumeRoleName());
     }
 
