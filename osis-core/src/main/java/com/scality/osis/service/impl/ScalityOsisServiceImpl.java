@@ -15,7 +15,6 @@ import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.redis.service.IRedisRepository;
 import com.scality.osis.service.ScalityOsisService;
 import com.scality.osis.utils.CipherFactory;
-import com.scality.osis.utils.ScalityConstants;
 import com.scality.osis.utils.ScalityUtils;
 import com.google.gson.Gson;
 import com.scality.osis.utils.ScalityModelConverter;
@@ -29,6 +28,7 @@ import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.vmware.osis.model.*;
+import com.vmware.osis.model.exception.NotFoundException;
 import com.vmware.osis.model.exception.NotImplementedException;
 import com.vmware.osis.resource.OsisCapsManager;
 import com.scality.osis.security.crypto.model.*;
@@ -49,12 +49,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
-import static com.scality.osis.utils.ScalityConstants.DISPLAY_NAME_PREFIX;
-import static com.scality.osis.utils.ScalityConstants.IAM_PREFIX;
-import static com.scality.osis.utils.ScalityConstants.NO_SUCH_ENTITY_ERR;
-import static com.scality.osis.utils.ScalityConstants.REDIS_SPRING_CACHE_TYPE;
-import static com.scality.osis.utils.ScalityConstants.ROLE_DOES_NOT_EXIST_ERR;
+import static com.scality.osis.utils.ScalityConstants.*;
 
 
 /**
@@ -84,7 +79,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     @Autowired
     private CipherFactory cipherFactory;
 
-    private Map<String, SecretKeyRepoData> springLocalCache = new ConcurrentHashMap<>();
+    private final Map<String, SecretKeyRepoData> springLocalCache = new ConcurrentHashMap<>();
 
     /**
      * Instantiates a new Scality osis service.
@@ -449,6 +444,63 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     }
 
     @Override
+    public OsisS3Credential getS3Credential(String tenantId, String userId, String accessKey) {
+
+        if(!StringUtils.isNullOrEmpty(tenantId) && !StringUtils.isNullOrEmpty(userId)) {
+            try {
+                logger.info("Get s3 credential request received:: tenant ID:{}, user ID:{}, accessKey:{}",
+                        tenantId, userId, accessKey);
+
+                Credentials tempCredentials = getCredentials(tenantId);
+                final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
+
+                ListAccessKeysRequest listAccessKeysRequest =  ScalityModelConverter.toIAMListAccessKeysRequest(userId, DEFAULT_MAX_LIMIT);
+
+                logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
+
+                ListAccessKeysResult listAccessKeysResult = iam.listAccessKeys(listAccessKeysRequest);
+
+                logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
+
+                Optional<AccessKeyMetadata> accessKeyResult = listAccessKeysResult.getAccessKeyMetadata()
+                        .stream()
+                        .filter(accessKeyMetadata -> accessKeyMetadata.getAccessKeyId().equals(accessKey))
+                        .findAny();
+
+                if(accessKeyResult.isPresent()) {
+                    AccessKeyMetadata accessKeyMetadata = accessKeyResult.get();
+
+                    String secretKey = retrieveSecretKey(ScalityModelConverter.toRepoKeyForCredentials(userId, accessKeyMetadata.getAccessKeyId()));
+
+                    OsisS3Credential osisCredential = ScalityModelConverter.toOsisS3Credentials(tenantId,
+                                                                                                accessKeyMetadata,
+                                                                                                secretKey);
+                    logger.info("Get S3 credential  response:{}", ScalityModelConverter.maskSecretKey(new Gson().toJson(osisCredential)));
+
+                    return  osisCredential;
+                } else {
+                    throw new NotFoundException("The S3 Credential doesn't exist for the given access key");
+                }
+
+            } catch (Exception e){
+
+                if(isAdminPolicyError(e)) {
+                    try {
+                        generateAdminPolicy(tenantId);
+                        return getS3Credential(tenantId, userId, accessKey);
+                    } catch (Exception ex) {
+                        e = ex;
+                    }
+                }
+                logger.error("Get S3 credential :: The S3 Credential doesn't exist for the given access key. Error details:", e);
+                throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+            }
+        } else {
+            throw new VaultServiceException(HttpStatus.NOT_FOUND, "TenantID and UserID are mandatory for this platform");
+        }
+    }
+
+    @Override
     public OsisTenant getTenant(String tenantId) {
         throw new NotImplementedException();
     }
@@ -466,7 +518,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             logger.debug("[Vault] Get Account response:{}", new Gson().toJson(account));
 
-            List<OsisUser> users = listUsers(account.getId(), ScalityConstants.DEFAULT_MIN_OFFSET,ScalityConstants.DEFAULT_MAX_LIMIT).getItems();
+            List<OsisUser> users = listUsers(account.getId(), DEFAULT_MIN_OFFSET, DEFAULT_MAX_LIMIT).getItems();
 
             final OsisUser osisUser = ScalityModelConverter.toCanonicalOsisUser(account, users);
 

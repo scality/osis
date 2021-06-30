@@ -275,8 +275,12 @@ This API deletes the S3 credential of the user.
 1. `delete-access-key` api will be called using assumed role credentials.
 
 ### Get S3 Credential
-This API return S3 credential of the user.
-1. `get-access-key` api will be called using assumed role credentials.
+This API return S3 credential of the user with the provided access key.
+1. `list-access-keys` api will be called using assumed role credentials.
+2. Extract the provided `access-key` details from the response
+3. Retrieve the secret key, formatted as `<Username>__<AccessKeyID>`, from Redis Sentinel.
+4. Decrypt the secret key (For more, see [SecretKey-Encryption-Strategy](#SecretKey-Encryption-Strategy)) and add it to the response.
+5. If the key is not present in the Redis Sentinel return the response with `secretKey` value as `Not Available`.
 
 ## Miscellaneous APIs:
 

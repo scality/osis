@@ -39,7 +39,7 @@ Legend
 | queryCredentials * | . | . | . |
 | listCredentials * | . | x | x |
 | createCredential * | . | x | x |
-| getCredential * | . | . | . |
+| getCredential * | . | . | x |
 | updateCredentialStatus | . | . | . |
 | deleteCredential | . | . | . |
 | getUsage | o | o | o |

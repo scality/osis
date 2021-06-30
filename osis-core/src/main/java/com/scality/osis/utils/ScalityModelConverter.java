@@ -101,7 +101,6 @@ public final class ScalityModelConverter {
 
     /**
      * Creates Vault List Access Keys request
-     * @param limit the max number of items
      *
      * @param username the IAM User's username
      * @param limit the max number of the access keys in the response
@@ -562,7 +561,23 @@ public final class ScalityModelConverter {
                 .tenantId(tenantId)
                 .cdTenantId(cdTenantId)
                 .username(username)
-                .creationDate(Instant.now());
+                .creationDate(Instant.now())
+                .immutable(Boolean.TRUE);
+    }
+
+    public static OsisS3Credential toOsisS3Credentials(String tenantId, AccessKeyMetadata accessKeyMetadata, String secretKey) {
+        OsisS3Credential s3Credential = new OsisS3Credential()
+                .accessKey(accessKeyMetadata.getAccessKeyId())
+                .active(accessKeyMetadata.getStatus()
+                        .equalsIgnoreCase(StatusType.Active.toString()))
+                .userId(accessKeyMetadata.getUserName())
+                .cdUserId(accessKeyMetadata.getUserName())
+                .tenantId(tenantId)
+                .creationDate(accessKeyMetadata.getCreateDate().toInstant())
+                .immutable(Boolean.TRUE)
+                .secretKey(StringUtils.isEmpty(secretKey) ? ScalityConstants.NOT_AVAILABLE : secretKey);
+
+        return s3Credential;
     }
 
     /**
@@ -613,7 +628,8 @@ public final class ScalityModelConverter {
                         .userId(accessKeyMetadata.getUserName())
                         .cdUserId(accessKeyMetadata.getUserName())
                         .tenantId(tenantId)
-                        .creationDate(accessKeyMetadata.getCreateDate().toInstant());
+                        .creationDate(accessKeyMetadata.getCreateDate().toInstant())
+                        .immutable(Boolean.TRUE);
             if(null != secretKeyMap.get(accessKeyMetadata.getAccessKeyId())) {
                 // If secret key is available, add credential object to the list
                 s3Credential.setSecretKey(secretKeyMap.get(accessKeyMetadata.getAccessKeyId()));

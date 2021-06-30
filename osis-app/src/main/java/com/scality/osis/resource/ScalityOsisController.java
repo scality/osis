@@ -297,7 +297,7 @@ public class ScalityOsisController {
             @Valid @RequestParam(value = "user_id", required = false) Optional<String> userId,
             @ApiParam(value = "The access key of the S3 credential to get", required = true)
             @PathVariable("accessKey") String accessKey) {
-        return osisService.getS3Credential(accessKey);
+        return osisService.getS3Credential(tenantId.orElse(""), userId.orElse(""), accessKey);
     }
 
 

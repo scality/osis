@@ -6,8 +6,10 @@
 
 package com.scality.osis.service;
 
+import com.vmware.osis.model.OsisS3Credential;
 import com.vmware.osis.service.OsisService;
 
 public interface ScalityOsisService extends OsisService {
+    OsisS3Credential getS3Credential(String tenantId, String userId, String accessKey);
 }
 
