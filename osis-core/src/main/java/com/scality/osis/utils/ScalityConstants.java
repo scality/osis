@@ -42,6 +42,8 @@ public final class ScalityConstants {
 
     public static final String NOT_AVAILABLE = "Not Available";
 
+    public static final String NON_OSIS_USR = "NON OSIS USER";
+
     public static final String DEFAULT_ACCOUNT_AK_DURATION_SECONDS = "120";
 
     public static final String DEFAULT_ADMIN_POLICY_DESCRIPTION = "This is a admin role policy created for OSIS to IAM actions using AssumeRole for the $ACCOUNTID account";

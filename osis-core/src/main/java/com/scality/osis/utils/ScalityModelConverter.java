@@ -465,7 +465,7 @@ public final class ScalityModelConverter {
     }
 
     private static String nameFromUserPath(String path) {
-        return path.split("/")[1];
+        return path.split("/").length > 1 ? path.split("/")[1] : NON_OSIS_USR;
     }
 
     private static OsisUser.RoleEnum roleFromUserPath(String path) {
