@@ -6,9 +6,17 @@
 
 package com.scality.osis.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.net.URI;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
+import static com.scality.osis.utils.ScalityConstants.FILTER_KEY_VALUE_SEPARATOR;
+import static com.scality.osis.utils.ScalityConstants.FILTER_SEPARATOR;
 import static com.scality.osis.utils.ScalityConstants.ICON_PATH;
 import static com.scality.osis.utils.ScalityConstants.UUID_REGEX;
 
@@ -33,4 +41,21 @@ public final class ScalityUtils {
         return UUID_REGEX_PATTERN.matcher(str).matches();
     }
 
+    public static Map<String, String> parseFilter(String filter) {
+        if (StringUtils.isBlank(filter)) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, String> kvMap = new HashMap<>();
+        Arrays.stream(StringUtils.split(filter, FILTER_SEPARATOR))
+                .filter(exp -> exp.contains(FILTER_KEY_VALUE_SEPARATOR) && exp.indexOf(FILTER_KEY_VALUE_SEPARATOR) == exp.lastIndexOf(FILTER_KEY_VALUE_SEPARATOR))
+                .forEach(exp -> {
+                    String[] kv = StringUtils.split(exp, FILTER_KEY_VALUE_SEPARATOR);
+                    if (kv.length == 2) {
+                        kvMap.put(kv[0], kv[1]);
+                    }
+
+                });
+        return kvMap;
+    }
 }
