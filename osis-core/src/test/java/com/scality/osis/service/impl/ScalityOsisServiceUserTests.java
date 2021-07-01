@@ -110,7 +110,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + QUERY_USER_FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
         // cd_tenant_id==e7ecb16e-f6b7-4d34-ad4e-5da5d5c8317;display_name%3D%3D==name
 
         when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenReturn(SAMPLE_TENANT_ID);
@@ -132,7 +132,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_TENANT_ID + QUERY_USER_FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
         // cd_tenant_id==e7ecb16e-f6b7-4d34-ad4e-5da5d5c8317;display_name%3D%3D==name
 
         // Run the test
@@ -152,7 +152,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + QUERY_USER_FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
         // cd_tenant_id==e7ecb16e-f6b7-4d34-ad4e-5da5d5c8317;display_name%3D%3D==name
 
         when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenThrow(
@@ -173,7 +173,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + QUERY_USER_FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
         // cd_tenant_id==e7ecb16e-f6b7-4d34-ad4e-5da5d5c8317;display_name%3D%3D==name
 
         when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenReturn(SAMPLE_TENANT_ID);
@@ -246,11 +246,72 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
     @Test
     public void testQueryS3Credentials() {
         // Setup
+        final String filter = TENANT_ID_PREFIX + TEST_TENANT_ID + FILTER_SEPARATOR + USER_ID_PREFIX + TEST_USER_ID ;
+        final long offset = 0L;
+        final long limit = 1000L;
+
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.queryS3Credentials(0L, 0L, "filter"), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        final PageOfS3Credentials pageOfS3Credentials = scalityOsisServiceUnderTest.queryS3Credentials(offset, limit, filter);
 
         // Verify the results
+        assertNotNull(pageOfS3Credentials.getItems());
+        assertEquals(TEST_TENANT_ID, pageOfS3Credentials.getItems().get(0).getTenantId());
+        assertEquals(TEST_USER_ID, pageOfS3Credentials.getItems().get(0).getCdUserId());
+        assertEquals(TEST_USER_ID, pageOfS3Credentials.getItems().get(0).getUserId());
+        assertTrue(pageOfS3Credentials.getPageInfo().getTotal() > 0);
+        assertEquals(offset, pageOfS3Credentials.getPageInfo().getOffset());
+        assertEquals(limit, pageOfS3Credentials.getPageInfo().getLimit());
+        assertFalse(pageOfS3Credentials.getItems().isEmpty());
+    }
+
+    @Test
+    public void testQueryS3CredentialsAccessKeyFilter() {
+        // Setup
+        final String filter = TENANT_ID_PREFIX + TEST_TENANT_ID
+                + FILTER_SEPARATOR
+                + USER_ID_PREFIX + TEST_USER_ID
+                +FILTER_SEPARATOR
+                + OSIS_ACCESS_KEY + FILTER_KEY_VALUE_SEPARATOR + TEST_ACCESS_KEY;
+        final long offset = 0L;
+        final long limit = 1000L;
+
+
+        // Run the test
+        final PageOfS3Credentials pageOfS3Credentials = scalityOsisServiceUnderTest.queryS3Credentials(offset, limit, filter);
+
+        // Verify the results
+        assertEquals(1, pageOfS3Credentials.getItems().size());
+        assertEquals(1, pageOfS3Credentials.getPageInfo().getTotal());
+        assertEquals(offset, pageOfS3Credentials.getPageInfo().getOffset());
+        assertEquals(limit, pageOfS3Credentials.getPageInfo().getLimit());
+
+        final OsisS3Credential result = pageOfS3Credentials.getItems().get(0);
+
+        assertEquals(TEST_USER_ID, result.getCdUserId());
+        assertEquals(TEST_USER_ID, result.getUserId());
+        assertEquals(TEST_TENANT_ID, result.getTenantId());
+        assertEquals(TEST_ACCESS_KEY, result.getAccessKey());
+        assertEquals(TEST_SECRET_KEY, result.getSecretKey());
+        assertTrue(result.getActive());
+        assertNotNull(result.getCreationDate());
+    }
+
+    @Test
+    public void testQueryS3CredentialsInvalidFilter() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+
+        // Run the test
+        final PageOfS3Credentials response = scalityOsisServiceUnderTest.queryS3Credentials(offset, limit, "");
+
+        // Verify the results
+        assertEquals(0L, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(0L, response.getItems().size());
+
     }
 
     @Test
