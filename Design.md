@@ -213,7 +213,10 @@ This API will return the user.
 
 ### Get User with Canonical ID
 This API will return the user.
-1. The `get-user` API will be called using assumed role credentials with canonical_id as username
+1. The `get-account` API will be called using vaultclient with the provided `canonical-id` and account details will be used to fill tenant details of the response.
+1. The `list-users` API will be called with `offset` as 0 and `limit` as 1000 and the last user values in the response will be used to fill the user details of the response.
+    * _`canonical-id` in Scality is defined with respect to an account and any specific user cannot be retrieved using only the `canonicalID`_
+    * `get-user-with-canonical-id` API will be called by OSE only when user APIs does not return the `canonical-id` for any user.  
 
 ### Head User
 This API will return if user exists or not.

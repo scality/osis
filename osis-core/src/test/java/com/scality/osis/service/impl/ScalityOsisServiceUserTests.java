@@ -284,13 +284,36 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
     }
 
     @Test
-    public void testGetUser1() {
+    public void testGetUserWithCanonicalID() {
         // Setup
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getUser("canonicalUserId"), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        final OsisUser osisUser = scalityOsisServiceUnderTest.getUser(TEST_CANONICAL_ID);
 
         // Verify the results
+        assertEquals(SAMPLE_TENANT_ID, osisUser.getTenantId());
+        assertEquals(SAMPLE_CD_TENANT_ID, osisUser.getCdTenantId());
+        assertEquals(TEST_CANONICAL_ID, osisUser.getCanonicalUserId());
+        assertNotNull(osisUser.getUserId());
+        assertNotNull(osisUser.getCdUserId());
+        assertNotNull(osisUser.getUsername());
+        assertNotNull(osisUser.getRole());
+        assertTrue(osisUser.getActive());
+
+        // Verify the results
+    }
+
+    @Test
+    public void testGetUserWithCanonicalIDErr() {
+        // Setup
+        when(vaultAdminMock.getAccount(any()))
+                .thenAnswer((Answer<AccountData>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.NOT_FOUND, "The Entity doesn't exist");
+                });
+
+        // Run the test
+        // Verify the results
+        assertThrows(VaultServiceException.class, () -> scalityOsisServiceUnderTest.getUser(TEST_CANONICAL_ID));
     }
 
     @Test

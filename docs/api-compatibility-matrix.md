@@ -35,7 +35,7 @@ Legend
 | headUser | . | . | . |
 | updateUserStatus * | . | . | . |
 | deleteUser * | . | . | . |
-| getUserWithCanonicalID * | . | . | . |
+| getUserWithCanonicalID * | . | . | x |
 | queryCredentials * | . | . | . |
 | listCredentials * | . | x | x |
 | createCredential * | . | x | x |

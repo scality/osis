@@ -14,6 +14,7 @@ import com.amazonaws.util.StringUtils;
 import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.redis.service.IRedisRepository;
 import com.scality.osis.utils.CipherFactory;
+import com.scality.osis.utils.ScalityConstants;
 import com.scality.osis.utils.ScalityUtils;
 import com.google.gson.Gson;
 import com.scality.osis.utils.ScalityModelConverter;
@@ -43,6 +44,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -453,7 +455,28 @@ public class ScalityOsisService implements OsisService {
 
     @Override
     public OsisUser getUser(String canonicalUserId) {
-        throw new NotImplementedException();
+        try {
+            logger.info("Get User w/ Canonical ID request received:: canonicalUserId ID:{}", canonicalUserId);
+
+            GetAccountRequestDTO getAccountRequest = ScalityModelConverter.toGetAccountRequestWithCanonicalID(canonicalUserId);
+
+            logger.debug("[Vault] Get Account Request:{}", new Gson().toJson(getAccountRequest));
+
+            AccountData account = vaultAdmin.getAccount(getAccountRequest);
+
+            logger.debug("[Vault] Get Account response:{}", new Gson().toJson(account));
+
+            List<OsisUser> users = listUsers(account.getId(), ScalityConstants.DEFAULT_MIN_OFFSET,ScalityConstants.DEFAULT_MAX_LIMIT).getItems();
+
+            final OsisUser osisUser = ScalityModelConverter.toCanonicalOsisUser(account, users);
+
+            logger.info("Get User w/ Canonical ID response:{}", new Gson().toJson(osisUser));
+
+            return osisUser;
+        } catch (Exception e){
+            logger.error("The tenant doesn't exist. Error details: ", e);
+            throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        }
     }
 
     @Override
