@@ -391,7 +391,33 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public PageOfS3Credentials queryS3Credentials(long offset, long limit, String filter) {
-        throw new NotImplementedException();
+        if(filter.contains(TENANT_ID_PREFIX) && filter.contains(USER_ID_PREFIX)) {
+            Map<String, String> kvMap = ScalityUtils.parseFilter(filter);
+            String tenantId = kvMap.get(OSIS_TENANT_ID);
+            String userId = kvMap.get(OSIS_USER_ID);
+            String accessKey = kvMap.get(OSIS_ACCESS_KEY);
+
+            if(StringUtils.isNullOrEmpty(accessKey)) {
+                return listS3Credentials(tenantId, userId, offset, limit);
+            } else {
+
+                try {
+                    return ScalityModelConverter.toPageOfS3Credentials(
+                                                                        getS3Credential(tenantId, userId, accessKey, limit),
+                                                                        offset,
+                                                                        limit);
+
+                } catch (Exception e) {
+                    logger.error("Query S3 credential :: The S3 Credential doesn't exist for the given access key. Error details:", e);
+                    // For errors, Query Credentials should return empty PageOfS3Credentials
+                    return ScalityModelConverter.getEmptyPageOfS3Credentials(offset, limit);
+                }
+            }
+        } else {
+            logger.error("QueryS3Credentials requested with invalid filter. Returns empty set of credentials");
+            // For errors, Query Credentials should return empty PageOfS3Credentials
+            return ScalityModelConverter.getEmptyPageOfS3Credentials(offset, limit);
+        }
     }
 
     @Override
@@ -445,6 +471,10 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public OsisS3Credential getS3Credential(String tenantId, String userId, String accessKey) {
+        return getS3Credential(tenantId, userId, accessKey, DEFAULT_MAX_LIMIT);
+    }
+
+    private OsisS3Credential getS3Credential(String tenantId, String userId, String accessKey, long limit) {
 
         if(!StringUtils.isNullOrEmpty(tenantId) && !StringUtils.isNullOrEmpty(userId)) {
             try {
@@ -454,7 +484,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 Credentials tempCredentials = getCredentials(tenantId);
                 final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
 
-                ListAccessKeysRequest listAccessKeysRequest =  ScalityModelConverter.toIAMListAccessKeysRequest(userId, DEFAULT_MAX_LIMIT);
+                ListAccessKeysRequest listAccessKeysRequest =  ScalityModelConverter.toIAMListAccessKeysRequest(userId, limit);
 
                 logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
 
@@ -473,8 +503,8 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                     String secretKey = retrieveSecretKey(ScalityModelConverter.toRepoKeyForCredentials(userId, accessKeyMetadata.getAccessKeyId()));
 
                     OsisS3Credential osisCredential = ScalityModelConverter.toOsisS3Credentials(tenantId,
-                                                                                                accessKeyMetadata,
-                                                                                                secretKey);
+                            accessKeyMetadata,
+                            secretKey);
                     logger.info("Get S3 credential  response:{}", ScalityModelConverter.maskSecretKey(new Gson().toJson(osisCredential)));
 
                     return  osisCredential;
@@ -631,15 +661,8 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             logger.error("ListS3Credentials error. Returning empty list. Error details: ", e);
             // For errors, ListS3Credentials should return empty PageOfS3Credentials
-            PageInfo pageInfo = new PageInfo();
-            pageInfo.setLimit(limit);
-            pageInfo.setOffset(offset);
-            pageInfo.setTotal(0L);
 
-            PageOfS3Credentials pageOfS3Credentials = new PageOfS3Credentials();
-            pageOfS3Credentials.setItems(new ArrayList<>());
-            pageOfS3Credentials.setPageInfo(pageInfo);
-            return pageOfS3Credentials;
+            return ScalityModelConverter.getEmptyPageOfS3Credentials(offset, limit);
         }
     }
 

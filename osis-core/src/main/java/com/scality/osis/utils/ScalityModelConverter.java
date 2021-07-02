@@ -356,12 +356,12 @@ public final class ScalityModelConverter {
     }
 
     public static String extractCdTenantIdFilter(String filter) {
-        String[] filters = filter.split(QUERY_USER_FILTER_SEPARATOR);
+        String[] filters = filter.split(FILTER_SEPARATOR);
         return filters[0].contains(CD_TENANT_ID_PREFIX) ? filters[0] : filters[1];
     }
 
     public static String extractOsisUserName(String filter) {
-        String[] filters = filter.split(QUERY_USER_FILTER_SEPARATOR);
+        String[] filters = filter.split(FILTER_SEPARATOR);
         String osisUserNameFilter = filters[0].contains(DISPLAY_NAME_PREFIX) ? filters[0] : filters[1];
         return osisUserNameFilter.split(FILTER_KEY_VALUE_SEPARATOR) [1];
     }
@@ -652,6 +652,38 @@ public final class ScalityModelConverter {
 
         PageOfS3Credentials pageOfS3Credentials = new PageOfS3Credentials();
         pageOfS3Credentials.items(credentials);
+        pageOfS3Credentials.setPageInfo(pageInfo);
+        return pageOfS3Credentials;
+    }
+
+    /**
+     * Empty Page of OSIS S3 Credentials
+     *
+     * @param offset
+     * @param limit
+     * @return the page of credentials
+     */
+    public static PageOfS3Credentials getEmptyPageOfS3Credentials(long offset, long limit) {
+        return toPageOfS3Credentials(null, offset, limit);
+    }
+
+    /**
+     * Converts IAM List access keys response to OSIS S3 Credentials
+     *
+     * @param osisS3Credential the s3credential
+     * @param offset
+     * @param limit
+     * @return the page of s3credentials
+     */
+    public static PageOfS3Credentials toPageOfS3Credentials(OsisS3Credential osisS3Credential, long offset, long limit) {
+
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setLimit(limit);
+        pageInfo.setOffset(offset);
+        pageInfo.setTotal( (osisS3Credential == null) ? 0 : 1l );
+
+        PageOfS3Credentials pageOfS3Credentials = new PageOfS3Credentials();
+        pageOfS3Credentials.items( (osisS3Credential == null) ? new ArrayList<>() : Collections.singletonList(osisS3Credential));
         pageOfS3Credentials.setPageInfo(pageInfo);
         return pageOfS3Credentials;
     }

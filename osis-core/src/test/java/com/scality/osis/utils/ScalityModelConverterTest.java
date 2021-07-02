@@ -616,6 +616,33 @@ public class ScalityModelConverterTest {
     }
 
     @Test
+    public void testToPageOfS3Credentials2() {
+        // Setup
+
+        final OsisS3Credential s3Credential = new OsisS3Credential();
+        s3Credential.tenantId(TEST_TENANT_ID);
+        s3Credential.userId(TEST_USER_ID);
+        s3Credential.cdUserId(TEST_USER_ID);
+        s3Credential.accessKey(TEST_ACCESS_KEY);
+        s3Credential.secretKey(TEST_SECRET_KEY);
+
+        // Run the test
+        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(s3Credential, 0, 1000);
+
+        // Verify the results
+        assertEquals(1, pageOfS3Credentials.getItems().size());
+        assertNotNull(pageOfS3Credentials.getPageInfo());
+
+        final OsisS3Credential result = pageOfS3Credentials.getItems().get(0);
+
+        assertEquals(TEST_USER_ID, result.getCdUserId());
+        assertEquals(TEST_USER_ID, result.getUserId());
+        assertEquals(TEST_TENANT_ID, result.getTenantId());
+        assertEquals(TEST_ACCESS_KEY, result.getAccessKey());
+        assertEquals(TEST_SECRET_KEY, result.getSecretKey());
+    }
+
+    @Test
     public void testMaskSecretKey() {
         // Setup
         final String sampleLog = "{\"items\":[{\"accessKey\":\"MGUWBY4ORDS8RKUQM86P\",\"secretKey\":\"4t3peduUGjO4HYIKJZ54\\u003dGmsfgIP8HCyMS6coVfc\",\"active\":true,\"creationDate\":{\"seconds\":1623302064,\"nanos\":0},\"tenantId\":\"475396941524\",\"userId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\",\"cdUserId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\"},{\"accessKey\":\"WWA4UPWFA5EM1MKZE8ZC\",\"secretKey\":\"zjwsRPUA3SUP9aRcVc/+NUO/PPz+F77sVICwCKi\\u003d\",\"active\":true,\"creationDate\":{\"seconds\":1623301987,\"nanos\":0},\"tenantId\":\"475396941524\",\"userId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\",\"cdUserId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\"}],\"pageInfo\":{\"limit\":1000,\"offset\":0,\"total\":2}}" ;

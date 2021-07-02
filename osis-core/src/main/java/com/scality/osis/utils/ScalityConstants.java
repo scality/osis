@@ -16,6 +16,14 @@ public final class ScalityConstants {
 
     public static final String DISPLAY_NAME_PREFIX = "display_name==";
 
+    public static final String TENANT_ID_PREFIX = "tenant_id==";
+
+    public static final String USER_ID_PREFIX = "user_id==";
+
+    public static final String OSIS_TENANT_ID = "tenant_id";
+    public static final String OSIS_USER_ID = "user_id";
+    public static final String OSIS_ACCESS_KEY = "access_key";
+
     public static final String ROLE_ARN_FORMAT = "arn:aws:iam::$ACCOUNTID:role/$ROLENAME";
 
     public static final String ACCOUNT_ID_REGEX = "$ACCOUNTID";
@@ -26,7 +34,7 @@ public final class ScalityConstants {
 
     public static final String SEPARATOR = ".";
 
-    public static final String QUERY_USER_FILTER_SEPARATOR = ";";
+    public static final String FILTER_SEPARATOR = ";";
 
     public static final String FILTER_KEY_VALUE_SEPARATOR = "==";
 
