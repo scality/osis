@@ -20,6 +20,7 @@ import java.util.Map;
 import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_USER_POLICY_DOCUMENT;
 import static com.scality.osis.utils.ScalityConstants.MASKED_SENSITIVE_DATA_STR;
+import static com.scality.osis.utils.ScalityConstants.NOT_AVAILABLE;
 import static com.scality.osis.utils.ScalityTestUtils.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -357,6 +358,50 @@ public class ScalityModelConverterTest {
     }
 
     @Test
+    public void testToOsisS3Credentials2() {
+        // Setup
+        final AccessKeyMetadata accesskeyMetaData = new AccessKeyMetadata()
+                .withAccessKeyId(TEST_ACCESS_KEY)
+                .withCreateDate(new Date())
+                .withStatus(StatusType.Active)
+                .withUserName(TEST_USER_ID);
+
+        // Run the test
+        final OsisS3Credential result = ScalityModelConverter.toOsisS3Credentials(TEST_TENANT_ID, accesskeyMetaData, TEST_SECRET_KEY);
+
+        // Verify the results
+        assertEquals(TEST_USER_ID, result.getCdUserId());
+        assertEquals(TEST_USER_ID, result.getUserId());
+        assertEquals(TEST_TENANT_ID, result.getTenantId());
+        assertEquals(TEST_ACCESS_KEY, result.getAccessKey());
+        assertEquals(TEST_SECRET_KEY, result.getSecretKey());
+        assertTrue(result.getActive());
+        assertNotNull(result.getCreationDate());
+    }
+
+    @Test
+    public void testToOsisS3Credentials2EmptySecretKey() {
+        // Setup
+        final AccessKeyMetadata accesskeyMetaData = new AccessKeyMetadata()
+                .withAccessKeyId(TEST_ACCESS_KEY)
+                .withCreateDate(new Date())
+                .withStatus(StatusType.Active)
+                .withUserName(TEST_USER_ID);
+
+        // Run the test
+        final OsisS3Credential result = ScalityModelConverter.toOsisS3Credentials(TEST_TENANT_ID, accesskeyMetaData, null);
+
+        // Verify the results
+        assertEquals(TEST_USER_ID, result.getCdUserId());
+        assertEquals(TEST_USER_ID, result.getUserId());
+        assertEquals(TEST_TENANT_ID, result.getTenantId());
+        assertEquals(TEST_ACCESS_KEY, result.getAccessKey());
+        assertEquals(NOT_AVAILABLE, result.getSecretKey());
+        assertTrue(result.getActive());
+        assertNotNull(result.getCreationDate());
+    }
+
+    @Test
     public void testToIAMListUsersRequest() {
         // Setup
         // Run the test
@@ -566,7 +611,7 @@ public class ScalityModelConverterTest {
         assertEquals(TEST_USER_ID , resultWithNoSecret.getUserId());
         assertEquals(SAMPLE_TENANT_ID, resultWithNoSecret.getTenantId());
         assertEquals(TEST_ACCESS_KEY_2, resultWithNoSecret.getAccessKey());
-        assertEquals(ScalityConstants.NOT_AVAILABLE, resultWithNoSecret.getSecretKey());
+        assertEquals(NOT_AVAILABLE, resultWithNoSecret.getSecretKey());
 
     }
 

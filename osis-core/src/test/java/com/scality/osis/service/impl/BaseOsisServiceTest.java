@@ -35,7 +35,7 @@ public class BaseOsisServiceTest {
     @Mock
     protected static VaultAdminImpl vaultAdminMock;
 
-    protected static ScalityOsisService scalityOsisServiceUnderTest;
+    protected static ScalityOsisServiceImpl scalityOsisServiceUnderTest;
 
     protected static AsyncScalityOsisService asyncScalityOsisServiceUnderTest;
 
@@ -61,7 +61,7 @@ public class BaseOsisServiceTest {
     protected void init() {
         MockitoAnnotations.initMocks( this );
         initMocks();
-        scalityOsisServiceUnderTest = new ScalityOsisService(appEnvMock, vaultAdminMock, osisCapsManagerMock);
+        scalityOsisServiceUnderTest = new ScalityOsisServiceImpl(appEnvMock, vaultAdminMock, osisCapsManagerMock);
 
         asyncScalityOsisServiceUnderTest = new AsyncScalityOsisService();
         ReflectionTestUtils.setField(asyncScalityOsisServiceUnderTest, "vaultAdmin", vaultAdminMock);
