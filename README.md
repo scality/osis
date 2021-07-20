@@ -41,11 +41,11 @@ This project is for OSIS, which integrates [Scality RING](https://www.scality.co
    Local build image:
     ```sh
      $ docker run \
-       --env-file application.properties \
        -it \
        -p 8443:8443 \
        -v <absolute_path_to_.p12_file>:/app/lib/osis.p12:ro,z \
-       -v <absolute_path_to_crypto.yml_file>:/app/config/crypto.yml:ro,z \
+       -v <absolute_path_to_crypto.yml_file>:/conf/crypto.yml:ro,z \
+       -v <absolute_path_to_application.properties_file>:/conf/application.properties:ro,z \
        <local_image_name>
     ```
    dev:
@@ -55,7 +55,8 @@ This project is for OSIS, which integrates [Scality RING](https://www.scality.co
        -it \
        -p 8443:8443 \
        -v <absolute_path_to_.p12_file>:/app/lib/osis.p12:ro,z \
-       -v <absolute_path_to_crypto.yml_file>:/app/config/crypto.yml:ro,z \
+       -v <absolute_path_to_crypto.yml_file>:/conf/crypto.yml:ro,z \
+       -v <absolute_path_to_application.properties_file>:/conf/application.properties:ro,z \
        registry.scality.com/vmware-ose-scality-dev/vmware-ose-scality:<short SHA-1 commit hash>
     ```
    Production image:
@@ -65,7 +66,8 @@ This project is for OSIS, which integrates [Scality RING](https://www.scality.co
        -it \
        -p 8443:8443 \
        -v <absolute_path_to_.p12_file>:/app/lib/osis.p12:ro,z \
-       -v <absolute_path_to_crypto.yml_file>:/app/config/crypto.yml:ro,z \
+       -v <absolute_path_to_crypto.yml_file>:/conf/crypto.yml:ro,z \
+       -v <absolute_path_to_application.properties_file>:/conf/application.properties:ro,z \
        registry.scality.com/vmware-ose-scality/vmware-ose-scality:<tag>
     ```
 
