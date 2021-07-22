@@ -33,7 +33,13 @@ jacocoTestReport {
                     "**/com/scality/osis/configuration/*.*",
                     "**/com/scality/osis/*.*",
                     "**/com/scality/osis/security/basic/*.*",
-                    "**/com/scality/osis/utils/YamlPropertySourceFactory.*"
+                    "**/com/scality/osis/security/crypto/model/*.*",
+                    "**/com/scality/osis/security/crypto/CryptoEnv*.*",
+                    "**/com/scality/osis/security/utils/YamlPropertySourceFactory.*",
+                    "**/com/scality/osis/security/utils/SecurityConstants.*",
+
+                    /*Ignore external library*/
+                    "**/com/scality/osis/security/crypto/Hkdf*.*"
             ])
         }))
     }
@@ -57,7 +63,11 @@ jacocoTestCoverageVerification {
                     /*Ignore config classes*/
                     "**/com/scality/osis/configuration/*.*",
                     "**/com/scality/osis/*.*",
-                    "**/com/scality/osis/security/**/*.*"
+                    "**/com/scality/osis/security/**/*.*",
+                    "**/com/scality/osis/security/crypto/**/*.*",
+
+                    /*Ignore external library*/
+                    "**/com/scality/osis/security/crypto/Hkdf.*"
             ])
         }))
     }

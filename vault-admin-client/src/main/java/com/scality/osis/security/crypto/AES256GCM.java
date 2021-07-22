@@ -27,9 +27,9 @@ import java.security.spec.AlgorithmParameterSpec;
 import java.util.Arrays;
 import java.util.Base64;
 
-import static com.scality.osis.utils.ScalityConstants.DEFAULT_AES_GCM_256_KEY_LENGTH;
-import static com.scality.osis.utils.ScalityConstants.DEFAULT_AES_GCM_NONCE_LENGTH;
-import static com.scality.osis.utils.ScalityConstants.DEFAULT_AES_GCM_TAG_LENGTH;
+import static com.scality.osis.security.utils.SecurityConstants.DEFAULT_AES_GCM_256_KEY_LENGTH;
+import static com.scality.osis.security.utils.SecurityConstants.DEFAULT_AES_GCM_NONCE_LENGTH;
+import static com.scality.osis.security.utils.SecurityConstants.DEFAULT_AES_GCM_TAG_LENGTH;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.crypto.Cipher.DECRYPT_MODE;
 
