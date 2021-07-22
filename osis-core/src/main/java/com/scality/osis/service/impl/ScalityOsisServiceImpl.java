@@ -14,7 +14,7 @@ import com.amazonaws.util.StringUtils;
 import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.redis.service.IRedisRepository;
 import com.scality.osis.service.ScalityOsisService;
-import com.scality.osis.utils.CipherFactory;
+import com.scality.osis.security.utils.CipherFactory;
 import com.scality.osis.utils.ScalityUtils;
 import com.google.gson.Gson;
 import com.scality.osis.utils.ScalityModelConverter;

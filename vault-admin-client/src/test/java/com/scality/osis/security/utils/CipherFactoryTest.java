@@ -1,4 +1,4 @@
-package com.scality.osis.utils;
+package com.scality.osis.security.utils;
 
 import com.scality.osis.security.crypto.AES256GCM;
 import com.scality.osis.security.crypto.BaseCipher;
@@ -12,9 +12,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.scality.osis.utils.ScalityConstants.NAME_AES_256_GCM_CIPHER;
-import static com.scality.osis.utils.ScalityTestUtils.TEST_CIPHER_ID;
-import static com.scality.osis.utils.ScalityTestUtils.TEST_CIPHER_SECRET_KEY;
+import static com.scality.osis.security.utils.SecurityConstants.NAME_AES_256_GCM_CIPHER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -36,9 +34,9 @@ public class CipherFactoryTest {
 
     private void initMocks() {
         final CryptoEnv.CipherKey cipherKey = new CryptoEnv.CipherKey();
-        cipherKey.setId(TEST_CIPHER_ID);
+        cipherKey.setId(ScalitySecurityTestUtils.TEST_CIPHER_ID);
         cipherKey.setCipher(NAME_AES_256_GCM_CIPHER);
-        cipherKey.setSecretKey(TEST_CIPHER_SECRET_KEY);
+        cipherKey.setSecretKey(ScalitySecurityTestUtils.TEST_CIPHER_SECRET_KEY);
         final List<CryptoEnv.CipherKey> keys = new ArrayList<>();
         keys.add(cipherKey);
 
@@ -53,7 +51,7 @@ public class CipherFactoryTest {
         final String result = cipherFactoryUnderTest.getLatestSecretCipherKey();
 
         // Verify the results
-        assertThat(result).isEqualTo(TEST_CIPHER_SECRET_KEY);
+        assertThat(result).isEqualTo(ScalitySecurityTestUtils.TEST_CIPHER_SECRET_KEY);
     }
 
     @Test
@@ -61,10 +59,10 @@ public class CipherFactoryTest {
         // Setup
 
         // Run the test
-        final String result = cipherFactoryUnderTest.getSecretCipherKeyByID(TEST_CIPHER_ID);
+        final String result = cipherFactoryUnderTest.getSecretCipherKeyByID(ScalitySecurityTestUtils.TEST_CIPHER_ID);
 
         // Verify the results
-        assertThat(result).isEqualTo(TEST_CIPHER_SECRET_KEY);
+        assertThat(result).isEqualTo(ScalitySecurityTestUtils.TEST_CIPHER_SECRET_KEY);
     }
 
     @Test
@@ -75,7 +73,7 @@ public class CipherFactoryTest {
         final String result = cipherFactoryUnderTest.getLatestCipherID();
 
         // Verify the results
-        assertThat(result).isEqualTo(TEST_CIPHER_ID);
+        assertThat(result).isEqualTo(ScalitySecurityTestUtils.TEST_CIPHER_ID);
     }
 
     @Test
@@ -105,7 +103,7 @@ public class CipherFactoryTest {
         // Setup
 
         // Run the test
-        final BaseCipher result = cipherFactoryUnderTest.getCipherByID(TEST_CIPHER_ID);
+        final BaseCipher result = cipherFactoryUnderTest.getCipherByID(ScalitySecurityTestUtils.TEST_CIPHER_ID);
 
         // Verify the results
         assertThat(result).isInstanceOf(AES256GCM.class);

@@ -1,4 +1,4 @@
-package com.scality.osis.utils;
+package com.scality.osis.security.utils;
 
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.env.PropertiesPropertySource;
