@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.scality.osis.utils;
+package com.scality.osis.security.utils;
 
 import com.scality.osis.security.crypto.AES256GCM;
 import com.scality.osis.security.crypto.BaseCipher;
@@ -15,7 +15,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 
-import static com.scality.osis.utils.ScalityConstants.NAME_AES_256_GCM_CIPHER;
+import static com.scality.osis.security.utils.SecurityConstants.NAME_AES_256_GCM_CIPHER;
+
 
 /**
  * The factory class for all Ciphers.

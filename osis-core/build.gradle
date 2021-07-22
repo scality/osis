@@ -1,7 +1,5 @@
 dependencies {
     compile project(':vault-admin-client')
-    implementation 'org.projectlombok:lombok:1.18.16'
-    annotationProcessor 'org.projectlombok:lombok:1.18.16'
 }
 test {
     useJUnitPlatform()

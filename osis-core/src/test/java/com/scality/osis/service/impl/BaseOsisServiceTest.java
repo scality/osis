@@ -8,7 +8,7 @@ import com.scality.osis.redis.service.ScalityRedisRepository;
 import com.scality.osis.security.crypto.BaseCipher;
 import com.scality.osis.security.crypto.model.CipherInformation;
 import com.scality.osis.security.crypto.model.SecretKeyRepoData;
-import com.scality.osis.utils.CipherFactory;
+import com.scality.osis.security.utils.CipherFactory;
 import com.scality.osis.vaultadmin.impl.VaultAdminImpl;
 import com.scality.osis.vaultadmin.impl.cache.*;
 import com.scality.vaultclient.dto.*;
@@ -24,6 +24,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.security.SecureRandom;
 import java.util.*;
 
+import static com.scality.osis.security.utils.SecurityConstants.DEFAULT_AES_GCM_TAG_LENGTH;
+import static com.scality.osis.security.utils.SecurityConstants.NAME_AES_256_GCM_CIPHER;
 import static com.scality.osis.utils.ScalityConstants.*;
 import static com.scality.osis.utils.ScalityTestUtils.*;
 import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.*;

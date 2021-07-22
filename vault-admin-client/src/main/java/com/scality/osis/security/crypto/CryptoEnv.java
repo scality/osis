@@ -5,7 +5,7 @@
 
 package com.scality.osis.security.crypto;
 
-import com.scality.osis.utils.YamlPropertySourceFactory;
+import com.scality.osis.security.utils.YamlPropertySourceFactory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
