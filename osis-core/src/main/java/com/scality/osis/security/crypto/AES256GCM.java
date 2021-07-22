@@ -5,23 +5,33 @@
 
 package com.scality.osis.security.crypto;
 
+import com.google.common.base.Throwables;
 import com.scality.osis.security.crypto.model.AES256GCMInformation;
-import com.scality.osis.security.crypto.model.CipherInformation;
+import com.scality.osis.security.crypto.model.EncryptedAdminCredentials;
 import com.scality.osis.security.crypto.model.SecretKeyRepoData;
 import org.springframework.util.StringUtils;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
+import java.util.Arrays;
 import java.util.Base64;
 
+import static com.scality.osis.utils.ScalityConstants.DEFAULT_AES_GCM_256_KEY_LENGTH;
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_AES_GCM_NONCE_LENGTH;
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_AES_GCM_TAG_LENGTH;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static javax.crypto.Cipher.DECRYPT_MODE;
 
 public final class AES256GCM implements BaseCipher {
     private final SecureRandom secureRandom = new SecureRandom();
@@ -90,5 +100,59 @@ public final class AES256GCM implements BaseCipher {
         byte[] plainText = cipher.doFinal(cipherMessageBytes);
 
         return new String(plainText, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Decrypts content previously encrypted by Vault
+     * @param key  a master key string
+     * @param adminCredentials  adminCredentials object with cipherText, salt, tag
+     * @param info Information string used to decrypt the cipherText
+     * @return original plaintext without padding
+     */
+    public String decryptHKDF(String key, EncryptedAdminCredentials adminCredentials, String info) {
+        try {
+            String salt = adminCredentials.getSalt();
+            String tag = adminCredentials.getTag();
+            String cipherText = adminCredentials.getValue();
+            //key derivation
+            byte[] derivedKeyBytes = deriveKey(Base64.getDecoder().decode(salt),
+                    key.getBytes(StandardCharsets.UTF_8),
+                    info.getBytes(StandardCharsets.UTF_8));
+
+            byte[] keyBytes = Arrays.copyOfRange(derivedKeyBytes, 0, DEFAULT_AES_GCM_256_KEY_LENGTH);
+            byte[] ivBytes = Arrays.copyOfRange(derivedKeyBytes, DEFAULT_AES_GCM_256_KEY_LENGTH, (DEFAULT_AES_GCM_256_KEY_LENGTH + DEFAULT_AES_GCM_NONCE_LENGTH));
+
+            SecretKey derivedKey = new SecretKeySpec(keyBytes, "AES");
+
+
+
+            // decryption part
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            GCMParameterSpec gcmParameters = new GCMParameterSpec(DEFAULT_AES_GCM_TAG_LENGTH, ivBytes);
+
+            cipher.init(DECRYPT_MODE, derivedKey, gcmParameters);
+
+            cipher.update(Base64.getDecoder().decode(cipherText));
+            return new String(cipher.doFinal(Base64.getDecoder().decode(tag)), UTF_8);
+
+        } catch (IllegalBlockSizeException | InvalidAlgorithmParameterException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    /**
+     * Derives the key by Extracting and Expanding using HKDF
+     * @param salt  salt bytes
+     * @param key key bytes
+     * @param info info bytes used to expand
+     * @return symmetric key used in original encryption by Vault
+     */
+    private byte[] deriveKey(byte[] salt, byte[] key, byte[] info) {
+        Hkdf hkdf = Hkdf.usingHash(Hkdf.Hash.SHA256);
+
+        SecretKey secretKey = hkdf.extract(new SecretKeySpec(salt, Hkdf.Hash.SHA256.getAlgorithm()), key);
+
+        return hkdf.expand(secretKey, info, (DEFAULT_AES_GCM_256_KEY_LENGTH + DEFAULT_AES_GCM_NONCE_LENGTH));
+
     }
 }
