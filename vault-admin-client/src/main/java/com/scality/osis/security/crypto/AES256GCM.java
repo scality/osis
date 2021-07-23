@@ -5,23 +5,16 @@
 
 package com.scality.osis.security.crypto;
 
-import com.google.common.base.Throwables;
 import com.scality.osis.security.crypto.model.AES256GCMInformation;
 import com.scality.osis.security.crypto.model.EncryptedAdminCredentials;
 import com.scality.osis.security.crypto.model.SecretKeyRepoData;
 import org.springframework.util.StringUtils;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Arrays;
@@ -109,35 +102,29 @@ public final class AES256GCM implements BaseCipher {
      * @param info Information string used to decrypt the cipherText
      * @return original plaintext without padding
      */
-    public String decryptHKDF(String key, EncryptedAdminCredentials adminCredentials, String info) {
-        try {
-            String salt = adminCredentials.getSalt();
-            String tag = adminCredentials.getTag();
-            String cipherText = adminCredentials.getValue();
-            //key derivation
-            byte[] derivedKeyBytes = deriveKey(Base64.getDecoder().decode(salt),
-                    key.getBytes(StandardCharsets.UTF_8),
-                    info.getBytes(StandardCharsets.UTF_8));
+    public String decryptHKDF(String key, EncryptedAdminCredentials adminCredentials, String info) throws Exception {
+        String salt = adminCredentials.getSalt();
+        String tag = adminCredentials.getTag();
+        String cipherText = adminCredentials.getValue();
 
-            byte[] keyBytes = Arrays.copyOfRange(derivedKeyBytes, 0, DEFAULT_AES_GCM_256_KEY_LENGTH);
-            byte[] ivBytes = Arrays.copyOfRange(derivedKeyBytes, DEFAULT_AES_GCM_256_KEY_LENGTH, (DEFAULT_AES_GCM_256_KEY_LENGTH + DEFAULT_AES_GCM_NONCE_LENGTH));
+        //key derivation
+        byte[] derivedKeyBytes = deriveKey(Base64.getDecoder().decode(salt),
+                key.getBytes(StandardCharsets.UTF_8),
+                info.getBytes(StandardCharsets.UTF_8));
 
-            SecretKey derivedKey = new SecretKeySpec(keyBytes, "AES");
+        byte[] keyBytes = Arrays.copyOfRange(derivedKeyBytes, 0, DEFAULT_AES_GCM_256_KEY_LENGTH);
+        byte[] ivBytes = Arrays.copyOfRange(derivedKeyBytes, DEFAULT_AES_GCM_256_KEY_LENGTH, (DEFAULT_AES_GCM_256_KEY_LENGTH + DEFAULT_AES_GCM_NONCE_LENGTH));
 
+        SecretKey derivedKey = new SecretKeySpec(keyBytes, "AES");
 
+        // decryption part
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        GCMParameterSpec gcmParameters = new GCMParameterSpec(DEFAULT_AES_GCM_TAG_LENGTH, ivBytes);
 
-            // decryption part
-            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-            GCMParameterSpec gcmParameters = new GCMParameterSpec(DEFAULT_AES_GCM_TAG_LENGTH, ivBytes);
+        cipher.init(DECRYPT_MODE, derivedKey, gcmParameters);
 
-            cipher.init(DECRYPT_MODE, derivedKey, gcmParameters);
-
-            cipher.update(Base64.getDecoder().decode(cipherText));
-            return new String(cipher.doFinal(Base64.getDecoder().decode(tag)), UTF_8);
-
-        } catch (IllegalBlockSizeException | InvalidAlgorithmParameterException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | BadPaddingException e) {
-            throw Throwables.propagate(e);
-        }
+        cipher.update(Base64.getDecoder().decode(cipherText));
+        return new String(cipher.doFinal(Base64.getDecoder().decode(tag)), UTF_8);
     }
 
     /**
