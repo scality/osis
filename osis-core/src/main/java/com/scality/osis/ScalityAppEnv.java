@@ -6,6 +6,7 @@
 
 package com.scality.osis;
 
+import com.scality.osis.vaultadmin.utils.VaultAdminUtils;
 import com.vmware.osis.platform.AppEnv;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,8 @@ public class ScalityAppEnv extends AppEnv {
     @Autowired
     private Environment env;
 
+    private String vaultSecretKey;
+
     public String getPlatformEndpoint() {
         return  env.getProperty("osis.scality.vault.endpoint");
     }
@@ -41,7 +44,17 @@ public class ScalityAppEnv extends AppEnv {
     }
 
     public String getPlatformSecretKey() {
-        return env.getProperty("osis.scality.vault.secret-key");
+        if(StringUtils.isEmpty(vaultSecretKey) && isDecryptAdminCredentials()) {
+            vaultSecretKey = VaultAdminUtils.getVaultSKEncryptedAdminFile(getPlatformAccessKey(),
+                                                                        getAdminFilePath(),
+                                                                        getMasterKeyFilePath());
+        }
+
+        if(StringUtils.isEmpty(vaultSecretKey)){
+            vaultSecretKey = env.getProperty("osis.scality.vault.secret-key");
+        }
+
+        return vaultSecretKey;
     }
 
     public String getS3InterfaceEndpoint() {
@@ -144,5 +157,17 @@ public class ScalityAppEnv extends AppEnv {
             cacheType = DEFAULT_SPRING_CACHE_TYPE;
         }
         return cacheType;
+    }
+
+    public boolean isDecryptAdminCredentials() {
+        return Boolean.parseBoolean(env.getProperty("osis.scality.vault.decrypt-admin-credentials"));
+    }
+
+    public String getAdminFilePath() {
+        return env.getProperty("osis.scality.vault.admin-file-path");
+    }
+
+    public String getMasterKeyFilePath() {
+        return env.getProperty("osis.scality.vault.master-keyfile-path");
     }
 }

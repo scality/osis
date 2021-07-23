@@ -65,6 +65,7 @@ jacocoTestCoverageVerification {
                     "**/com/scality/osis/*.*",
                     "**/com/scality/osis/security/**/*.*",
                     "**/com/scality/osis/security/crypto/**/*.*",
+                    "**/com/scality/osis/vaultadmin/utils/VaultAdminUtils.*",
 
                     /*Ignore external library*/
                     "**/com/scality/osis/security/crypto/Hkdf.*"
