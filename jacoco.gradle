@@ -37,6 +37,7 @@ jacocoTestReport {
                     "**/com/scality/osis/security/crypto/CryptoEnv*.*",
                     "**/com/scality/osis/security/utils/YamlPropertySourceFactory.*",
                     "**/com/scality/osis/security/utils/SecurityConstants.*",
+                    "**/com/scality/osis/vaultadmin/utils/VaultAdminUtils.*",
 
                     /*Ignore external library*/
                     "**/com/scality/osis/security/crypto/Hkdf*.*"

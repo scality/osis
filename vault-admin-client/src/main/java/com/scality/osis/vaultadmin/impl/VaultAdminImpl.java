@@ -16,6 +16,7 @@ import com.amazonaws.util.StringUtils;
 import com.scality.osis.vaultadmin.impl.cache.Cache;
 import com.scality.osis.vaultadmin.impl.cache.CacheConstants;
 import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
+import com.scality.osis.vaultadmin.utils.VaultAdminUtils;
 import com.scality.vaultclient.dto.AccountData;
 import com.scality.vaultclient.dto.AssumeRoleResult;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
@@ -75,9 +76,26 @@ public class VaultAdminImpl implements VaultAdmin{
    * @param s3InterfaceEndpoint Vault S3 Interface endpoint, e.g., http://127.0.0.1:8500
    */
   @Autowired
-  public VaultAdminImpl(@Value("${osis.scality.vault.access-key}") String accessKey, @Value("${osis.scality.vault.secret-key}") String secretKey, @Value("${osis.scality.vault.endpoint}") String vaultAdminEndpoint, @Value("${osis.scality.vaultS3Interface.endpoint}") String s3InterfaceEndpoint) {
+  public VaultAdminImpl(@Value("${osis.scality.vault.access-key}") String accessKey,
+                        @Value("${osis.scality.vault.secret-key:}") String secretKey,
+                        @Value("${osis.scality.vault.endpoint}") String vaultAdminEndpoint,
+                        @Value("${osis.scality.vaultS3Interface.endpoint}") String s3InterfaceEndpoint,
+                        @Value("${osis.scality.vault.decrypt-admin-credentials:false}") boolean isDecryptAdminCredentials,
+                        @Value("${osis.scality.vault.admin-file-path:}") String adminFilePath,
+                        @Value("${osis.scality.vault.master-keyfile-path:}") String masterKeyFilePath) {
     validEndpoint(vaultAdminEndpoint);
     this.vaultAdminEndpoint = vaultAdminEndpoint;
+
+    if(isDecryptAdminCredentials){
+
+      String vaultSecretKey = VaultAdminUtils.getVaultSKEncryptedAdminFile(accessKey, adminFilePath, masterKeyFilePath);
+
+      if(!StringUtils.isNullOrEmpty(vaultSecretKey)) {
+        // Modify the secret key variable with decrypted value from admin credentials file
+        secretKey = vaultSecretKey;
+      }
+    }
+
     this.vaultAccountClient = new AccountServicesClient(
             new BasicAWSCredentials(accessKey, secretKey));
     vaultAccountClient.setEndpoint(vaultAdminEndpoint);
