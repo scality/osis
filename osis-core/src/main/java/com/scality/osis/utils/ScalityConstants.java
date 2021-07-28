@@ -92,6 +92,9 @@ public final class ScalityConstants {
     public static final String DEFAULT_ASYNC_EXECUTOR_MAX_POOL_SIZE = "10";
     public static final String DEFAULT_ASYNC_EXECUTOR_QUEUE_CAPACITY = "500";
 
+    public static final String DEFAULT_VAULT_HEALTHCHECK_TIMEOUT = "3000";
+    public static final String HEALTH_CHECK_ENDPOINT = "/_/healthcheck";
+
     public static final String USER_POLICY_ARN_REGEX = "arn:aws:iam::$ACCOUNTID:policy/userPolicy@$ACCOUNTID";
 
     public static final String USER_POLICY_NAME_REGEX = "userPolicy@$ACCOUNTID";

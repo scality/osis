@@ -24,6 +24,7 @@ import static com.scality.osis.utils.ScalityConstants.DEFAULT_ASYNC_EXECUTOR_COR
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_ASYNC_EXECUTOR_MAX_POOL_SIZE;
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_ASYNC_EXECUTOR_QUEUE_CAPACITY;
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_SPRING_CACHE_TYPE;
+import static com.scality.osis.utils.ScalityConstants.DEFAULT_VAULT_HEALTHCHECK_TIMEOUT;
 
 @Component
 @Primary
@@ -169,5 +170,13 @@ public class ScalityAppEnv extends AppEnv {
 
     public String getMasterKeyFilePath() {
         return env.getProperty("osis.scality.vault.master-keyfile-path");
+    }
+
+    public int getVaultHealthCheckTimeout() {
+        String vaultHealthCheckTimeout =  env.getProperty("osis.scality.vault.healthcheck.timeout");
+        if(StringUtils.isBlank(vaultHealthCheckTimeout)) {
+            vaultHealthCheckTimeout = DEFAULT_VAULT_HEALTHCHECK_TIMEOUT;
+        }
+        return Integer.parseInt(vaultHealthCheckTimeout);
     }
 }
