@@ -204,6 +204,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         assertEquals(TEST_USER_ID, response.getUserId());
         assertEquals(TEST_USER_ID, response.getCdUserId());
         assertEquals(SAMPLE_TENANT_ID, response.getTenantId());
+        assertEquals(SAMPLE_CD_TENANT_ID, response.getCdTenantId());
     }
 
     @Test
@@ -240,6 +241,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         assertEquals(TEST_USER_ID, response.getUserId());
         assertEquals(TEST_USER_ID, response.getCdUserId());
         assertEquals(SAMPLE_TENANT_ID, response.getTenantId());
+        assertEquals(SAMPLE_CD_TENANT_ID, response.getCdTenantId());
 
     }
 

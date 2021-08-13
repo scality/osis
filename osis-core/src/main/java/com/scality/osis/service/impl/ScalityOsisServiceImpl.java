@@ -365,10 +365,13 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             logger.info("Create S3 Credential request received:: tenant ID:{}, user ID:{}",
                     tenantId, userId);
 
+            OsisTenant tenant = ScalityModelConverter.toOsisTenant(vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId)));
             Credentials tempCredentials = getCredentials(tenantId);
             final AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
 
             OsisS3Credential credential =  createOsisCredential(tenantId, userId, null, null, iamClient);
+
+            credential.setCdTenantId(tenant.getCdTenantIds().get(0));
 
             logger.info("Create S3 Credential response:{}, ", ScalityModelConverter.maskSecretKey(new Gson().toJson(credential)));
 

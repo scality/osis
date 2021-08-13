@@ -388,7 +388,7 @@ public final class ScalityModelConverter {
      *
      * @return the osis tenant
      */
-    private static OsisTenant toOsisTenant(AccountData account) {
+    public static OsisTenant toOsisTenant(AccountData account) {
         return new OsisTenant()
                 .name(account.getName())
                 .active(true)
