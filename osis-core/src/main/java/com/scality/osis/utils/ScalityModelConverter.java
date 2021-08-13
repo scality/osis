@@ -615,21 +615,22 @@ public final class ScalityModelConverter {
      * @param secretKeyMap
      * @return the page of users
      */
-    public static PageOfS3Credentials toPageOfS3Credentials(ListAccessKeysResult listAccessKeysResult, long offset, long limit, String tenantId, Map<String, String> secretKeyMap) {
+    public static PageOfS3Credentials toPageOfS3Credentials(ListAccessKeysResult listAccessKeysResult, long offset, long limit, OsisTenant tenant, Map<String, String> secretKeyMap) {
         List<OsisS3Credential> credentials = new ArrayList<>();
         List<OsisS3Credential> credentialsNoSK = new ArrayList<>();
 
         for(AccessKeyMetadata accessKeyMetadata: listAccessKeysResult.getAccessKeyMetadata()){
 
             OsisS3Credential s3Credential = new OsisS3Credential()
-                        .accessKey(accessKeyMetadata.getAccessKeyId())
-                        .active(accessKeyMetadata.getStatus()
-                                .equalsIgnoreCase(StatusType.Active.toString()))
-                        .userId(accessKeyMetadata.getUserName())
-                        .cdUserId(accessKeyMetadata.getUserName())
-                        .tenantId(tenantId)
-                        .creationDate(accessKeyMetadata.getCreateDate().toInstant())
-                        .immutable(Boolean.TRUE);
+                    .accessKey(accessKeyMetadata.getAccessKeyId())
+                    .active(accessKeyMetadata.getStatus()
+                            .equalsIgnoreCase(StatusType.Active.toString()))
+                    .userId(accessKeyMetadata.getUserName())
+                    .cdUserId(accessKeyMetadata.getUserName())
+                    .tenantId(tenant.getTenantId())
+                    .cdTenantId(tenant.getCdTenantIds().get(0))
+                    .creationDate(accessKeyMetadata.getCreateDate().toInstant())
+                    .immutable(Boolean.TRUE);
             if(null != secretKeyMap.get(accessKeyMetadata.getAccessKeyId())) {
                 // If secret key is available, add credential object to the list
                 s3Credential.setSecretKey(secretKeyMap.get(accessKeyMetadata.getAccessKeyId()));

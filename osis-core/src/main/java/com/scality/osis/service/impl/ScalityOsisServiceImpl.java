@@ -143,14 +143,14 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 PageOfTenants pageOfTenants = null;
                 if(ScalityUtils.isValidUUID(cdTenantId)) {
 
-                    ListAccountsRequestDTO listAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit, filter);
+                ListAccountsRequestDTO listAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit, filter);
 
-                    logger.debug("[Vault] List Accounts Request:{}", new Gson().toJson(listAccountsRequest));
-                    ListAccountsResponseDTO listAccountsResponseDTO = vaultAdmin.listAccounts(offset, listAccountsRequest);
+                logger.debug("[Vault] List Accounts Request:{}", new Gson().toJson(listAccountsRequest));
+                ListAccountsResponseDTO listAccountsResponseDTO = vaultAdmin.listAccounts(offset, listAccountsRequest);
 
-                    logger.debug("[Vault] List Accounts response:{}", new Gson().toJson(listAccountsResponseDTO));
+                logger.debug("[Vault] List Accounts response:{}", new Gson().toJson(listAccountsResponseDTO));
 
-                    pageOfTenants = ScalityModelConverter.toPageOfTenants(listAccountsResponseDTO, offset, limit);
+                pageOfTenants = ScalityModelConverter.toPageOfTenants(listAccountsResponseDTO, offset, limit);
                 } else {
                     GetAccountRequestDTO getAccountRequest = ScalityModelConverter.toGetAccountRequestWithID(cdTenantId);
 
@@ -407,8 +407,8 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 try {
                     return ScalityModelConverter.toPageOfS3Credentials(
                                                                         getS3Credential(tenantId, userId, accessKey, limit),
-                                                                        offset,
-                                                                        limit);
+                            offset,
+                            limit);
 
                 } catch (Exception e) {
                     logger.error("Query S3 credential :: The S3 Credential doesn't exist for the given access key. Error details:", e);
@@ -614,6 +614,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     @Override
     public PageOfS3Credentials listS3Credentials(String tenantId, String userId, Long offset, Long limit) {
         try {
+            OsisTenant tenant = ScalityModelConverter.toOsisTenant(vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId)));
             logger.info("List s3 credentials request received:: tenant ID:{}, user ID:{}, offset:{}, limit:{}",
                     tenantId, userId, offset, limit);
 
@@ -647,9 +648,10 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             }
 
             PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter
-                    .toPageOfS3Credentials(listAccessKeysResult, offset, limit, tenantId, secretKeyMap);
+                    .toPageOfS3Credentials(listAccessKeysResult, offset, limit, tenant, secretKeyMap);
             logger.info("List S3 credentials  response:{}", ScalityModelConverter.maskSecretKey(new Gson().toJson(pageOfS3Credentials)));
 
+            pageOfS3Credentials.getItems().forEach(s3Credential -> s3Credential.setCdTenantId(tenant.getCdTenantIds().get(0)));
             return  pageOfS3Credentials;
         } catch (Exception e){
 
@@ -870,8 +872,8 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     private void storeSecretKey(String repoKey, String secretAccessKey) throws Exception {
         // Using `repoKey` for Associated Data during encryption
         SecretKeyRepoData encryptedRepoData = cipherFactory.getCipher().encrypt(secretAccessKey,
-                                                                cipherFactory.getLatestSecretCipherKey(),
-                                                                repoKey);
+                cipherFactory.getLatestSecretCipherKey(),
+                repoKey);
 
         encryptedRepoData.setKeyID(cipherFactory.getLatestCipherID());
         encryptedRepoData.getCipherInfo().setCipherName(cipherFactory.getLatestCipherName());
@@ -900,9 +902,9 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             // Using `repoKey` for Associated Data during encryption
             secretKey = cipherFactory.getCipherByID(repoVal.getKeyID())
-                                    .decrypt(repoVal,
-                                            cipherFactory.getSecretCipherKeyByID(repoVal.getKeyID()),
-                                            repoKey);
+                    .decrypt(repoVal,
+                            cipherFactory.getSecretCipherKeyByID(repoVal.getKeyID()),
+                            repoKey);
         }
         return secretKey;
     }

@@ -547,8 +547,14 @@ public class ScalityModelConverterTest {
 
         final Map<String, String> secretKeyMap = new HashMap<>();
         secretKeyMap.put(TEST_ACCESS_KEY, TEST_SECRET_KEY);
+
+        final OsisTenant osisTenant = new OsisTenant();
+        osisTenant.tenantId(SAMPLE_TENANT_ID);
+        osisTenant.name(SAMPLE_TENANT_NAME);
+        osisTenant.cdTenantIds(SAMPLE_CD_TENANT_IDS);
+        osisTenant.active(true);
         // Run the test
-        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, SAMPLE_TENANT_ID, secretKeyMap);
+        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, osisTenant, secretKeyMap);
 
         // Verify the results
         assertTrue(pageOfS3Credentials.getItems().size() > 0);
@@ -559,6 +565,7 @@ public class ScalityModelConverterTest {
         assertEquals(TEST_USER_ID, result.getCdUserId());
         assertEquals(TEST_USER_ID, result.getUserId());
         assertEquals(SAMPLE_TENANT_ID, result.getTenantId());
+        assertEquals(SAMPLE_CD_TENANT_IDS.get(0), result.getCdTenantId());
         assertEquals(TEST_ACCESS_KEY, result.getAccessKey());
         assertEquals(TEST_SECRET_KEY, result.getSecretKey());
     }
@@ -588,8 +595,16 @@ public class ScalityModelConverterTest {
         final Map<String, String> secretKeyMap = new HashMap<>();
         // Secret key only for accesskeyMetaData
         secretKeyMap.put(TEST_ACCESS_KEY, TEST_SECRET_KEY);
+
+
+        final OsisTenant osisTenant = new OsisTenant();
+        osisTenant.tenantId(SAMPLE_TENANT_ID);
+        osisTenant.name(SAMPLE_TENANT_NAME);
+        osisTenant.cdTenantIds(SAMPLE_CD_TENANT_IDS);
+        osisTenant.active(true);
+
         // Run the test
-        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, SAMPLE_TENANT_ID, secretKeyMap);
+        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, osisTenant, secretKeyMap);
 
         // Verify the results
         assertTrue(pageOfS3Credentials.getItems().size() > 0);
@@ -601,6 +616,7 @@ public class ScalityModelConverterTest {
         assertEquals(TEST_USER_ID, resultWithSecret.getCdUserId());
         assertEquals(TEST_USER_ID, resultWithSecret.getUserId());
         assertEquals(SAMPLE_TENANT_ID, resultWithSecret.getTenantId());
+        assertEquals(SAMPLE_CD_TENANT_IDS.get(0), resultWithSecret.getCdTenantId());
         assertEquals(TEST_ACCESS_KEY, resultWithSecret.getAccessKey());
         assertEquals(TEST_SECRET_KEY, resultWithSecret.getSecretKey());
 
