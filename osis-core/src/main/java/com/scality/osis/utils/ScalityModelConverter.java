@@ -665,18 +665,23 @@ public final class ScalityModelConverter {
      * @return the page of credentials
      */
     public static PageOfS3Credentials getEmptyPageOfS3Credentials(long offset, long limit) {
-        return toPageOfS3Credentials(null, offset, limit);
+        return toPageOfS3Credentials(null, null, offset, limit);
     }
 
     /**
      * Converts IAM List access keys response to OSIS S3 Credentials
      *
      * @param osisS3Credential the s3credential
+     * @param cdTenantId
      * @param offset
      * @param limit
      * @return the page of s3credentials
      */
-    public static PageOfS3Credentials toPageOfS3Credentials(OsisS3Credential osisS3Credential, long offset, long limit) {
+    public static PageOfS3Credentials toPageOfS3Credentials(OsisS3Credential osisS3Credential, String cdTenantId, long offset, long limit) {
+
+        if(osisS3Credential !=null){
+            osisS3Credential.setCdTenantId(cdTenantId);
+        }
 
         PageInfo pageInfo = new PageInfo();
         pageInfo.setLimit(limit);

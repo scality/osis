@@ -399,6 +399,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             String tenantId = kvMap.get(OSIS_TENANT_ID);
             String userId = kvMap.get(OSIS_USER_ID);
             String accessKey = kvMap.get(OSIS_ACCESS_KEY);
+            String cdTenantId = kvMap.get(CD_TENANT_ID);
 
             if(StringUtils.isNullOrEmpty(accessKey)) {
                 return listS3Credentials(tenantId, userId, offset, limit);
@@ -406,7 +407,8 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
                 try {
                     return ScalityModelConverter.toPageOfS3Credentials(
-                                                                        getS3Credential(tenantId, userId, accessKey, limit),
+                            getS3Credential(tenantId, userId, accessKey, limit),
+                            cdTenantId,
                             offset,
                             limit);
 

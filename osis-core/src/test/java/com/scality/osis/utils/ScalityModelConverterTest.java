@@ -643,7 +643,7 @@ public class ScalityModelConverterTest {
         s3Credential.secretKey(TEST_SECRET_KEY);
 
         // Run the test
-        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(s3Credential, 0, 1000);
+        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(s3Credential, SAMPLE_CD_TENANT_ID, 0, 1000);
 
         // Verify the results
         assertEquals(1, pageOfS3Credentials.getItems().size());
@@ -654,6 +654,7 @@ public class ScalityModelConverterTest {
         assertEquals(TEST_USER_ID, result.getCdUserId());
         assertEquals(TEST_USER_ID, result.getUserId());
         assertEquals(TEST_TENANT_ID, result.getTenantId());
+        assertEquals(SAMPLE_CD_TENANT_ID, result.getCdTenantId());
         assertEquals(TEST_ACCESS_KEY, result.getAccessKey());
         assertEquals(TEST_SECRET_KEY, result.getSecretKey());
     }

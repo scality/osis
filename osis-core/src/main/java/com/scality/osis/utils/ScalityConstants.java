@@ -21,6 +21,7 @@ public final class ScalityConstants {
     public static final String USER_ID_PREFIX = "user_id==";
 
     public static final String OSIS_TENANT_ID = "tenant_id";
+    public static final String CD_TENANT_ID = "cd_tenant_id";
     public static final String OSIS_USER_ID = "user_id";
     public static final String OSIS_ACCESS_KEY = "access_key";
 
