@@ -394,6 +394,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public PageOfS3Credentials queryS3Credentials(long offset, long limit, String filter) {
+        logger.info("Query S3 Credentials request received:: filter:{}, offset:{}, limit:{}", filter, offset, limit);
         if(filter.contains(TENANT_ID_PREFIX) && filter.contains(USER_ID_PREFIX)) {
             Map<String, String> kvMap = ScalityUtils.parseFilter(filter);
             String tenantId = kvMap.get(OSIS_TENANT_ID);
@@ -406,11 +407,13 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             } else {
 
                 try {
-                    return ScalityModelConverter.toPageOfS3Credentials(
+                    PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(
                             getS3Credential(tenantId, userId, accessKey, limit),
                             cdTenantId,
                             offset,
                             limit);
+                    logger.info("Query S3 Credentials response:{}", ScalityModelConverter.maskSecretKey(new Gson().toJson(pageOfS3Credentials)));
+                    return pageOfS3Credentials;
 
                 } catch (Exception e) {
                     logger.error("Query S3 credential :: The S3 Credential doesn't exist for the given access key. Error details:", e);
@@ -438,11 +441,13 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public OsisS3Capabilities getS3Capabilities() {
+        logger.info("S3 capabilities request received");
         OsisS3Capabilities osisS3Capabilities = new OsisS3Capabilities();
         try {
             osisS3Capabilities = new ObjectMapper()
                     .readValue(new ClassPathResource(S3_CAPABILITIES_JSON).getInputStream(),
                             OsisS3Capabilities.class);
+            logger.info("S3 capabilities response:{}", new Gson().toJson(osisS3Capabilities));
         } catch (IOException e) {
             logger.info("Fail to load S3 capabilities from configuration file {}.", S3_CAPABILITIES_JSON);
         }
@@ -726,7 +731,8 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public Information getInformation(String domain) {
-        return new Information()
+        logger.info("Get Information request received:: domain:{}", domain);
+        Information information = new Information()
                 .addAuthModesItem(appEnv.isApiTokenEnabled() ? Information.AuthModesEnum.BEARER : Information.AuthModesEnum.BASIC)
                 .storageClasses(appEnv.getStorageInfo())
                 .regions(appEnv.getRegionInfo())
@@ -737,6 +743,8 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 .logoUri(ScalityUtils.getLogoUri(domain))
                 .services(new InformationServices().iam(domain + IAM_PREFIX).s3(appEnv.getS3InterfaceEndpoint()))
                 .status(Information.StatusEnum.NORMAL);
+        logger.info("Get Information response: {}", new Gson().toJson(information));
+        return information;
     }
 
     @Override
