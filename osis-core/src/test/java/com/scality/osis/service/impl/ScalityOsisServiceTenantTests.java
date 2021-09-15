@@ -3,6 +3,7 @@ package com.scality.osis.service.impl;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
+import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.vmware.osis.model.OsisTenant;
@@ -287,11 +288,35 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
     @Test
     public void testHeadTenant() {
         // Setup
+        when(vaultAdminMock.getAccount(null)).thenReturn(null);
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.headTenant(TEST_TENANT_ID), NOT_IMPLEMENTED_EXCEPTION_ERR);
-
         // Verify the results
+        assertTrue(scalityOsisServiceUnderTest.headTenant(TEST_TENANT_ID));
+
+    }
+
+    @Test
+    public void testHeadTenantNotExists() {
+        // Setup
+        when(vaultAdminMock.getAccount(null)).thenReturn(null);
+
+        // Run the test
+        // Verify the results
+        assertFalse(scalityOsisServiceUnderTest.headTenant(null));
+
+    }
+
+    @Test
+    public void testHeadTenantErr() {
+        // Setup
+        when(vaultAdminMock.getAccount(any(GetAccountRequestDTO.class)))
+                .thenThrow(new VaultServiceException(HttpStatus.NOT_FOUND, "The Entity doesn't exist"));
+
+        // Run the test
+        // Verify the results
+        assertFalse(scalityOsisServiceUnderTest.headTenant(TEST_TENANT_ID));
+
     }
 
 }
