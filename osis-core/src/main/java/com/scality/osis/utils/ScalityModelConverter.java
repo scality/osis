@@ -596,6 +596,27 @@ public final class ScalityModelConverter {
     }
 
     /**
+     * Converts IAM get user response to OSIS page of users
+     *
+     * @param osisUser the osis users dto
+     * @param offset
+     * @param limit
+     * @return the page of users
+     */
+    public static PageOfUsers toPageOfUsers(OsisUser osisUser, long offset, long limit) {
+
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setLimit(limit);
+        pageInfo.setOffset(offset);
+        pageInfo.setTotal(1l);
+
+        PageOfUsers pageOfUsers = new PageOfUsers();
+        pageOfUsers.items(Collections.singletonList(osisUser));
+        pageOfUsers.setPageInfo(pageInfo);
+        return pageOfUsers;
+    }
+
+    /**
      * Converts IAM List access keys response to OSIS S3 Credentials
      *
      * @param listAccessKeysResult the list access keys response dto

@@ -283,18 +283,26 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public PageOfUsers queryUsers(long offset, long limit, String filter) {
-        if(filter.contains(CD_TENANT_ID_PREFIX) && filter.contains(DISPLAY_NAME_PREFIX)) {
+        if(filter.contains(CD_TENANT_ID_PREFIX) &&
+                (filter.contains(DISPLAY_NAME_PREFIX)
+                        || filter.contains(USERNAME_PREFIX)
+                        || filter.contains(CD_USER_ID_PREFIX)
+                        || filter.contains(USER_ID_PREFIX))
+        ){
             String tenantId = null;
             try {
                 logger.info("Query Users request received:: filter:{}, offset:{}, limit:{}", filter, offset, limit);
 
                 Map<String, String> kvMap = ScalityUtils.parseFilter(filter);
                 tenantId = kvMap.get(OSIS_TENANT_ID);
+                String userId = kvMap.get(OSIS_USER_ID);
+                String cdUserId = kvMap.get(CD_USER_ID);
                 String cdTenantId = kvMap.get(CD_TENANT_ID);
                 String osisUserName = kvMap.get(DISPLAY_NAME);
+                String username = kvMap.get(USERNAME);
 
                 if(tenantId == null) {
-                    if (cdTenantId!=null && ScalityUtils.isValidUUID(cdTenantId)) {
+                    if (ScalityUtils.isValidUUID(cdTenantId)) {
                         String cdTenantIdFilter = CD_TENANT_ID_PREFIX + cdTenantId;
                         ListAccountsRequestDTO queryAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit, cdTenantIdFilter);
 
@@ -304,23 +312,33 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                     }
                 }
 
-                Credentials tempCredentials = getCredentials(tenantId);
-                final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
+                PageOfUsers pageOfUsers;
 
-                ListUsersRequest listUsersRequest =  ScalityModelConverter.toIAMListUsersRequest(offset, limit);
+                if(userId != null || cdUserId != null){
+                    OsisUser osisUser = getUser(tenantId,
+                            (userId != null) ? userId : cdUserId);
+                    pageOfUsers = ScalityModelConverter.toPageOfUsers(osisUser, offset, limit);
+                } else {
+                    Credentials tempCredentials = getCredentials(tenantId);
+                    final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
 
-                // Add path prefix with osis username to the listusers request
-                listUsersRequest.setPathPrefix("/" + osisUserName + "/");
+                    ListUsersRequest listUsersRequest = ScalityModelConverter.toIAMListUsersRequest(offset, limit);
 
-                logger.debug("[Vault] List Users Request with 'pathPrefix':{}", new Gson().toJson(listUsersRequest));
+                    if (osisUserName == null) {
+                        osisUserName = username;
+                    }
+                    // Add path prefix with osis username to the listusers request
+                    listUsersRequest.setPathPrefix("/" + osisUserName + "/");
 
-                ListUsersResult listUsersResult = iam.listUsers(listUsersRequest);
+                    logger.debug("[Vault] List Users Request with 'pathPrefix':{}", new Gson().toJson(listUsersRequest));
 
-                logger.debug("[Vault] List Users response:{}", new Gson().toJson(listUsersResult));
+                    ListUsersResult listUsersResult = iam.listUsers(listUsersRequest);
 
-                PageOfUsers pageOfUsers = ScalityModelConverter.toPageOfUsers(listUsersResult, offset, limit, tenantId);
-                logger.info("Query Users response:{}", new Gson().toJson(pageOfUsers));
+                    logger.debug("[Vault] List Users response:{}", new Gson().toJson(listUsersResult));
 
+                    pageOfUsers = ScalityModelConverter.toPageOfUsers(listUsersResult, offset, limit, tenantId);
+                    logger.info("Query Users response:{}", new Gson().toJson(pageOfUsers));
+                }
                 return pageOfUsers;
 
             } catch (Exception e) {

@@ -16,14 +16,20 @@ public final class ScalityConstants {
 
     public static final String DISPLAY_NAME_PREFIX = "display_name==";
 
+    public static final String USERNAME_PREFIX = "username==";
+
     public static final String TENANT_ID_PREFIX = "tenant_id==";
 
     public static final String USER_ID_PREFIX = "user_id==";
 
+    public static final String CD_USER_ID_PREFIX = "cd_user_id==";
+
     public static final String OSIS_TENANT_ID = "tenant_id";
     public static final String CD_TENANT_ID = "cd_tenant_id";
+    public static final String CD_USER_ID = "cd_user_id";
     public static final String OSIS_USER_ID = "user_id";
     public static final String DISPLAY_NAME = "display_name";
+    public static final String USERNAME = "username";
     public static final String OSIS_ACCESS_KEY = "access_key";
 
     public static final String ROLE_ARN_FORMAT = "arn:aws:iam::$ACCOUNTID:role/$ROLENAME";
