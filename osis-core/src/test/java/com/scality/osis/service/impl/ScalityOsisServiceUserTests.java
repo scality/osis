@@ -171,6 +171,69 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
     }
 
     @Test
+    public void testQueryUsersFilterWithUsername() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + USERNAME_PREFIX + TEST_NAME;
+
+        when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenReturn(SAMPLE_TENANT_ID);
+
+        // Run the test
+        final PageOfUsers response = scalityOsisServiceUnderTest.queryUsers(offset, limit, filter);
+
+        // Verify the results
+        assertEquals(1, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(1, response.getItems().size());
+        assertEquals(TEST_NAME, response.getItems().get(0).getUsername());
+        assertTrue(response.getItems().get(0).getTenantId().contains(SAMPLE_TENANT_ID));
+    }
+
+    @Test
+    public void testQueryUsersFilterWithUserid() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + USER_ID_PREFIX + TEST_USER_ID;
+
+        when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenReturn(SAMPLE_TENANT_ID);
+
+        // Run the test
+        final PageOfUsers response = scalityOsisServiceUnderTest.queryUsers(offset, limit, filter);
+
+        // Verify the results
+        assertEquals(1, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(1, response.getItems().size());
+        assertEquals(TEST_USER_ID, response.getItems().get(0).getUserId());
+        assertTrue(response.getItems().get(0).getTenantId().contains(SAMPLE_TENANT_ID));
+    }
+
+    @Test
+    public void testQueryUsersFilterWithCdUserid() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + CD_USER_ID_PREFIX + TEST_USER_ID;
+
+        when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenReturn(SAMPLE_TENANT_ID);
+
+        // Run the test
+        final PageOfUsers response = scalityOsisServiceUnderTest.queryUsers(offset, limit, filter);
+
+        // Verify the results
+        assertEquals(1, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(1, response.getItems().size());
+        assertEquals(TEST_USER_ID, response.getItems().get(0).getUserId());
+        assertTrue(response.getItems().get(0).getTenantId().contains(SAMPLE_TENANT_ID));
+    }
+
+    @Test
     public void testQueryUsersWithNonUUID() {
         // Setup
         final long offset = 0L;

@@ -476,6 +476,32 @@ public class ScalityModelConverterTest {
     }
 
     @Test
+    public void testToPageOfUsers2() {
+        // Setup
+        final OsisUser osisUser = new OsisUser();
+        osisUser.setCanonicalUserId(TEST_CANONICAL_ID);
+        osisUser.setTenantId(TEST_TENANT_ID);
+        osisUser.setActive(true);
+        osisUser.setUsername(TEST_NAME);
+        osisUser.setCdUserId(TEST_USER_ID);
+        osisUser.setUserId(TEST_USER_ID);
+        osisUser.setRole(OsisUser.RoleEnum.TENANT_USER);
+        osisUser.setEmail(SAMPLE_SCALITY_USER_EMAIL);
+        osisUser.setCdTenantId(TEST_TENANT_ID);
+
+        // Run the test
+        final PageOfUsers pageOfUsers = ScalityModelConverter.toPageOfUsers(osisUser, 0, 1000);
+
+        // Verify the results
+        assertEquals(pageOfUsers.getItems().size(), 1);
+        assertNotNull(pageOfUsers.getPageInfo());
+
+        final OsisUser resUser = pageOfUsers.getItems().get(0);
+
+        assertEquals(osisUser, resUser);
+    }
+
+    @Test
     public void testExtractCdTenantId() {
         // Setup
         final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID ;
