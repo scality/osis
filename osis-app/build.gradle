@@ -10,4 +10,4 @@ dependencies {
 }
 jar.enabled(true)
 group = 'com.scality'
-version '0.2.0-SNAPSHOT'
+version '0.4.0-SNAPSHOT'
