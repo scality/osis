@@ -288,18 +288,20 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             try {
                 logger.info("Query Users request received:: filter:{}, offset:{}, limit:{}", filter, offset, limit);
 
-                String osisUserName = ScalityModelConverter.extractOsisUserName(filter);
+                Map<String, String> kvMap = ScalityUtils.parseFilter(filter);
+                tenantId = kvMap.get(OSIS_TENANT_ID);
+                String cdTenantId = kvMap.get(CD_TENANT_ID);
+                String osisUserName = kvMap.get(DISPLAY_NAME);
 
-                String cdTenantIdFilter = ScalityModelConverter.extractCdTenantIdFilter(filter);
+                if(tenantId == null) {
+                    if (cdTenantId!=null && ScalityUtils.isValidUUID(cdTenantId)) {
+                        String cdTenantIdFilter = CD_TENANT_ID_PREFIX + cdTenantId;
+                        ListAccountsRequestDTO queryAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit, cdTenantIdFilter);
 
-                String cdTenantId = ScalityModelConverter.extractCdTenantId(cdTenantIdFilter);
-
-                if(ScalityUtils.isValidUUID(cdTenantId)) {
-                    ListAccountsRequestDTO queryAccountsRequest = ScalityModelConverter.toScalityListAccountsRequest(limit, cdTenantIdFilter);
-
-                    tenantId = vaultAdmin.getAccountID(queryAccountsRequest);
-                } else {
-                    tenantId = cdTenantId;
+                        tenantId = vaultAdmin.getAccountID(queryAccountsRequest);
+                    } else {
+                        tenantId = cdTenantId;
+                    }
                 }
 
                 Credentials tempCredentials = getCredentials(tenantId);

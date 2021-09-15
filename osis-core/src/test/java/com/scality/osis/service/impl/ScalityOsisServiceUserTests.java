@@ -128,6 +128,49 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
     }
 
     @Test
+    public void testQueryUsersFilterDifferentOrder() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        final String filter =  DISPLAY_NAME_PREFIX + TEST_NAME + FILTER_SEPARATOR +  CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID;
+
+        when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenReturn(SAMPLE_TENANT_ID);
+
+        // Run the test
+        final PageOfUsers response = scalityOsisServiceUnderTest.queryUsers(offset, limit, filter);
+
+        // Verify the results
+        assertEquals(1, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(1, response.getItems().size());
+        assertEquals(TEST_NAME, response.getItems().get(0).getUsername());
+        assertTrue(response.getItems().get(0).getTenantId().contains(SAMPLE_TENANT_ID));
+    }
+
+    @Test
+    public void testQueryUsersFilterWithTenantID() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        final String filter = TENANT_ID_PREFIX + SAMPLE_TENANT_ID + FILTER_SEPARATOR + CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
+
+        // Run the test
+        final PageOfUsers response = scalityOsisServiceUnderTest.queryUsers(offset, limit, filter);
+
+        //verify getAccount never called as tenantID is present
+        verify(vaultAdminMock, never()).getAccountID(any());
+
+        // Verify the results
+        assertEquals(1, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(1, response.getItems().size());
+        assertEquals(TEST_NAME, response.getItems().get(0).getUsername());
+        assertTrue(response.getItems().get(0).getTenantId().contains(SAMPLE_TENANT_ID));
+    }
+
+    @Test
     public void testQueryUsersWithNonUUID() {
         // Setup
         final long offset = 0L;

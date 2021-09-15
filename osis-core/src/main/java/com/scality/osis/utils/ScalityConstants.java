@@ -23,6 +23,7 @@ public final class ScalityConstants {
     public static final String OSIS_TENANT_ID = "tenant_id";
     public static final String CD_TENANT_ID = "cd_tenant_id";
     public static final String OSIS_USER_ID = "user_id";
+    public static final String DISPLAY_NAME = "display_name";
     public static final String OSIS_ACCESS_KEY = "access_key";
 
     public static final String ROLE_ARN_FORMAT = "arn:aws:iam::$ACCOUNTID:role/$ROLENAME";

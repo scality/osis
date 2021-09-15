@@ -476,30 +476,6 @@ public class ScalityModelConverterTest {
     }
 
     @Test
-    public void testExtractCdTenantIdFilter() {
-        // Setup
-        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + ";display_name==" + TEST_NAME;
-
-        // Run the test
-        final String cdTenantIdFilter = ScalityModelConverter.extractCdTenantIdFilter(filter);
-
-        // Verify the results
-        assertEquals(CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID, cdTenantIdFilter);
-    }
-
-    @Test
-    public void testExtractOsisUserName() {
-        // Setup
-        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + ";display_name==" + TEST_NAME;
-
-        // Run the test
-        final String osisUserName = ScalityModelConverter.extractOsisUserName(filter);
-
-        // Verify the results
-        assertEquals(TEST_NAME, osisUserName);
-    }
-
-    @Test
     public void testExtractCdTenantId() {
         // Setup
         final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID ;
