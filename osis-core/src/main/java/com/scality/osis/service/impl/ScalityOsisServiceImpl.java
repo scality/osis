@@ -630,7 +630,15 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public boolean headTenant(String tenantId) {
-        throw new NotImplementedException();
+        try {
+            logger.info("Head Tenant request received:: tenant ID:{}", tenantId);
+            AccountData accountData = vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId));
+            logger.info("Head Tenant response:: {}", accountData);
+            return accountData !=null && accountData.getId().equals(tenantId);
+        } catch (Exception e){
+            logger.error("Head Tenant error. Error details: ", e);
+            return false;
+        }
     }
 
     @Override
