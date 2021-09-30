@@ -23,6 +23,7 @@ import java.util.Base64;
 import static com.scality.osis.security.utils.SecurityConstants.DEFAULT_AES_GCM_256_KEY_LENGTH;
 import static com.scality.osis.security.utils.SecurityConstants.DEFAULT_AES_GCM_NONCE_LENGTH;
 import static com.scality.osis.security.utils.SecurityConstants.DEFAULT_AES_GCM_TAG_LENGTH;
+import static com.scality.osis.security.utils.SecurityConstants.DEFAULT_AES_GCM_TAG_LENGTH_IN_BYTES;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.crypto.Cipher.DECRYPT_MODE;
 
@@ -125,6 +126,48 @@ public final class AES256GCM implements BaseCipher {
 
         cipher.update(Base64.getDecoder().decode(cipherText));
         return new String(cipher.doFinal(Base64.getDecoder().decode(tag)), UTF_8);
+    }
+
+    /**
+     * Encrypts content same like Vault
+     * @param key  a master key string
+     * @param salt  salt
+     * @param plainText  to encrypt (utf-8 encoding will be used)
+     * @param info Information string used to encrypt the plainText
+     * @return adminCredentials  adminCredentials object with cipherText, salt, tag
+     */
+    public EncryptedAdminCredentials encryptHKDF(String key,  String salt, String plainText, String info) throws Exception {
+
+        //key derivation
+        byte[] derivedKeyBytes = deriveKey(Base64.getDecoder().decode(salt),
+                key.getBytes(StandardCharsets.UTF_8),
+                info.getBytes(StandardCharsets.UTF_8));
+
+        byte[] keyBytes = Arrays.copyOfRange(derivedKeyBytes, 0, DEFAULT_AES_GCM_256_KEY_LENGTH);
+        byte[] ivBytes = Arrays.copyOfRange(derivedKeyBytes, DEFAULT_AES_GCM_256_KEY_LENGTH, (DEFAULT_AES_GCM_256_KEY_LENGTH + DEFAULT_AES_GCM_NONCE_LENGTH));
+
+        SecretKey derivedKey = new SecretKeySpec(keyBytes, "AES");
+
+        // decryption part
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        GCMParameterSpec gcmParameters = new GCMParameterSpec(DEFAULT_AES_GCM_TAG_LENGTH, ivBytes);
+
+        cipher.init(Cipher.ENCRYPT_MODE, derivedKey, gcmParameters);
+
+        byte[] fullCipher = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
+
+        byte[] cipherBytes = Arrays.copyOfRange(fullCipher, 0, fullCipher.length - DEFAULT_AES_GCM_TAG_LENGTH_IN_BYTES);
+        String cipherText = new String(Base64.getEncoder().encode(cipherBytes), UTF_8);
+
+        byte[] tagBytes = Arrays.copyOfRange(fullCipher, fullCipher.length - DEFAULT_AES_GCM_TAG_LENGTH_IN_BYTES, fullCipher.length);
+        String tag = new String(Base64.getEncoder().encode(tagBytes), UTF_8);
+
+        return EncryptedAdminCredentials
+                .builder()
+                .salt(salt)
+                .tag(tag)
+                .value(cipherText)
+                .build();
     }
 
     /**

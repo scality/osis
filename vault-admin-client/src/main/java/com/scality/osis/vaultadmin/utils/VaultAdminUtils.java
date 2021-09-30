@@ -25,7 +25,17 @@ public class VaultAdminUtils {
             final Type listType = new TypeToken<List<EncryptedAdminCredentials>>() {}.getType();
             final List<EncryptedAdminCredentials> encryptedAdminCredentialsList = new Gson().fromJson(adminFileContent, listType);
 
-            return new AES256GCM().decryptHKDF(masterKeyFile, encryptedAdminCredentialsList.get(0), accessKey);
+            for(EncryptedAdminCredentials adminCredentials : encryptedAdminCredentialsList) {
+                AES256GCM aes256GCM = new AES256GCM();
+                String sk = aes256GCM.decryptHKDF(masterKeyFile, adminCredentials, accessKey);
+
+                // Encrypt the decrypted value to verify if correct SK
+                if(adminCredentials.equals(aes256GCM.encryptHKDF(masterKeyFile, adminCredentials.getSalt(), sk, accessKey))){
+                    // return when correct SK if found
+                    return sk;
+                }
+            }
+            return null;
         }
         catch (Exception e) {
             return null;

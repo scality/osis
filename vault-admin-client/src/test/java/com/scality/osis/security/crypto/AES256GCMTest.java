@@ -99,4 +99,21 @@ public class AES256GCMTest {
         // Run the test
         assertThrows(AEADBadTagException.class, () -> aes256GCMUnderTest.decryptHKDF(TEST_MASTER_KEY, encryptedAdminCredentialsList.get(0),"InvalidData" ));
     }
+
+    @Test
+    public void testEncryptHKDF() throws Exception {
+        // Setup
+        //create EncryptedAdminCredentials from json file
+        final Type listType = new TypeToken<List<EncryptedAdminCredentials>>() {}.getType();
+        final List<EncryptedAdminCredentials> encryptedAdminCredentialsList = new Gson().fromJson(TEST_ADMIN_CREDS_FILE, listType);
+
+
+        // Run the test
+        final EncryptedAdminCredentials result = aes256GCMUnderTest.encryptHKDF(TEST_MASTER_KEY, encryptedAdminCredentialsList.get(0).getSalt(),
+                TEST_ADMIN_SECRET_KEY, TEST_ADMIN_ACCESS_KEY );
+
+        assertEquals(encryptedAdminCredentialsList.get(0).getValue(), result.getValue());
+        assertEquals(encryptedAdminCredentialsList.get(0).getSalt(), result.getSalt());
+        assertEquals(encryptedAdminCredentialsList.get(0).getTag(), result.getTag());
+    }
 }
