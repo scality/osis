@@ -98,10 +98,12 @@ public class BaseOsisServiceTest {
         initDeleteAccessKeyMocks();
         initGetAccountMocks();
         initGetPolicyMocks();
+        initDetachUserPolicyMocks();
         initCreateAccessRequestMocks();
         initCreateUserMocks();
         initListUserMocks();
         initGetUserMocks();
+        initDeleteUserMocks();
         initListAccessKeysMocks();
         initCaches();
         initBaseCipherMocks();
@@ -343,6 +345,11 @@ public class BaseOsisServiceTest {
                 });
     }
 
+    protected void initDetachUserPolicyMocks() {
+        when(iamMock.detachUserPolicy(any(DetachUserPolicyRequest.class)))
+                .thenAnswer((Answer<DetachUserPolicyResult>) invocation -> new DetachUserPolicyResult());
+    }
+
     protected void initCreateAccessRequestMocks() {
         when(iamMock.createAccessKey(any(CreateAccessKeyRequest.class)))
                 .thenAnswer((Answer<CreateAccessKeyResult>) invocation -> createAccessKeyMockResponse(invocation));
@@ -428,6 +435,13 @@ public class BaseOsisServiceTest {
         //initialize mock get user response
         when(iamMock.getUser(any(GetUserRequest.class)))
                 .thenAnswer((Answer<GetUserResult>) invocation -> getUserMockResponse(invocation));
+    }
+
+    protected void initDeleteUserMocks() {
+
+        //initialize mock get user response
+        when(iamMock.deleteUser(any(DeleteUserRequest.class)))
+                .thenAnswer((Answer<DeleteUserResult>) invocation ->  new DeleteUserResult());
     }
 
     protected GetUserResult getUserMockResponse(final InvocationOnMock invocation) {

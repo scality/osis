@@ -312,6 +312,20 @@ public class ScalityModelConverterTest {
     }
 
     @Test
+    public void testToDetachUserPolicyRequest() {
+        // Setup
+        final DetachUserPolicyRequest expectedResult = new DetachUserPolicyRequest();
+        expectedResult.setUserName(TEST_USER_ID);
+        expectedResult.setPolicyArn(TEST_POLICY_ARN);
+
+        // Run the test
+        final DetachUserPolicyRequest result = ScalityModelConverter.toDetachUserPolicyRequest(TEST_POLICY_ARN, TEST_USER_ID);
+
+        // Verify the results
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
     public void testToOsisUser() {
         // Setup
         final CreateUserResult createUserResult = new CreateUserResult();
@@ -519,6 +533,17 @@ public class ScalityModelConverterTest {
 
         // Run the test
         final GetUserRequest result = ScalityModelConverter.toIAMGetUserRequest(TEST_USER_ID);
+
+        // Verify the results
+        assertEquals(TEST_USER_ID, result.getUserName());
+    }
+
+    @Test
+    public void testToDeleteUserRequest() {
+        // Setup
+
+        // Run the test
+        final DeleteUserRequest result = ScalityModelConverter.toIAMDeleteUserRequest(TEST_USER_ID);
 
         // Verify the results
         assertEquals(TEST_USER_ID, result.getUserName());

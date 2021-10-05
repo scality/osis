@@ -437,9 +437,27 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.deleteUser(TEST_TENANT_ID, TEST_USER_ID, false), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        scalityOsisServiceUnderTest.deleteUser(TEST_TENANT_ID, TEST_USER_ID, true);
 
         // Verify the results
+        verify(iamMock).detachUserPolicy(any(DetachUserPolicyRequest.class));
+        verify(iamMock).deleteUser(any(DeleteUserRequest.class));
+    }
+
+    @Test
+    public void testDeleteUserIfDetachPolicyFailed() {
+        // Setup
+        when(iamMock.detachUserPolicy(any(DetachUserPolicyRequest.class)))
+                .thenThrow(ServiceFailureException.class);
+
+        // Run the test
+        scalityOsisServiceUnderTest.deleteUser(TEST_TENANT_ID, TEST_USER_ID, true);
+
+        // Verify the results
+        verify(iamMock).detachUserPolicy(any(DetachUserPolicyRequest.class));
+
+        //verify if delete user is not called if detach user policy failed
+        verify(iamMock, never()).deleteUser(any(DeleteUserRequest.class));
     }
 
     @Test
