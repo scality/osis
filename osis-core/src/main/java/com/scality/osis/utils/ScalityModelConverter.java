@@ -124,6 +124,17 @@ public final class ScalityModelConverter {
     }
 
     /**
+     * Creates IAM Delete User request
+     * @param username Vault username
+     *
+     * @return the IAM delete user request dto
+     */
+    public static DeleteUserRequest toIAMDeleteUserRequest(String username) {
+        return new DeleteUserRequest()
+                .withUserName(username);
+    }
+
+    /**
      * Created Vault List Accounts request for Query Tenants
      * @param limit the max number of items
      *
@@ -291,6 +302,12 @@ public final class ScalityModelConverter {
 
     public static AttachUserPolicyRequest toAttachUserPolicyRequest(String policyArn, String username) {
         return new AttachUserPolicyRequest()
+                .withPolicyArn(policyArn)
+                .withUserName(username);
+    }
+
+    public static DetachUserPolicyRequest toDetachUserPolicyRequest(String policyArn, String username) {
+        return new DetachUserPolicyRequest()
                 .withPolicyArn(policyArn)
                 .withUserName(username);
     }

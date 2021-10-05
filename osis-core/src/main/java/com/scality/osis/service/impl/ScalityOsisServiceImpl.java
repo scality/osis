@@ -491,7 +491,49 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public void deleteUser(String tenantId, String userId, Boolean purgeData) {
-        throw new NotImplementedException();
+        try {
+            logger.info("Delete User request received:: tenant ID:{}, userID:{}", tenantId, userId);
+
+            Credentials tempCredentials = getCredentials(tenantId);
+            final AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
+
+            /** Get userpolicy@<Account_id> **/
+            Policy userPolicy = getUserPolicy(iamClient, tenantId);
+
+            if(userPolicy != null) {
+                /** Detach user policy from the user **/
+                DetachUserPolicyRequest detachUserPolicyRequest = ScalityModelConverter.toDetachUserPolicyRequest(userPolicy.getArn(), userId);
+                logger.debug("[Vault] Detach User Policy Request:{}", new Gson().toJson(detachUserPolicyRequest));
+
+                DetachUserPolicyResult detachUserPolicyResult = iamClient.detachUserPolicy(detachUserPolicyRequest);
+                logger.debug("[Vault] Detach User Policy response:{}", new Gson().toJson(detachUserPolicyResult));
+            }
+
+            DeleteUserRequest deleteUserRequest =  ScalityModelConverter.toIAMDeleteUserRequest(userId);
+
+            logger.debug("[Vault] Delete User Request:{}", new Gson().toJson(deleteUserRequest));
+
+            DeleteUserResult deleteUserResult = iamClient.deleteUser(deleteUserRequest);
+
+            logger.debug("[Vault] Delete User response:{}", new Gson().toJson(deleteUserResult));
+
+            return;
+        } catch (Exception e){
+
+            if(isAdminPolicyError(e)){
+                try {
+                    generateAdminPolicy(tenantId);
+                    deleteUser(tenantId, userId, purgeData);
+                    return;
+                } catch (Exception ex) {
+                    e = ex;
+                }
+            }
+
+            // If delete user fails just return no error response
+            logger.error("deleteUser error. User not found. Error details: ", e);
+        }
+
     }
 
     @Override
@@ -865,25 +907,12 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     }
 
     public Policy getOrCreateUserPolicy(AmazonIdentityManagement iam, String tenantId) {
-        Policy userPolicy = null;
-
-        GetPolicyRequest getPolicyRequest = ScalityModelConverter.toGetPolicyRequest(tenantId);
-
-        logger.debug("[Vault] Get Policy Request:{}", new Gson().toJson(getPolicyRequest));
-
-        try {
-            GetPolicyResult getPolicyResult = iam.getPolicy(getPolicyRequest);
-
-            logger.debug("[Vault] Get Policy response:{}", new Gson().toJson(getPolicyResult));
-
-            userPolicy = getPolicyResult.getPolicy();
-
-        } catch(com.amazonaws.services.identitymanagement.model.NoSuchEntityException e){
-            /** Policy does not exists **/
-            logger.debug("[Vault] User policy does not exists. A new user policy will be created");
-        }
+        Policy userPolicy = getUserPolicy(iam, tenantId);
 
         if(userPolicy == null || StringUtils.isNullOrEmpty(userPolicy.getArn())){
+            /** Policy does not exists **/
+            logger.debug("[Vault] User policy does not exists. A new user policy will be created");
+
             /** Create a new policy with necessary permissions **/
             CreatePolicyRequest createPolicyRequest = ScalityModelConverter.toCreateUserPolicyRequest(tenantId);
             logger.debug("[Vault] Create Policy Request:{}", new Gson().toJson(createPolicyRequest));
@@ -895,6 +924,23 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
         }
         return userPolicy;
+    }
+
+    private Policy getUserPolicy(AmazonIdentityManagement iam, String tenantId) {
+        try {
+            GetPolicyRequest getPolicyRequest = ScalityModelConverter.toGetPolicyRequest(tenantId);
+
+            logger.debug("[Vault] Get Policy Request:{}", new Gson().toJson(getPolicyRequest));
+
+            GetPolicyResult getPolicyResult = iam.getPolicy(getPolicyRequest);
+
+            logger.debug("[Vault] Get Policy response:{}", new Gson().toJson(getPolicyResult));
+
+            return getPolicyResult.getPolicy();
+
+        } catch(com.amazonaws.services.identitymanagement.model.NoSuchEntityException e){
+            return null;
+        }
     }
 
     private void generateAdminPolicy(String tenantId) throws Exception {
