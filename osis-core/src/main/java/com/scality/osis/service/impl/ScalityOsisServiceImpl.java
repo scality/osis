@@ -476,7 +476,34 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public void deleteS3Credential(String tenantId, String userId, String accessKey) {
-        throw new NotImplementedException();
+        if(!StringUtils.isNullOrEmpty(tenantId) &&
+            !StringUtils.isNullOrEmpty(userId) &&
+            !StringUtils.isNullOrEmpty(accessKey)) {
+            try {
+                logger.info("Delete S3 credential request received:: tenant ID:{}, user ID:{}, accessKey:{}",
+                        tenantId, userId, accessKey);
+
+                Credentials tempCredentials = getCredentials(tenantId);
+                final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
+
+                DeleteAccessKeyRequest deleteAccessKeyRequest =  ScalityModelConverter.toDeleteAccessKeyRequest(accessKey, userId);
+
+                logger.debug("[Vault] Delete Access Key Request:{}", new Gson().toJson(deleteAccessKeyRequest));
+
+                DeleteAccessKeyResult deleteAccessKeyResult = iam.deleteAccessKey(deleteAccessKeyRequest);
+
+                logger.debug("[Vault] Delete Access Key response:{}", new Gson().toJson(deleteAccessKeyResult));
+
+                deleteSecretKey(ScalityModelConverter.toRepoKeyForCredentials(userId, accessKey));
+
+                logger.info("Delete S3 credential successful:: tenant ID:{}, user ID:{}, accessKey:{}",
+                        tenantId, userId, accessKey);
+
+
+            } catch (Exception e){
+                logger.error("Delete S3 credential failed. Error details:", e);
+            }
+        }
     }
 
     @Override
@@ -517,6 +544,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             logger.debug("[Vault] Delete User response:{}", new Gson().toJson(deleteUserResult));
 
+            logger.info("Delete User successful:: tenant ID:{}, userID:{}", tenantId, userId);
             return;
         } catch (Exception e){
 
@@ -955,6 +983,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     private void storeSecretKey(String repoKey, String secretAccessKey) throws Exception {
         // Using `repoKey` for Associated Data during encryption
+        logger.debug("[Cache] Store Secret Key on cache. Key:{}", repoKey);
         SecretKeyRepoData encryptedRepoData = cipherFactory.getCipher().encrypt(secretAccessKey,
                 cipherFactory.getLatestSecretCipherKey(),
                 repoKey);
@@ -968,9 +997,11 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
         } else {
             springLocalCache.put(repoKey, encryptedRepoData);
         }
+        logger.debug("[Cache] Store Secret Key successful");
     }
 
     private String retrieveSecretKey(String repoKey) throws Exception {
+        logger.debug("[Cache] Retrieve Secret Key from cache. Key:{}", repoKey);
         SecretKeyRepoData repoVal = null;
         if(REDIS_SPRING_CACHE_TYPE.equalsIgnoreCase(appEnv.getSpringCacheType())) {
             if(scalityRedisRepository.hasKey(repoKey)){
@@ -989,7 +1020,21 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                     .decrypt(repoVal,
                             cipherFactory.getSecretCipherKeyByID(repoVal.getKeyID()),
                             repoKey);
+
+            logger.debug("[Cache] Retrieve Secret Key successful");
         }
         return secretKey;
+    }
+
+    private void deleteSecretKey(String repoKey) throws Exception {
+        logger.debug("[Cache] Delete Secret Key from cache. Key:{}", repoKey);
+        if(REDIS_SPRING_CACHE_TYPE.equalsIgnoreCase(appEnv.getSpringCacheType())) {
+            if(scalityRedisRepository.hasKey(repoKey)){
+                scalityRedisRepository.delete(repoKey);
+            }
+        } else {
+            springLocalCache.remove(repoKey);
+        }
+        logger.debug("[Cache] Delete Secret Key from cache successful");
     }
 }

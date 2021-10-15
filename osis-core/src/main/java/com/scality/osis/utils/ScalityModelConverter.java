@@ -215,6 +215,7 @@ public final class ScalityModelConverter {
     /**
      * Creates DeleteAccessKeyRequest dto
      * @param accessKeyId the accesskeyId
+     * @param username the username
      *
      * @return the DeleteAccessKeyRequest dto
      */
