@@ -13,6 +13,7 @@ import com.amazonaws.services.securitytoken.model.Credentials;
 import com.amazonaws.util.StringUtils;
 import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.redis.service.IRedisRepository;
+import com.scality.osis.resource.ScalityOsisCapsManager;
 import com.scality.osis.service.ScalityOsisService;
 import com.scality.osis.security.utils.CipherFactory;
 import com.scality.osis.utils.ScalityUtils;
@@ -68,7 +69,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     private VaultAdmin vaultAdmin;
 
     @Autowired
-    private OsisCapsManager osisCapsManager;
+    private ScalityOsisCapsManager scalityOsisCapsManager;
 
     @Autowired
     private AsyncScalityOsisService asyncScalityOsisService;
@@ -91,12 +92,12 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
      *
      * @param appEnv          the app env
      * @param vaultAdmin      the vault admin
-     * @param osisCapsManager the osis caps manager
+     * @param scalityOsisCapsManager the osis caps manager
      */
-    public ScalityOsisServiceImpl(ScalityAppEnv appEnv, VaultAdmin vaultAdmin, OsisCapsManager osisCapsManager){
+    public ScalityOsisServiceImpl(ScalityAppEnv appEnv, VaultAdmin vaultAdmin, ScalityOsisCapsManager scalityOsisCapsManager){
         this.appEnv = appEnv;
         this.vaultAdmin = vaultAdmin;
-        this.osisCapsManager = osisCapsManager;
+        this.scalityOsisCapsManager = scalityOsisCapsManager;
     }
 
     /**
@@ -837,7 +838,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 .platformName(appEnv.getPlatformName())
                 .platformVersion(appEnv.getPlatformVersion())
                 .apiVersion(appEnv.getApiVersion())
-                .notImplemented(osisCapsManager.getNotImplements())
+                .notImplemented(scalityOsisCapsManager.getNotImplements())
                 .logoUri(ScalityUtils.getLogoUri(domain))
                 .services(new InformationServices().iam(domain + IAM_PREFIX).s3(appEnv.getS3InterfaceEndpoint()))
                 .status(Information.StatusEnum.NORMAL);

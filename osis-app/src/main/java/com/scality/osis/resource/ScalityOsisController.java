@@ -169,6 +169,7 @@ public class ScalityOsisController {
     })
     @DeleteMapping(value = "/api/v1/tenants/{tenantId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @NotImplement(name = OsisConstants.DELETE_TENANT_API_CODE)
     public void deleteTenant(
             @ApiParam(value = "Tenant ID of the tenant to delete", required = true)
             @PathVariable("tenantId") String tenantId,
@@ -363,6 +364,7 @@ public class ScalityOsisController {
     })
     @GetMapping(value = "/api/v1/tenants/{tenantId}",
             produces = "application/json")
+    @NotImplement(name = OsisConstants.GET_TENANT_API_CODE)
     public OsisTenant getTenant(
             @ApiParam(value = "Tenant ID to get the tenant from the platform", required = true)
             @PathVariable("tenantId") String tenantId) {
@@ -501,6 +503,7 @@ public class ScalityOsisController {
     })
     @RequestMapping(value = "/api/v1/tenants/{tenantId}/users/{userId}",
             method = RequestMethod.HEAD)
+    @NotImplement(name = OsisConstants.HEAD_USER_API_CODE)
     public void headUser(
             @ApiParam(value = "The ID of the tenant which the user belongs to", required = true)
             @PathVariable("tenantId") String tenantId,
