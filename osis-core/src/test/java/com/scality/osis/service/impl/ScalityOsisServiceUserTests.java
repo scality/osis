@@ -359,6 +359,30 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
     }
 
     @Test
+    public void testGetUserWithCanonicalIDInactive() {
+        // Setup
+        when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
+                .thenAnswer((Answer<ListAccessKeysResult>) invocation -> {
+                    final ListAccessKeysRequest request = invocation.getArgument(0);
+
+                    final AccessKeyMetadata accessKeyMetadata = new AccessKeyMetadata()
+                            .withAccessKeyId(TEST_ACCESS_KEY)
+                            .withCreateDate(new Date())
+                            .withStatus(StatusType.Inactive)
+                            .withUserName(request.getUserName());
+
+                    return new ListAccessKeysResult()
+                            .withAccessKeyMetadata(Collections.singletonList(accessKeyMetadata));
+                });
+
+        // Run the test
+        final OsisUser resUser = scalityOsisServiceUnderTest.getUser(TEST_CANONICAL_ID);
+
+        // Verify the results
+        assertFalse(resUser.getActive());
+    }
+
+    @Test
     public void testGetUserWithUserID() {
         // Setup
 
@@ -428,6 +452,30 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         assertNotNull(osisUser.getRole());
         assertNotNull(osisUser.getEmail());
         assertTrue(osisUser.getActive());
+    }
+
+    @Test
+    public void testGetUserInActive() {
+        // Setup
+        when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
+                .thenAnswer((Answer<ListAccessKeysResult>) invocation -> {
+                    final ListAccessKeysRequest request = invocation.getArgument(0);
+
+                    final AccessKeyMetadata accessKeyMetadata = new AccessKeyMetadata()
+                            .withAccessKeyId(TEST_ACCESS_KEY)
+                            .withCreateDate(new Date())
+                            .withStatus(StatusType.Inactive)
+                            .withUserName(request.getUserName());
+
+                    return new ListAccessKeysResult()
+                            .withAccessKeyMetadata(Collections.singletonList(accessKeyMetadata));
+                });
+
+        // Run the test
+        final OsisUser resUser = scalityOsisServiceUnderTest.getUser(TEST_TENANT_ID, TEST_USER_ID);
+
+        // Verify the results
+        assertFalse(resUser.getActive());
     }
 
     @Test
@@ -520,24 +568,75 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
     }
 
     @Test
-    public void testUpdateUser() {
+    public void testListUsersInActive() {
         // Setup
-        final OsisUser osisUser = new OsisUser();
-        osisUser.userId(TEST_USER_ID);
-        osisUser.setUserId(TEST_USER_ID);
-        osisUser.canonicalUserId("canonicalUserId");
-        osisUser.setCanonicalUserId("canonicalUserId");
-        osisUser.tenantId(TEST_TENANT_ID);
-        osisUser.setTenantId(TEST_TENANT_ID);
-        osisUser.active(false);
-        osisUser.setActive(false);
-        osisUser.cdUserId("cdUserId");
-        osisUser.setCdUserId("cdUserId");
+        when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
+                .thenAnswer((Answer<ListAccessKeysResult>) invocation -> {
+                    final ListAccessKeysRequest request = invocation.getArgument(0);
+
+                    final AccessKeyMetadata accessKeyMetadata = new AccessKeyMetadata()
+                            .withAccessKeyId(TEST_ACCESS_KEY)
+                            .withCreateDate(new Date())
+                            .withStatus(StatusType.Inactive)
+                            .withUserName(request.getUserName());
+
+                    return new ListAccessKeysResult()
+                            .withAccessKeyMetadata(Collections.singletonList(accessKeyMetadata));
+                });
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.updateUser(TEST_TENANT_ID, TEST_USER_ID, osisUser), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        final PageOfUsers response = scalityOsisServiceUnderTest.listUsers(SAMPLE_TENANT_ID, offset, limit);
 
         // Verify the results
+        assertEquals(limit, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals((int)limit, response.getItems().size());
+        // Assert if at least one user is inactive
+        assertFalse(response.getItems().get(0).getActive());
+    }
+
+    @Test
+    public void testUpdateUserInactive() {
+        // Setup
+        final OsisUser osisUser = new OsisUser();
+        osisUser.setUserId(TEST_USER_ID);
+        osisUser.setCanonicalUserId(TEST_USER_ID);
+        osisUser.setTenantId(TEST_TENANT_ID);
+        osisUser.setCdTenantId(TEST_TENANT_ID);
+        osisUser.setActive(false);
+        osisUser.setCdUserId(TEST_USER_ID);
+        osisUser.setRole(OsisUser.RoleEnum.TENANT_USER);
+        osisUser.setUsername(TEST_NAME);
+
+        // Run the test
+        final OsisUser resUser = scalityOsisServiceUnderTest.updateUser(TEST_TENANT_ID, TEST_USER_ID, osisUser);
+
+        // Verify the results
+        assertFalse(resUser.getActive());
+    }
+
+    @Test
+    public void testUpdateUserActive() {
+        // Setup
+        final OsisUser osisUser = new OsisUser();
+        osisUser.setUserId(TEST_USER_ID);
+        osisUser.setCanonicalUserId(TEST_USER_ID);
+        osisUser.setTenantId(TEST_TENANT_ID);
+        osisUser.setCdTenantId(TEST_TENANT_ID);
+        osisUser.setActive(true);
+        osisUser.setCdUserId(TEST_USER_ID);
+        osisUser.setRole(OsisUser.RoleEnum.TENANT_USER);
+        osisUser.setUsername(TEST_NAME);
+
+        // Run the test
+        final OsisUser resUser = scalityOsisServiceUnderTest.updateUser(TEST_TENANT_ID, TEST_USER_ID, osisUser);
+
+        // Verify the results
+        assertTrue(resUser.getActive());
     }
 
 
