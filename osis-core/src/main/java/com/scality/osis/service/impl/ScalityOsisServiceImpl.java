@@ -652,6 +652,28 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             final OsisUser osisUser = ScalityModelConverter.toCanonicalOsisUser(account, users);
 
+            // List all user access keys and if all are inactive, mark user as inactive
+            Credentials tempCredentials = getCredentials(account.getId());
+            final AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
+
+            ListAccessKeysRequest listAccessKeysRequest =  ScalityModelConverter.toIAMListAccessKeysRequest(osisUser.getUserId(), DEFAULT_MAX_LIMIT);
+
+            logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
+
+            ListAccessKeysResult listAccessKeysResult = iamClient.listAccessKeys(listAccessKeysRequest);
+
+            logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
+
+            boolean isActive = false;
+            for(AccessKeyMetadata accessKey: listAccessKeysResult.getAccessKeyMetadata()) {
+                if(accessKey.getStatus().equals(StatusType.Active.toString())){
+                    isActive = true;
+                    break;
+                }
+            }
+
+            osisUser.setActive(isActive);
+
             logger.info("Get User w/ Canonical ID response:{}", new Gson().toJson(osisUser));
 
             return osisUser;
@@ -678,6 +700,26 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             logger.debug("[Vault] Get User response:{}", new Gson().toJson(getUserResult));
 
             OsisUser osisUser = ScalityModelConverter.toOsisUser(getUserResult.getUser(), tenantId);
+
+            // List all user access keys and if all are inactive, mark user as inactive
+            ListAccessKeysRequest listAccessKeysRequest =  ScalityModelConverter.toIAMListAccessKeysRequest(userId, DEFAULT_MAX_LIMIT);
+
+            logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
+
+            ListAccessKeysResult listAccessKeysResult = iamClient.listAccessKeys(listAccessKeysRequest);
+
+            logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
+
+            boolean isActive = false;
+            for(AccessKeyMetadata accessKey: listAccessKeysResult.getAccessKeyMetadata()) {
+                if(accessKey.getStatus().equals(StatusType.Active.toString())){
+                    isActive = true;
+                    break;
+                }
+            }
+
+            osisUser.setActive(isActive);
+
             logger.info("Get User response:{}", new Gson().toJson(osisUser));
 
             return  osisUser;
@@ -793,6 +835,26 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             logger.debug("[Vault] List Users response:{}", new Gson().toJson(listUsersResult));
 
             PageOfUsers pageOfUsers = ScalityModelConverter.toPageOfUsers(listUsersResult, offset, limit, tenantId);
+
+            for(OsisUser osisUser : pageOfUsers.getItems()) {
+                // List all user access keys and if all are inactive, mark user as inactive
+                ListAccessKeysRequest listAccessKeysRequest = ScalityModelConverter.toIAMListAccessKeysRequest(osisUser.getUserId(), DEFAULT_MAX_LIMIT);
+
+                logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
+
+                ListAccessKeysResult listAccessKeysResult = iam.listAccessKeys(listAccessKeysRequest);
+
+                logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
+
+                boolean isActive = false;
+                for (AccessKeyMetadata accessKey : listAccessKeysResult.getAccessKeyMetadata()) {
+                    if (accessKey.getStatus().equals(StatusType.Active.toString())) {
+                        isActive = true;
+                        break;
+                    }
+                }
+                osisUser.setActive(isActive);
+            }
             logger.info("List Users response:{}", new Gson().toJson(pageOfUsers));
 
             return  pageOfUsers;
@@ -824,7 +886,45 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public OsisUser updateUser(String tenantId, String userId, OsisUser osisUser) {
-        throw new NotImplementedException();
+        try {
+            OsisTenant tenant = ScalityModelConverter.toOsisTenant(vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId)));
+            logger.info("Update User request received:: tenant ID:{}, user ID:{}", tenantId, userId);
+
+            Credentials tempCredentials = getCredentials(tenantId);
+            final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
+
+            // List all access keys for the user
+            ListAccessKeysRequest listAccessKeysRequest =  ScalityModelConverter.toIAMListAccessKeysRequest(userId, DEFAULT_MAX_LIMIT);
+
+            logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
+
+            ListAccessKeysResult listAccessKeysResult = iam.listAccessKeys(listAccessKeysRequest);
+
+            logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
+
+            for(AccessKeyMetadata accessKey: listAccessKeysResult.getAccessKeyMetadata()) {
+                // Update each access key of the user to active/inactive
+                UpdateAccessKeyRequest updateAccessKeyRequest =  ScalityModelConverter.toIAMUpdateAccessKeyRequest(userId,
+                        accessKey.getAccessKeyId(), osisUser.getActive());
+                iam.updateAccessKey(updateAccessKeyRequest);
+            }
+
+            logger.info("Updated user response:{}", ScalityModelConverter.maskSecretKey(new Gson().toJson(osisUser)));
+            return  osisUser;
+        } catch (Exception e){
+
+            if(isAdminPolicyError(e)) {
+                try {
+                    generateAdminPolicy(tenantId);
+                    return updateUser(tenantId, userId, osisUser);
+                } catch (Exception ex) {
+                    e = ex;
+                }
+            }
+
+            logger.error("Update User error. Error details: ", e);
+            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        }
     }
 
     @Override
