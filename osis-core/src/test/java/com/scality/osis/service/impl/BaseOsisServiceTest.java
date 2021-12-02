@@ -6,8 +6,7 @@ import com.amazonaws.services.securitytoken.model.*;
 import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.redis.service.ScalityRedisRepository;
 import com.scality.osis.security.crypto.BaseCipher;
-import com.scality.osis.security.crypto.model.CipherInformation;
-import com.scality.osis.security.crypto.model.SecretKeyRepoData;
+import com.scality.osis.security.crypto.model.*;
 import com.scality.osis.security.utils.CipherFactory;
 import com.scality.osis.vaultadmin.impl.VaultAdminImpl;
 import com.scality.osis.vaultadmin.impl.cache.*;
@@ -105,6 +104,7 @@ public class BaseOsisServiceTest {
         initGetUserMocks();
         initDeleteUserMocks();
         initListAccessKeysMocks();
+        initUpdateAccessKeysMocks();
         initCaches();
         initBaseCipherMocks();
         initCipherFactoryMocks();
@@ -442,6 +442,13 @@ public class BaseOsisServiceTest {
         //initialize mock get user response
         when(iamMock.deleteUser(any(DeleteUserRequest.class)))
                 .thenAnswer((Answer<DeleteUserResult>) invocation ->  new DeleteUserResult());
+    }
+
+    protected void initUpdateAccessKeysMocks() {
+
+        //initialize mock update access keys response
+        when(iamMock.updateAccessKey(any(UpdateAccessKeyRequest.class)))
+                .thenAnswer((Answer<UpdateAccessKeyResult>) invocation ->  new UpdateAccessKeyResult());
     }
 
     protected GetUserResult getUserMockResponse(final InvocationOnMock invocation) {

@@ -113,6 +113,20 @@ public final class ScalityModelConverter {
     }
 
     /**
+     * Creates Vault Update Access Key request
+     *
+     * @param username the IAM User's username
+     * @param limit the max number of the access keys in the response
+     * @return the IAM list Access Keys request dto
+     */
+    public static UpdateAccessKeyRequest toIAMUpdateAccessKeyRequest(String username, String accessKey, Boolean isActive) {
+        return new UpdateAccessKeyRequest()
+                .withUserName(username)
+                .withAccessKeyId(accessKey)
+                .withStatus(isActive ? StatusType.Active : StatusType.Inactive);
+    }
+
+    /**
      * Creates IAM Get User request
      * @param username Vault username
      *
