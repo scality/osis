@@ -19,37 +19,37 @@ Legend
 * `o` - implemented with default stub
 * `*` - Mandatory APIs to integrate with OSE for essential functions, like basic S3 bucket/object CRUD operations
 
-| API  | Milestone 1 | Milestone 2 | Milestone 3 |
-|:-----|:------------|:------------|-------------|
-| headTenant * | . | . | . |
-| getTenant | . | . | . |
-| updateTenant * | . | . | . |
-| deleteTenant | . | . | . |
-| listTenants * | x | x | x |
-| createTenant * | x | x | x |
-| queryTenants * | x | x | x |
-| queryUsers * | . | x | x |
-| createUser * | . | x | x |
-| listUsers * | . | x | x |
-| getUserWithId * | . | x | x |
-| headUser | . | . | . |
-| updateUserStatus * | . | . | . |
-| deleteUser * | . | . | . |
-| getUserWithCanonicalID * | . | . | x |
-| queryCredentials * | . | . | x |
-| listCredentials * | . | x | x |
-| createCredential * | . | x | x |
-| getCredential * | . | . | x |
-| updateCredentialStatus | . | . | . |
-| deleteCredential | . | . | . |
-| getUsage | o | o | o |
-| getBucketList | . | . | . |
-| getBucketLoggingId | . | . | . |
-| getAnonymousUser | . | . | . |
-| getConsole | o | o | o |
-| getS3Capabilities * | o | x | x |
-| getInfo * | o | o | o |
-| refreshToken *  | o | o | o |
+| API  | Milestone 1 | Milestone 2 | Milestone 3 | Milestone 4 |
+|:-----|:------------|:------------|-------------|-------------|
+| headTenant * | . | . | . | x |
+| getTenant | . | . | . | . |
+| updateTenant * | . | . | . | x |
+| deleteTenant | . | . | . | . |
+| listTenants * | x | x | x | x |
+| createTenant * | x | x | x | x |
+| queryTenants * | x | x | x | x |
+| queryUsers * | . | x | x | x |
+| createUser * | . | x | x | x |
+| listUsers * | . | x | x | x |
+| getUserWithId * | . | x | x | x |
+| headUser | . | . | . | . |
+| updateUserStatus * | . | . | . | . |
+| deleteUser * | . | . | . | x |
+| getUserWithCanonicalID * | . | . | x | x |
+| queryCredentials * | . | . | x | x |
+| listCredentials * | . | x | x | x |
+| createCredential * | . | x | x | x |
+| getCredential * | . | . | x | x |
+| updateCredentialStatus | . | . | . | . |
+| deleteCredential | . | . | . | x |
+| getUsage | o | o | o | o |
+| getBucketList | . | . | . | . |
+| getBucketLoggingId | . | . | . | . |
+| getAnonymousUser | . | . | . | . |
+| getConsole | o | o | o | o |
+| getS3Capabilities * | o | x | x | x |
+| getInfo * | o | o | o | x |
+| refreshToken *  | o | o | o | o |
 
 ### Required APIs
 

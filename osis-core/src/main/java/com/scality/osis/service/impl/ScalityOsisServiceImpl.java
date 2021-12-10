@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
+import com.scality.vaultclient.dto.UpdateAccountAttributesRequestDTO;
 import com.vmware.osis.model.*;
 import com.vmware.osis.model.exception.NotFoundException;
 import com.vmware.osis.model.exception.NotImplementedException;
@@ -514,7 +515,26 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public OsisTenant updateTenant(String tenantId, OsisTenant osisTenant) {
-        throw new NotImplementedException();
+        try {
+            logger.info("Update Tenant request received:{}", new Gson().toJson(osisTenant));
+            UpdateAccountAttributesRequestDTO updateAccountAttributesRequest = ScalityModelConverter.toUpdateAccountAttributesRequestDTO(osisTenant);
+
+            logger.debug("[Vault]Update Account Attributes request:{}", new Gson().toJson(updateAccountAttributesRequest));
+
+            CreateAccountResponseDTO accountResponse = vaultAdmin.updateAccountAttributes(updateAccountAttributesRequest);
+
+            logger.debug("[Vault]Update Account Attributes response:{}", new Gson().toJson(accountResponse));
+
+            OsisTenant resOsisTenant = ScalityModelConverter.toOsisTenant(accountResponse);
+
+            logger.info("Update Tenant response:{}", new Gson().toJson(resOsisTenant));
+
+            return resOsisTenant;
+        } catch (VaultServiceException e){
+            // Update Tenant supports only 400:BAD_REQUEST error, change status code in the VaultServiceException
+            logger.error("Update Tenant error. Error details: ", e);
+            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        }
     }
 
     @Override

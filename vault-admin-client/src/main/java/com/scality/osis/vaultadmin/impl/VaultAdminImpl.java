@@ -17,15 +17,7 @@ import com.scality.osis.vaultadmin.impl.cache.Cache;
 import com.scality.osis.vaultadmin.impl.cache.CacheConstants;
 import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
 import com.scality.osis.vaultadmin.utils.VaultAdminUtils;
-import com.scality.vaultclient.dto.AccountData;
-import com.scality.vaultclient.dto.AssumeRoleResult;
-import com.scality.vaultclient.dto.CreateAccountRequestDTO;
-import com.scality.vaultclient.dto.CreateAccountResponseDTO;
-import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
-import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
-import com.scality.vaultclient.dto.GetAccountRequestDTO;
-import com.scality.vaultclient.dto.ListAccountsRequestDTO;
-import com.scality.vaultclient.dto.ListAccountsResponseDTO;
+import com.scality.vaultclient.dto.*;
 import com.scality.vaultclient.services.AccountServicesClient;
 import com.scality.vaultclient.services.SecurityTokenServicesClient;
 import com.scality.osis.vaultadmin.VaultAdmin;
@@ -374,5 +366,17 @@ public class VaultAdminImpl implements VaultAdmin{
   @Override
   public AccountData getAccount(GetAccountRequestDTO getAccountRequestDTO) {
     return ExternalServiceFactory.executeVaultService(vaultAccountClient::getAccount, getAccountRequestDTO);
+  }
+
+  /**
+   * Update account's customAttributes
+   * <p>This method will override the existing custom attributes of an account from Vault identified using Account Name.
+   *
+   * @param updateAccountAttributesRequestDTO the update account attributes request dto
+   * @return The updated account as a create account response object.
+   */
+  @Override
+  public CreateAccountResponseDTO updateAccountAttributes(UpdateAccountAttributesRequestDTO updateAccountAttributesRequestDTO) {
+    return ExternalServiceFactory.executeVaultService(vaultAccountClient::updateAccountAttributes, updateAccountAttributesRequestDTO);
   }
 }
