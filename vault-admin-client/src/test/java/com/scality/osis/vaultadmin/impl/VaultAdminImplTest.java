@@ -13,6 +13,8 @@ import org.mockito.stubbing.Answer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -545,5 +547,26 @@ public class VaultAdminImplTest extends BaseTest {
                 .build();
 
         assertThrows(VaultServiceException.class, () -> vaultAdminImpl.getAccountID(listAccountsRequestDTO));
+    }
+
+    @Test
+    public void updateAccountAttributes() {
+
+        final String name = "tenant.name";
+        final Map<String, String> customAttributestemp  = new HashMap<>() ;
+        customAttributestemp.put("cd_tenant_id==" + UUID.randomUUID(), "");
+
+        final UpdateAccountAttributesRequestDTO updateAccountAttributesRequestDTO = UpdateAccountAttributesRequestDTO.builder()
+                .name(name)
+                .customAttributes(customAttributestemp)
+                .build();
+
+        final CreateAccountResponseDTO response = vaultAdminImpl.updateAccountAttributes(updateAccountAttributesRequestDTO);
+        assertEquals(name, response.getAccount().getData().getName());
+        assertNotNull(response.getAccount().getData().getArn());
+        assertNotNull(response.getAccount().getData().getCreateDate());
+        assertNotNull(response.getAccount().getData().getId());
+        assertNotNull(response.getAccount().getData().getCanonicalId());
+        assertNotNull(response.getAccount().getData().getCustomAttributes());
     }
 }

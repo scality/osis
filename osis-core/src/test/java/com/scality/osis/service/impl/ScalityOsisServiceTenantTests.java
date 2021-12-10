@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
@@ -242,29 +243,54 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
 
     @Test
     public void testUpdateTenant() {
-        // Setup
-        final OsisTenant osisTenant = new OsisTenant();
-        osisTenant.active(false);
-        osisTenant.name(TEST_NAME);
-        osisTenant.setName(TEST_NAME);
-        osisTenant.tenantId(TEST_TENANT_ID);
-        osisTenant.setTenantId(TEST_TENANT_ID);
-        osisTenant.cdTenantIds(Arrays.asList(TEST_STR));
-        osisTenant.setCdTenantIds(Arrays.asList(TEST_STR));
 
-        final OsisTenant expectedResult = new OsisTenant();
-        expectedResult.active(false);
-        expectedResult.name(TEST_NAME);
-        expectedResult.setName(TEST_NAME);
-        expectedResult.tenantId(TEST_TENANT_ID);
-        expectedResult.setTenantId(TEST_TENANT_ID);
-        expectedResult.cdTenantIds(Arrays.asList(TEST_STR));
-        expectedResult.setCdTenantIds(Arrays.asList(TEST_STR));
+        // Call Scality Osis service to update a tenant
+        final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.updateTenant(SAMPLE_ID, createSampleOsisTenantObj());
 
-        // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.updateTenant(TEST_TENANT_ID, osisTenant), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        assertEquals(SAMPLE_ID, osisTenantRes.getTenantId());
+        assertEquals(SAMPLE_TENANT_NAME, osisTenantRes.getName());
+        assertTrue(SAMPLE_CD_TENANT_IDS.size() == osisTenantRes.getCdTenantIds().size() &&
+                SAMPLE_CD_TENANT_IDS.containsAll(osisTenantRes.getCdTenantIds()) && osisTenantRes.getCdTenantIds().containsAll(SAMPLE_CD_TENANT_IDS));
+        assertTrue(osisTenantRes.getActive());
+    }
 
-        // Verify the results
+    @Test
+    public void testUpdateTenantEmptyCDTenantIDs() {
+        final OsisTenant osisTenantReq = createSampleOsisTenantObj();
+        osisTenantReq.setCdTenantIds(new ArrayList<>());
+
+        // Call Scality Osis service to update a tenant
+        final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.updateTenant(SAMPLE_ID, osisTenantReq);
+
+        assertEquals(SAMPLE_ID, osisTenantRes.getTenantId());
+        assertEquals(SAMPLE_TENANT_NAME, osisTenantRes.getName());
+        assertEquals(0, osisTenantRes.getCdTenantIds().size());
+        assertTrue(osisTenantRes.getActive());
+    }
+
+    @Test
+    public void testUpdateTenantInactive(){
+        final OsisTenant osisTenantReq = createSampleOsisTenantObj();
+        osisTenantReq.active(false);
+
+        // Call Scality Osis service to update a tenant
+        assertThrows(BadRequestException.class, () -> {
+            scalityOsisServiceUnderTest.updateTenant(SAMPLE_ID, osisTenantReq);
+        });
+    }
+
+    @Test
+    public void testUpdateTenant400(){
+
+        when(vaultAdminMock.updateAccountAttributes(any()))
+                .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Bad Request");
+                });
+
+        assertThrows(VaultServiceException.class, () -> {
+            scalityOsisServiceUnderTest.updateTenant(SAMPLE_ID, createSampleOsisTenantObj());
+        });
+
     }
 
     @Test

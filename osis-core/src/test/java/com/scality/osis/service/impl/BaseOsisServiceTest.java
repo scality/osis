@@ -89,6 +89,7 @@ public class BaseOsisServiceTest {
         when(vaultAdminMock.getIAMClient(any(Credentials.class),any())).thenReturn(iamMock);
 
         initCreateTenantMocks();
+        initUpdateTenantMocks();
         initListTenantMocks();
         initTempCredentialsMocks();
         initCreatePolicyMocks();
@@ -164,6 +165,25 @@ public class BaseOsisServiceTest {
                     } else{
                         data.setId(request.getExternalAccountId());
                     }
+                    data.setCustomAttributes(request.getCustomAttributes());
+                    final Account account = new Account();
+                    account.setData(data);
+                    final CreateAccountResponseDTO response = new CreateAccountResponseDTO();
+                    response.setAccount(account);
+
+                    return response;
+                });
+    }
+
+    protected void initUpdateTenantMocks() {
+        //initialize mock create account response
+        when(vaultAdminMock.updateAccountAttributes(any(UpdateAccountAttributesRequestDTO.class)))
+                .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
+                    final UpdateAccountAttributesRequestDTO request = invocation.getArgument(0);
+                    final AccountData data = new AccountData();
+                    data.setEmailAddress(SAMPLE_SCALITY_ACCOUNT_EMAIL);
+                    data.setName(request.getName());
+                    data.setId(SAMPLE_ID);
                     data.setCustomAttributes(request.getCustomAttributes());
                     final Account account = new Account();
                     account.setData(data);
