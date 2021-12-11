@@ -4,15 +4,7 @@ import com.amazonaws.Response;
 import com.amazonaws.http.HttpResponse;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
-import com.scality.vaultclient.dto.AccountData;
-import com.scality.vaultclient.dto.AccountSecretKeyData;
-import com.scality.vaultclient.dto.AssumeRoleResult;
-import com.scality.vaultclient.dto.CreateAccountRequestDTO;
-import com.scality.vaultclient.dto.CreateAccountResponseDTO;
-import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
-import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
-import com.scality.vaultclient.dto.ListAccountsRequestDTO;
-import com.scality.vaultclient.dto.ListAccountsResponseDTO;
+import com.scality.vaultclient.dto.*;
 import com.scality.vaultclient.services.AccountServicesClient;
 import com.scality.vaultclient.services.SecurityTokenServicesClient;
 import com.scality.vaultclient.services.VaultClientException;
@@ -74,6 +66,7 @@ public class BaseTest {
     initListAccountsMocks();
     initAssumeRoleMocks();
     initGenerateAccountAKMocks();
+    initUpdateAccountAttributesMocks();
 
     vaultAdminImpl = new VaultAdminImpl(accountServicesClient, stsClient, vaultAdminEndpoint, s3InterfaceEndpoint);
   }
@@ -97,7 +90,7 @@ public class BaseTest {
                 }
                 data.setCanonicalId(DEFAULT_TEST_CANONICAL_ID);
                 data.setQuotaMax(request.getQuotaMax());
-                final com.scality.vaultclient.dto.Account account = new com.scality.vaultclient.dto.Account();
+                final Account account = new Account();
                 account.setData(data);
                 final CreateAccountResponseDTO response = new CreateAccountResponseDTO();
                 response.setAccount(account);
@@ -238,6 +231,36 @@ public class BaseTest {
 
                 final GenerateAccountAccessKeyResponse response = new GenerateAccountAccessKeyResponse();
                 response.setData(accountSecretKeyData);
+
+                final HttpResponse httpResponse = new HttpResponse(null, null);
+                httpResponse.setStatusCode(201);
+                httpResponse.setStatusText("Created");
+                return new Response<>(response,httpResponse);
+              }
+            });
+  }
+
+  private void initUpdateAccountAttributesMocks() {
+    //initialize mock update account attributes response
+    when(accountServicesClient.updateAccountAttributes(any(UpdateAccountAttributesRequestDTO.class)))
+            .thenAnswer(new Answer<Response<CreateAccountResponseDTO>>() {
+              @Override
+              public Response<CreateAccountResponseDTO> answer(final InvocationOnMock invocation) {
+                final UpdateAccountAttributesRequestDTO request = invocation.getArgument(0);
+
+                final AccountData data = new AccountData();
+                data.setEmailAddress(DEFAULT_TEST_EMAIL_ADDR);
+                data.setName(request.getName());
+                data.setId(DEFAULT_TEST_ACCOUNT_ID);
+                data.setCanonicalId(DEFAULT_TEST_CANONICAL_ID);
+                data.setCustomAttributes(request.getCustomAttributes());
+                data.setArn(DEFAULT_TEST_ARN_STR + request.getName() +"/\"");
+                data.setCreateDate(new Date());
+
+                final Account account = new Account();
+                account.setData(data);
+                final CreateAccountResponseDTO response = new CreateAccountResponseDTO();
+                response.setAccount(account);
 
                 final HttpResponse httpResponse = new HttpResponse(null, null);
                 httpResponse.setStatusCode(201);

@@ -13,6 +13,7 @@ import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
 import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
+import com.scality.vaultclient.dto.UpdateAccountAttributesRequestDTO;
 import com.vmware.osis.model.OsisS3Credential;
 import com.vmware.osis.model.OsisTenant;
 import com.vmware.osis.model.OsisUser;
@@ -70,6 +71,26 @@ public final class ScalityModelConverter {
         createAccountRequestDTO.setCustomAttributes(toScalityCustomAttributes(osisTenant.getCdTenantIds()));
 
         return createAccountRequestDTO;
+    }
+
+    /**
+     * Converts OSIS Tenant object to Vault Update Account Attributes request
+     * @param osisTenant the osis tenant
+     *
+     * @return the update account attributes request dto
+     */
+    public static UpdateAccountAttributesRequestDTO toUpdateAccountAttributesRequestDTO(OsisTenant osisTenant) {
+        if(!osisTenant.getActive()){
+//            Scality does not support inactive tenants
+            throw new BadRequestException("Deactivating a tenant is not supported");
+        }
+        UpdateAccountAttributesRequestDTO updateAccountAttributesRequestDTO = new UpdateAccountAttributesRequestDTO();
+
+        updateAccountAttributesRequestDTO.setName(osisTenant.getName());
+
+        updateAccountAttributesRequestDTO.setCustomAttributes(toScalityCustomAttributes(osisTenant.getCdTenantIds()));
+
+        return updateAccountAttributesRequestDTO;
     }
 
     /**

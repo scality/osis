@@ -16,6 +16,7 @@ import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
 import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
+import com.scality.vaultclient.dto.UpdateAccountAttributesRequestDTO;
 import com.scality.vaultclient.services.AccountServicesClient;
 import com.scality.vaultclient.services.SecurityTokenServicesClient;
 
@@ -112,4 +113,13 @@ public interface VaultAdmin {
    * @return the accountId
    */
   String getAccountID(ListAccountsRequestDTO listAccountsRequest);
+
+  /**
+   * Update account's customAttributes
+   * <p>This method will override the existing custom attributes of an account from Vault identified using Account Name.
+   *
+   * @param updateAccountAttributesRequestDTO the update account attributes request dto
+   * @return The updated account as a create account response object.
+   */
+  CreateAccountResponseDTO updateAccountAttributes(UpdateAccountAttributesRequestDTO updateAccountAttributesRequestDTO);
 }
