@@ -476,17 +476,17 @@ public class ScalityOsisController {
     }, tags = { "user", "optional", })
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "The user exists"),
-            @ApiResponse(code = 404, message = "The user doesn't exist"),
-            @ApiResponse(code = 501, message = "The optional API is not implemented") })
+            @ApiResponse(code = 404, message = "The user doesn't exist")})
     @ApiImplicitParams({
     })
-    @RequestMapping(value = "/api/v1/tenants/{tenantId}/users/{userId}", method = RequestMethod.HEAD)
-    @NotImplement(name = ScalityOsisConstants.HEAD_USER_API_CODE)
-    public void headUser(
-            @ApiParam(value = "The ID of the tenant which the user belongs to", required = true) @PathVariable("tenantId") String tenantId,
-            @ApiParam(value = "The ID of the user to check", required = true) @PathVariable("userId") String userId) {
-        osisService.headUser(tenantId, userId);
-
+    @RequestMapping(value = "/api/v1/tenants/{tenantId}/users/{userId}",
+            method = RequestMethod.HEAD)
+    public boolean headUser(
+            @ApiParam(value = "The ID of the tenant which the user belongs to", required = true)
+            @PathVariable("tenantId") String tenantId,
+            @ApiParam(value = "The ID of the user to check", required = true)
+            @PathVariable("userId") String userId) {
+        return osisService.headUser(tenantId, userId);
     }
 
     /**

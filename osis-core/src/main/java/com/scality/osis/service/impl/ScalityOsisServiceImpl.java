@@ -813,7 +813,23 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public boolean headUser(String tenantId, String userId) {
-        throw new NotImplementedException();
+        try {
+            logger.info("Head User request received:: tenant ID:{} user ID:{}", tenantId, userId);
+            Credentials tempCredentials = getCredentials(tenantId);
+
+            final AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
+
+            GetUserRequest getUserRequest =  ScalityModelConverter.toIAMGetUserRequest(userId);
+
+            logger.debug("[Vault] Get User Request:{}", new Gson().toJson(getUserRequest));
+
+            GetUserResult getUserResult = iamClient.getUser(getUserRequest);
+            logger.info("Head User response:: {}", getUserResult.getUser());
+            return getUserResult.getUser() !=null && getUserResult.getUser().getUserId().equals(userId);
+        } catch (Exception e){
+            logger.error("Head User error. Error details: ", e);
+            throw new VaultServiceException(HttpStatus.NOT_FOUND, "The user doesn't exist", e);
+        }
     }
 
     @Override
