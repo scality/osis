@@ -825,10 +825,10 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             GetUserResult getUserResult = iamClient.getUser(getUserRequest);
             logger.info("Head User response:: {}", getUserResult.getUser());
-            return getUserResult.getUser() !=null && getUserResult.getUser().getUserId().equals(userId);
+            return getUserResult.getUser() !=null && getUserResult.getUser().getUserName().equals(userId);
         } catch (Exception e){
             logger.error("Head User error. Error details: ", e);
-            throw new VaultServiceException(HttpStatus.NOT_FOUND, "The user doesn't exist", e);
+            throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
     }
 

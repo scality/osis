@@ -2,7 +2,6 @@ package com.scality.osis.service.impl;
 
 import com.amazonaws.services.identitymanagement.model.*;
 import com.scality.osis.model.*;
-import com.scality.osis.model.exception.*;
 import com.scality.vaultclient.dto.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
@@ -508,15 +507,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
 
     @Test
     public void testHeadUser() {
-        // Setup
-
-        // Run the test
-        assertThrows(NotImplementedException.class,
-                () -> scalityOsisServiceUnderTest.headUser(TEST_TENANT_ID, TEST_USER_ID),
-                NOT_IMPLEMENTED_EXCEPTION_ERR);
-
-        // Verify the results
-
+        assertTrue(scalityOsisServiceUnderTest.headUser(TEST_TENANT_ID, TEST_USER_ID));
     }
 
     @Test
