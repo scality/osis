@@ -11,6 +11,7 @@ buildscript {
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
+        classpath 'org.owasp:dependency-check-gradle:7.1.1'
     }
 }
 
@@ -37,6 +38,7 @@ dependencies {
 allprojects {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
+    apply plugin: 'org.owasp.dependencycheck'
 
     apply from: "$rootDir/spotbugs.gradle"
     apply from: "$rootDir/pmd.gradle"

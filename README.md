@@ -108,6 +108,12 @@ keytool \
 2. `./gradlew bootJar`
 3. `java -jar -Dserver.tomcat.basedir=tomcat -Dserver.tomcat.accesslog.directory=logs -Dserver.tomcat.accesslog.enabled=true build/libs/osis-scality-[CURRENT_VERSION].jar`
 
+### Scan for vulnerabilities
+
+- `./gradlew dependencyCheckAnalyze`: Runs dependency-check against the project and generates a report under `build/reports`
+- `./gradlew dependencyCheckUpdate`: Updates the local cache of the NVD data from NIST.
+- `./gradlew dependencyCheckPurge`: Deletes the local copy of the NVD. This is used to force a refresh of the data.
+- More configuration options: <https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html>
 
 ## Verify the Implementation (Developers Only)
 
