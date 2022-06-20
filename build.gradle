@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '2.2.4.RELEASE'
+        springBootVersion = '2.2.5.RELEASE'
     }
     repositories {
         mavenCentral()
@@ -101,7 +101,7 @@ sourceSets {
 
 configure(allprojects) {
     ext {
-        springBootVersion = '2.2.4.RELEASE'
+        springBootVersion = '2.2.5.RELEASE'
     }
     dependencies {
         compile "org.springframework.boot:spring-boot-starter-webflux:$springBootVersion"
