@@ -38,7 +38,7 @@ test {
 }
 
 group = 'com.scality'
-version = '0.4.0'
+version = '0.4.1'
 description = 'osis-vault-admin'
 sourceCompatibility = '1.8'
 
