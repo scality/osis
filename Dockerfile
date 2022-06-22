@@ -3,7 +3,7 @@ COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle bootJar
 
-FROM openjdk:8-jdk-alpine AS build-image
+FROM amazoncorretto:8-alpine-jdk AS build-image
 EXPOSE 8443
 RUN apk add --no-cache bash
 COPY --from=gradle-build /home/gradle/src/build/libs/osis-scality-*.jar /app/lib/app.jar
