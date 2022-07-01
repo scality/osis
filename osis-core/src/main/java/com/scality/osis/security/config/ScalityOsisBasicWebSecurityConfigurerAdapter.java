@@ -6,7 +6,7 @@
 
 package com.scality.osis.security.config;
 
-import com.vmware.osis.security.basic.BasicAuthentication;
+import com.scality.osis.security.basic.ScalityBasicAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +17,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 
 import static com.scality.osis.utils.ScalityConstants.HEALTH_CHECK_ENDPOINT;
-import static com.vmware.osis.security.jwt.AuthConstants.API_INFO;
+import static com.scality.osis.security.jwt.AuthConstants.API_INFO;
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 
 @Configuration
@@ -29,7 +29,7 @@ import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 public class ScalityOsisBasicWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private BasicAuthentication authentication;
+    private ScalityBasicAuthentication authentication;
 
     @Override
     public void configure(HttpSecurity http) throws Exception {

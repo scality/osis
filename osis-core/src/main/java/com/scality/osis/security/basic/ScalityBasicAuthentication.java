@@ -6,9 +6,9 @@
 
 package com.scality.osis.security.basic;
 
-import com.vmware.osis.security.basic.BasicAuthentication;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,7 +18,7 @@ import java.io.PrintWriter;
 
 @Component
 @Primary
-public class ScalityBasicAuthentication extends BasicAuthentication {
+public class ScalityBasicAuthentication extends BasicAuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authEx)

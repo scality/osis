@@ -1,7 +1,7 @@
 package com.scality.osis.utils;
 
 
-import com.vmware.osis.model.OsisTenant;
+import com.scality.osis.model.OsisTenant;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -3,8 +3,8 @@ package com.scality.osis.utils;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
-import com.vmware.osis.model.*;
-import com.vmware.osis.model.exception.BadRequestException;
+import com.scality.osis.model.*;
+import com.scality.osis.model.exception.BadRequestException;
 import com.scality.vaultclient.dto.*;
 import org.junit.jupiter.api.Test;
 

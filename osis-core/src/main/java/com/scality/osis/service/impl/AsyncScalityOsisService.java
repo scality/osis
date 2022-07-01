@@ -21,7 +21,7 @@ import com.scality.osis.utils.ScalityModelConverter;
 import com.scality.osis.vaultadmin.VaultAdmin;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
-import com.vmware.osis.model.OsisTenant;
+import com.scality.osis.model.OsisTenant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

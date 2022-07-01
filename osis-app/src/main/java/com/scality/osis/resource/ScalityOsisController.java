@@ -7,10 +7,10 @@
 package com.scality.osis.resource;
 
 import com.scality.osis.service.ScalityOsisService;
-import com.vmware.osis.annotation.NotImplement;
-import com.vmware.osis.model.*;
-import com.vmware.osis.model.exception.*;
-import com.vmware.osis.validation.Update;
+import com.scality.osis.annotation.NotImplement;
+import com.scality.osis.model.*;
+import com.scality.osis.model.exception.*;
+import com.scality.osis.validation.Update;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

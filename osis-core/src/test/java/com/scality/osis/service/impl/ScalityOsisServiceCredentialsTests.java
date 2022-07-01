@@ -2,9 +2,9 @@ package com.scality.osis.service.impl;
 
 import com.amazonaws.services.identitymanagement.model.*;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
-import com.vmware.osis.model.OsisS3Credential;
-import com.vmware.osis.model.PageOfS3Credentials;
-import com.vmware.osis.model.exception.NotImplementedException;
+import com.scality.osis.model.OsisS3Credential;
+import com.scality.osis.model.PageOfS3Credentials;
+import com.scality.osis.model.exception.NotImplementedException;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;

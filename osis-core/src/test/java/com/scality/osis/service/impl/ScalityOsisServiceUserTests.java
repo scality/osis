@@ -1,8 +1,8 @@
 package com.scality.osis.service.impl;
 
 import com.amazonaws.services.identitymanagement.model.*;
-import com.vmware.osis.model.*;
-import com.vmware.osis.model.exception.*;
+import com.scality.osis.model.*;
+import com.scality.osis.model.exception.*;
 import com.scality.vaultclient.dto.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;

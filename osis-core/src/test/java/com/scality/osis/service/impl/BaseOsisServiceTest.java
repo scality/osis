@@ -11,7 +11,7 @@ import com.scality.osis.security.utils.CipherFactory;
 import com.scality.osis.vaultadmin.impl.VaultAdminImpl;
 import com.scality.osis.vaultadmin.impl.cache.*;
 import com.scality.vaultclient.dto.*;
-import com.vmware.osis.model.OsisUser;
+import com.scality.osis.model.OsisUser;
 import com.scality.osis.resource.ScalityOsisCapsManager;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;

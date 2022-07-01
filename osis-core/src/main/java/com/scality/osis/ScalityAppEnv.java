@@ -7,7 +7,6 @@
 package com.scality.osis;
 
 import com.scality.osis.vaultadmin.utils.VaultAdminUtils;
-import com.vmware.osis.platform.AppEnv;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -28,7 +27,7 @@ import static com.scality.osis.utils.ScalityConstants.DEFAULT_VAULT_HEALTHCHECK_
 
 @Component
 @Primary
-public class ScalityAppEnv extends AppEnv {
+public class ScalityAppEnv {
     public static final String COMMA = ",";
 
     @Autowired
@@ -37,7 +36,7 @@ public class ScalityAppEnv extends AppEnv {
     private String vaultSecretKey;
 
     public String getPlatformEndpoint() {
-        return  env.getProperty("osis.scality.vault.endpoint");
+        return env.getProperty("osis.scality.vault.endpoint");
     }
 
     public String getPlatformAccessKey() {
@@ -45,13 +44,13 @@ public class ScalityAppEnv extends AppEnv {
     }
 
     public String getPlatformSecretKey() {
-        if(StringUtils.isEmpty(vaultSecretKey) && isDecryptAdminCredentials()) {
+        if (StringUtils.isEmpty(vaultSecretKey) && isDecryptAdminCredentials()) {
             vaultSecretKey = VaultAdminUtils.getVaultSKEncryptedAdminFile(getPlatformAccessKey(),
-                                                                        getAdminFilePath(),
-                                                                        getMasterKeyFilePath());
+                    getAdminFilePath(),
+                    getMasterKeyFilePath());
         }
 
-        if(StringUtils.isEmpty(vaultSecretKey)){
+        if (StringUtils.isEmpty(vaultSecretKey)) {
             vaultSecretKey = env.getProperty("osis.scality.vault.secret-key");
         }
 
@@ -68,16 +67,15 @@ public class ScalityAppEnv extends AppEnv {
 
     public List<String> getStorageInfo() {
         String storageInfo = env.getProperty("osis.scality.storage-classes");
-        if(StringUtils.isBlank(storageInfo)) {
+        if (StringUtils.isBlank(storageInfo)) {
             return Collections.singletonList("standard");
         }
-        return Arrays.stream(StringUtils.split(storageInfo, COMMA)).
-                map(String::trim).collect(Collectors.toList());
+        return Arrays.stream(StringUtils.split(storageInfo, COMMA)).map(String::trim).collect(Collectors.toList());
     }
 
     public List<String> getRegionInfo() {
-        String regionInfo =  env.getProperty("osis.scality.region");
-        if(StringUtils.isBlank(regionInfo)) {
+        String regionInfo = env.getProperty("osis.scality.region");
+        if (StringUtils.isBlank(regionInfo)) {
             return Collections.singletonList("us-east-1");
         }
         return Arrays.stream(StringUtils.split(regionInfo, COMMA))
@@ -121,32 +119,32 @@ public class ScalityAppEnv extends AppEnv {
     }
 
     public long getAccountAKDurationSeconds() {
-        String durationSeconds =  env.getProperty("osis.scality.vault.account.accessKey.durationSeconds");
-        if(StringUtils.isBlank(durationSeconds)) {
+        String durationSeconds = env.getProperty("osis.scality.vault.account.accessKey.durationSeconds");
+        if (StringUtils.isBlank(durationSeconds)) {
             durationSeconds = DEFAULT_ACCOUNT_AK_DURATION_SECONDS;
         }
         return Long.parseLong(durationSeconds);
     }
 
     public int getAsyncExecutorCorePoolSize() {
-        String asyncExecutorCorePoolSize =  env.getProperty("osis.scality.async.corePoolSize");
-        if(StringUtils.isBlank(asyncExecutorCorePoolSize)) {
+        String asyncExecutorCorePoolSize = env.getProperty("osis.scality.async.corePoolSize");
+        if (StringUtils.isBlank(asyncExecutorCorePoolSize)) {
             asyncExecutorCorePoolSize = DEFAULT_ASYNC_EXECUTOR_CORE_POOL_SIZE;
         }
         return Integer.parseInt(asyncExecutorCorePoolSize);
     }
 
     public int getAsyncExecutorMaxPoolSize() {
-        String asyncExecutorMaxPoolSize =  env.getProperty("osis.scality.async.maxPoolSize");
-        if(StringUtils.isBlank(asyncExecutorMaxPoolSize)) {
+        String asyncExecutorMaxPoolSize = env.getProperty("osis.scality.async.maxPoolSize");
+        if (StringUtils.isBlank(asyncExecutorMaxPoolSize)) {
             asyncExecutorMaxPoolSize = DEFAULT_ASYNC_EXECUTOR_MAX_POOL_SIZE;
         }
         return Integer.parseInt(asyncExecutorMaxPoolSize);
     }
 
     public int getAsyncExecutorQueueCapacity() {
-        String asyncExecutorQueueCapacity =  env.getProperty("osis.scality.async.queueCapacity");
-        if(StringUtils.isBlank(asyncExecutorQueueCapacity)) {
+        String asyncExecutorQueueCapacity = env.getProperty("osis.scality.async.queueCapacity");
+        if (StringUtils.isBlank(asyncExecutorQueueCapacity)) {
             asyncExecutorQueueCapacity = DEFAULT_ASYNC_EXECUTOR_QUEUE_CAPACITY;
         }
         return Integer.parseInt(asyncExecutorQueueCapacity);
@@ -154,7 +152,7 @@ public class ScalityAppEnv extends AppEnv {
 
     public String getSpringCacheType() {
         String cacheType = env.getProperty("spring.cache.type");
-        if(StringUtils.isBlank(cacheType)) {
+        if (StringUtils.isBlank(cacheType)) {
             cacheType = DEFAULT_SPRING_CACHE_TYPE;
         }
         return cacheType;
@@ -173,10 +171,16 @@ public class ScalityAppEnv extends AppEnv {
     }
 
     public int getVaultHealthCheckTimeout() {
-        String vaultHealthCheckTimeout =  env.getProperty("osis.scality.vault.healthcheck.timeout");
-        if(StringUtils.isBlank(vaultHealthCheckTimeout)) {
+        String vaultHealthCheckTimeout = env.getProperty("osis.scality.vault.healthcheck.timeout");
+        if (StringUtils.isBlank(vaultHealthCheckTimeout)) {
             vaultHealthCheckTimeout = DEFAULT_VAULT_HEALTHCHECK_TIMEOUT;
         }
         return Integer.parseInt(vaultHealthCheckTimeout);
     }
+
+    // function migrated from VMware AppEnv
+    public String getS3Endpoint() {
+        return env.getProperty("osis.scality.vaultS3Interface.endpoint");
+    }
+
 }
