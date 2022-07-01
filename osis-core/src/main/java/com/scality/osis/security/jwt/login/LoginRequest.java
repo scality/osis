@@ -3,7 +3,7 @@
  *SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt.login;
+package com.scality.osis.security.jwt.login;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

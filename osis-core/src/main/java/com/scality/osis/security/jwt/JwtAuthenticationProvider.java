@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt;
+package com.scality.osis.security.jwt;
 
-import com.vmware.osis.platform.AppEnv;
-import com.vmware.osis.security.jwt.model.JwtAuthenticationToken;
-import com.vmware.osis.security.jwt.model.RawAccessToken;
-import com.vmware.osis.security.jwt.model.UserContext;
+import com.scality.osis.ScalityAppEnv;
+import com.scality.osis.security.jwt.model.JwtAuthenticationToken;
+import com.scality.osis.security.jwt.model.RawAccessToken;
+import com.scality.osis.security.jwt.model.UserContext;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +20,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.vmware.osis.security.jwt.AuthConstants.CLAIMS_SCOPES;
+import static com.scality.osis.security.jwt.AuthConstants.CLAIMS_SCOPES;
 
 public class JwtAuthenticationProvider implements AuthenticationProvider {
-    private final AppEnv appEnv;
+    private final ScalityAppEnv appEnv;
 
     @Autowired
-    public JwtAuthenticationProvider(AppEnv appEnv) {
+    public JwtAuthenticationProvider(ScalityAppEnv appEnv) {
         this.appEnv = appEnv;
     }
 

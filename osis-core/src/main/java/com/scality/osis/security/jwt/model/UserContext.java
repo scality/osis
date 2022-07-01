@@ -3,7 +3,7 @@
  *SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt.model;
+package com.scality.osis.security.jwt.model;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,7 +20,8 @@ public class UserContext {
     }
 
     public static UserContext create(String username, List<GrantedAuthority> authorities) {
-        if (StringUtils.isBlank(username)) throw new IllegalArgumentException("Username is blank: " + username);
+        if (StringUtils.isBlank(username))
+            throw new IllegalArgumentException("Username is blank: " + username);
         return new UserContext(username, authorities);
     }
 

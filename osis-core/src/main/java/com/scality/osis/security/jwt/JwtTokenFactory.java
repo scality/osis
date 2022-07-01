@@ -3,13 +3,13 @@
  *SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt;
+package com.scality.osis.security.jwt;
 
-import com.vmware.osis.platform.AppEnv;
-import com.vmware.osis.security.jwt.model.AccessToken;
-import com.vmware.osis.security.jwt.model.JwtToken;
-import com.vmware.osis.security.jwt.model.Scopes;
-import com.vmware.osis.security.jwt.model.UserContext;
+import com.scality.osis.ScalityAppEnv;
+import com.scality.osis.security.jwt.model.AccessToken;
+import com.scality.osis.security.jwt.model.JwtToken;
+import com.scality.osis.security.jwt.model.Scopes;
+import com.scality.osis.security.jwt.model.UserContext;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -22,12 +22,12 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.vmware.osis.security.jwt.AuthConstants.CLAIMS_SCOPES;
+import static com.scality.osis.security.jwt.AuthConstants.CLAIMS_SCOPES;
 
 public class JwtTokenFactory {
-    private final AppEnv appEnv;
+    private final ScalityAppEnv appEnv;
 
-    public JwtTokenFactory(AppEnv appEnv) {
+    public JwtTokenFactory(ScalityAppEnv appEnv) {
         this.appEnv = appEnv;
     }
 
@@ -39,7 +39,8 @@ public class JwtTokenFactory {
             throw new IllegalArgumentException("The login user has no privileges");
 
         Claims claims = Jwts.claims().setSubject(userContext.getUsername());
-        claims.put(CLAIMS_SCOPES, userContext.getAuthorities().stream().map(Object::toString).collect(Collectors.toList()));
+        claims.put(CLAIMS_SCOPES,
+                userContext.getAuthorities().stream().map(Object::toString).collect(Collectors.toList()));
 
         LocalDateTime currentTime = LocalDateTime.now();
 
@@ -65,7 +66,6 @@ public class JwtTokenFactory {
 
         Claims claims = Jwts.claims().setSubject(userContext.getUsername());
         claims.put(CLAIMS_SCOPES, Arrays.asList(Scopes.REFRESH_TOKEN.authority()));
-
 
         String token = Jwts.builder()
                 .setClaims(claims)

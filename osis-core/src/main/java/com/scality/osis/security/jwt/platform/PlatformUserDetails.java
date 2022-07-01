@@ -3,7 +3,7 @@
  *SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.platform.security;
+package com.scality.osis.security.jwt.platform;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -12,7 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Collection;
 
-import static com.vmware.osis.security.jwt.AuthConstants.ROLE_ADMIN;
+import static com.scality.osis.security.jwt.AuthConstants.ROLE_ADMIN;
 
 public class PlatformUserDetails implements UserDetails {
 

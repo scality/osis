@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt.login;
+package com.scality.osis.security.jwt.login;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vmware.osis.security.jwt.model.exception.AuthMethodNotSupportedException;
+import com.scality.osis.security.jwt.model.exception.AuthMethodNotSupportedException;
 import io.netty.handler.codec.http.HttpMethod;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -34,7 +34,7 @@ public class LoginProcessingFilter extends AbstractAuthenticationProcessingFilte
     private final ObjectMapper objectMapper;
 
     public LoginProcessingFilter(String defaultProcessUrl, AuthenticationSuccessHandler successHandler,
-                                 AuthenticationFailureHandler failureHandler, ObjectMapper mapper) {
+            AuthenticationFailureHandler failureHandler, ObjectMapper mapper) {
         super(defaultProcessUrl);
         this.successHandler = successHandler;
         this.failureHandler = failureHandler;
@@ -52,19 +52,20 @@ public class LoginProcessingFilter extends AbstractAuthenticationProcessingFilte
         if (StringUtils.isBlank(loginRequest.getUsername()) || StringUtils.isBlank(loginRequest.getPassword())) {
             throw new AuthenticationServiceException("Username or Password not provided");
         }
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword());
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
+                loginRequest.getPassword());
         return this.getAuthenticationManager().authenticate(token);
     }
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
-                                            Authentication authResult) throws IOException, ServletException {
+            Authentication authResult) throws IOException, ServletException {
         successHandler.onAuthenticationSuccess(request, response, authResult);
     }
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
-                                              AuthenticationException failed) throws IOException, ServletException {
+            AuthenticationException failed) throws IOException, ServletException {
         SecurityContextHolder.clearContext();
         failureHandler.onAuthenticationFailure(request, response, failed);
     }

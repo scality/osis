@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt.login;
+package com.scality.osis.security.jwt.login;
 
-import com.vmware.osis.platform.security.PlatformUserDetailsService;
-import com.vmware.osis.security.jwt.model.UserContext;
+import com.scality.osis.security.jwt.platform.PlatformUserDetailsService;
+import com.scality.osis.security.jwt.model.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -21,14 +21,15 @@ import org.springframework.util.Assert;
 
 import java.util.Arrays;
 
-import static com.vmware.osis.security.jwt.AuthConstants.ROLE_ADMIN;
+import static com.scality.osis.security.jwt.AuthConstants.ROLE_ADMIN;
 
 public class LoginAuthenticationProvider implements AuthenticationProvider {
     private final BCryptPasswordEncoder encoder;
     private final UserDetailsService userService;
 
     @Autowired
-    public LoginAuthenticationProvider(final PlatformUserDetailsService userService, final BCryptPasswordEncoder encoder) {
+    public LoginAuthenticationProvider(final PlatformUserDetailsService userService,
+            final BCryptPasswordEncoder encoder) {
         this.userService = userService;
         this.encoder = encoder;
     }
@@ -48,8 +49,8 @@ public class LoginAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("Authentication Failed. Username or Password not valid.");
         }
 
-
-        UserContext userContext = UserContext.create(user.getUsername(), Arrays.asList(new SimpleGrantedAuthority(ROLE_ADMIN)));
+        UserContext userContext = UserContext.create(user.getUsername(),
+                Arrays.asList(new SimpleGrantedAuthority(ROLE_ADMIN)));
 
         return new UsernamePasswordAuthenticationToken(userContext, null, userContext.getAuthorities());
     }

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt.model;
+package com.scality.osis.security.jwt.model;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -11,7 +11,7 @@ import io.jsonwebtoken.Jws;
 import java.util.List;
 import java.util.Optional;
 
-import static com.vmware.osis.security.jwt.AuthConstants.CLAIMS_SCOPES;
+import static com.scality.osis.security.jwt.AuthConstants.CLAIMS_SCOPES;
 
 public class RefreshToken implements JwtToken {
     private Jws<Claims> claims;

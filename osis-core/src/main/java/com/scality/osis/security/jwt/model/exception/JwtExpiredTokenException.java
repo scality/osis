@@ -3,9 +3,9 @@
  *SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt.model.exception;
+package com.scality.osis.security.jwt.model.exception;
 
-import com.vmware.osis.security.jwt.model.JwtToken;
+import com.scality.osis.security.jwt.model.JwtToken;
 import org.springframework.security.core.AuthenticationException;
 
 public class JwtExpiredTokenException extends AuthenticationException {

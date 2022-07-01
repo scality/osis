@@ -3,9 +3,9 @@
  *SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt.model;
+package com.scality.osis.security.jwt.model;
 
-import com.vmware.osis.security.jwt.model.exception.JwtExpiredTokenException;
+import com.scality.osis.security.jwt.model.exception.JwtExpiredTokenException;
 import io.jsonwebtoken.*;
 import org.springframework.security.authentication.BadCredentialsException;
 
@@ -16,7 +16,6 @@ public class RawAccessToken implements JwtToken {
     public RawAccessToken(String token) {
         this.token = token;
     }
-
 
     public Jws<Claims> parseClaims(String signingKey) {
         try {

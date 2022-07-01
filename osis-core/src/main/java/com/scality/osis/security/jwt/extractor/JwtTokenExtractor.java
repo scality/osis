@@ -3,7 +3,7 @@
  *SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt.extractor;
+package com.scality.osis.security.jwt.extractor;
 
 public interface JwtTokenExtractor {
     String extract(String payload);
