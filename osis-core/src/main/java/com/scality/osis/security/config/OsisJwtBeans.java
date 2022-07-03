@@ -7,7 +7,7 @@ package com.scality.osis.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scality.osis.ScalityAppEnv;
-import com.scality.osis.security.jwt.platform.PlatformUserDetailsService;
+import com.scality.osis.security.platform.PlatformUserDetailsService;
 import com.scality.osis.security.jwt.JwtAuthenticationProvider;
 import com.scality.osis.security.jwt.extractor.JwtHeaderTokenExtractor;
 import com.scality.osis.security.jwt.login.LoginAuthenticationFailureHandler;

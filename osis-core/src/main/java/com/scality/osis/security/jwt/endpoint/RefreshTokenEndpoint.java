@@ -6,7 +6,7 @@
 package com.scality.osis.security.jwt.endpoint;
 
 import com.scality.osis.ScalityAppEnv;
-import com.scality.osis.security.jwt.platform.PlatformUserDetailsService;
+import com.scality.osis.security.platform.PlatformUserDetailsService;
 import com.scality.osis.security.jwt.JwtTokenFactory;
 import com.scality.osis.security.jwt.model.*;
 import com.scality.osis.security.jwt.model.exception.InvalidJwtTokenException;

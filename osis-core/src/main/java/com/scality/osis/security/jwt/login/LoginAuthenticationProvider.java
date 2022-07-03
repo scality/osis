@@ -5,7 +5,7 @@
 
 package com.scality.osis.security.jwt.login;
 
-import com.scality.osis.security.jwt.platform.PlatformUserDetailsService;
+import com.scality.osis.security.platform.PlatformUserDetailsService;
 import com.scality.osis.security.jwt.model.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
