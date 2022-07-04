@@ -24,7 +24,7 @@ plugins {
 }
 
 group = 'com.scality'
-version '0.4.1'
+version '1.0.0'
 description = 'osis.scality'
 sourceCompatibility = '1.8'
 
@@ -155,7 +155,7 @@ publishing {
         mavenJava(MavenPublication) {
             groupId 'com.scality'
             artifactId 'osis'
-            version '0.4.1'
+            version '1.0.0'
 
             from components.java
 
