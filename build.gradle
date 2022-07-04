@@ -120,7 +120,7 @@ configure(allprojects) {
         compile 'org.openapitools:jackson-databind-nullable:0.1.0'
         compile 'javax.validation:validation-api:2.0.1.Final'
         compile 'org.hsqldb:hsqldb:2.3.2'
-        compile 'org.postgresql:postgresql:42.2.13'
+        compile 'org.postgresql:postgresql:42.2.25'
         compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.11.0'
         compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: '2.11.0'
         compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
