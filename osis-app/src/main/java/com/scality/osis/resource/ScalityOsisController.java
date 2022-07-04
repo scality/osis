@@ -167,7 +167,7 @@ public class ScalityOsisController {
         })
         @DeleteMapping(value = "/api/v1/tenants/{tenantId}")
         @ResponseStatus(HttpStatus.NO_CONTENT)
-        @NotImplement(name = OsisConstants.DELETE_TENANT_API_CODE)
+        @NotImplement(name = ScalityOsisConstants.DELETE_TENANT_API_CODE)
         public void deleteTenant(
                         @ApiParam(value = "Tenant ID of the tenant to delete", required = true) @PathVariable("tenantId") String tenantId,
                         @ApiParam(value = "Purge data when the tenant is deleted", defaultValue = "true") @Valid @RequestParam(value = "purge_data", required = false, defaultValue = "true") Boolean purgeData) {
@@ -222,7 +222,7 @@ public class ScalityOsisController {
         @ApiImplicitParams({
         })
         @GetMapping(value = "/api/v1/bucket-list", produces = "application/json")
-        @NotImplement(name = OsisConstants.GET_BUCKET_LIST_API_CODE)
+        @NotImplement(name = ScalityOsisConstants.GET_BUCKET_LIST_API_CODE)
         public PageOfOsisBucketMeta getBucketList(
                         @NotNull @ApiParam(value = "The ID of the tenant to get its bueckt list", required = true) @Valid @RequestParam(value = "tenant_id", required = true) String tenantId,
                         @ApiParam(value = "The start index of buckets to return") @Valid @RequestParam(value = "offset", required = false, defaultValue = "0") long offset,
@@ -348,7 +348,7 @@ public class ScalityOsisController {
         @ApiImplicitParams({
         })
         @GetMapping(value = "/api/v1/tenants/{tenantId}", produces = "application/json")
-        @NotImplement(name = OsisConstants.GET_TENANT_API_CODE)
+        @NotImplement(name = ScalityOsisConstants.GET_TENANT_API_CODE)
         public OsisTenant getTenant(
                         @ApiParam(value = "Tenant ID to get the tenant from the platform", required = true) @PathVariable("tenantId") String tenantId) {
                 return osisService.getTenant(tenantId);
@@ -481,7 +481,7 @@ public class ScalityOsisController {
         @ApiImplicitParams({
         })
         @RequestMapping(value = "/api/v1/tenants/{tenantId}/users/{userId}", method = RequestMethod.HEAD)
-        @NotImplement(name = OsisConstants.HEAD_USER_API_CODE)
+        @NotImplement(name = ScalityOsisConstants.HEAD_USER_API_CODE)
         public void headUser(
                         @ApiParam(value = "The ID of the tenant which the user belongs to", required = true) @PathVariable("tenantId") String tenantId,
                         @ApiParam(value = "The ID of the user to check", required = true) @PathVariable("userId") String userId) {
@@ -596,7 +596,7 @@ public class ScalityOsisController {
         @ApiImplicitParams({
         })
         @PatchMapping(value = "/api/v1/s3credentials/{accessKey}", produces = "application/json", consumes = "application/json")
-        @NotImplement(name = OsisConstants.UPDATE_CREDENTIAL_STATUS_API_CODE)
+        @NotImplement(name = ScalityOsisConstants.UPDATE_CREDENTIAL_STATUS_API_CODE)
         public OsisS3Credential updateCredentialStatus(
                         @NotNull @ApiParam(value = "The ID of the tenant which the user belongs to", required = true) @Valid @RequestParam(value = "tenant_id", required = true) String tenantId,
                         @NotNull @ApiParam(value = "The ID of the user which the status updated S3 credential belongs to", required = true) @Valid @RequestParam(value = "user_id", required = true) String userId,
@@ -736,19 +736,19 @@ public class ScalityOsisController {
         }
 
         @GetMapping(value = "/api/v1/bucket-logging-id", produces = "application/json")
-        @NotImplement(name = OsisConstants.GET_BUCKET_ID_LOGGING_API_CODE)
+        @NotImplement(name = ScalityOsisConstants.GET_BUCKET_ID_LOGGING_API_CODE)
         public OsisBucketLoggingId getBucketLoggingId() {
                 throw new NotImplementedException();
         }
 
         @GetMapping(value = "/api/v1/anonymous-user", produces = "application/json")
-        @NotImplement(name = OsisConstants.GET_ANONYMOUS_USER_API_CODE)
+        @NotImplement(name = ScalityOsisConstants.GET_ANONYMOUS_USER_API_CODE)
         public OsisUser getAnonymousUser() {
                 throw new NotImplementedException();
         }
 
         @PostMapping(value = "/api/admin-apis", produces = "application/json")
-        public OsisCaps updateOsisCaps(@RequestBody OsisCaps osisCaps) {
+        public ScalityOsisCaps updateOsisCaps(@RequestBody ScalityOsisCaps osisCaps) {
                 return this.osisService.updateOsisCaps(osisCaps);
         }
 }
