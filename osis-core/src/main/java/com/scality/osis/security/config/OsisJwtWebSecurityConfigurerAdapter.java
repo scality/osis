@@ -3,16 +3,16 @@
  * SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.config;
+package com.scality.osis.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vmware.osis.security.jwt.JwtAuthenticationProvider;
-import com.vmware.osis.security.jwt.JwtTokenAuthenticationProcessingFilter;
-import com.vmware.osis.security.jwt.RestAuthenticationEntryPoint;
-import com.vmware.osis.security.jwt.SkipPathRequestMatcher;
-import com.vmware.osis.security.jwt.extractor.JwtTokenExtractor;
-import com.vmware.osis.security.jwt.login.LoginAuthenticationProvider;
-import com.vmware.osis.security.jwt.login.LoginProcessingFilter;
+import com.scality.osis.security.jwt.JwtAuthenticationProvider;
+import com.scality.osis.security.jwt.JwtTokenAuthenticationProcessingFilter;
+import com.scality.osis.security.jwt.RestAuthenticationEntryPoint;
+import com.scality.osis.security.jwt.SkipPathRequestMatcher;
+import com.scality.osis.security.jwt.extractor.JwtTokenExtractor;
+import com.scality.osis.security.jwt.login.LoginAuthenticationProvider;
+import com.scality.osis.security.jwt.login.LoginProcessingFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -30,13 +30,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import java.util.Arrays;
 import java.util.List;
 
-import static com.vmware.osis.security.jwt.AuthConstants.API_INFO;
+import static com.scality.osis.security.jwt.AuthConstants.API_INFO;
 
 @Configuration
 @EnableWebSecurity
-@ConditionalOnProperty(value = "security.jwt.enabled",
-        havingValue = "true",
-        matchIfMissing = true)
+@ConditionalOnProperty(value = "security.jwt.enabled", havingValue = "true", matchIfMissing = true)
 public class OsisJwtWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
     public static final String AUTHENTICATION_HEADER_NAME = "Authorization";
     public static final String AUTHENTICATION_URL = "/api/v1/auth/login";
@@ -64,15 +62,17 @@ public class OsisJwtWebSecurityConfigurerAdapter extends WebSecurityConfigurerAd
     private ObjectMapper objectMapper;
 
     protected LoginProcessingFilter buildLoginProcessingFilter(String loginEntryPoint) {
-        LoginProcessingFilter filter = new LoginProcessingFilter(loginEntryPoint, successHandler, failureHandler, objectMapper);
+        LoginProcessingFilter filter = new LoginProcessingFilter(loginEntryPoint, successHandler, failureHandler,
+                objectMapper);
         filter.setAuthenticationManager(this.authenticationManager);
         return filter;
     }
 
-    protected JwtTokenAuthenticationProcessingFilter buildJwtTokenAuthenticationProcessingFilter(List<String> pathsToSkip, String pattern) {
+    protected JwtTokenAuthenticationProcessingFilter buildJwtTokenAuthenticationProcessingFilter(
+            List<String> pathsToSkip, String pattern) {
         SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(pathsToSkip, pattern);
-        JwtTokenAuthenticationProcessingFilter filter
-                = new JwtTokenAuthenticationProcessingFilter(failureHandler, tokenExtractor, matcher);
+        JwtTokenAuthenticationProcessingFilter filter = new JwtTokenAuthenticationProcessingFilter(failureHandler,
+                tokenExtractor, matcher);
         filter.setAuthenticationManager(this.authenticationManager);
         return filter;
     }
@@ -94,8 +94,7 @@ public class OsisJwtWebSecurityConfigurerAdapter extends WebSecurityConfigurerAd
         List<String> permitAllEndpointList = Arrays.asList(
                 AUTHENTICATION_URL,
                 REFRESH_TOKEN_URL,
-                API_INFO
-        );
+                API_INFO);
 
         http
                 .csrf().disable()
@@ -114,7 +113,8 @@ public class OsisJwtWebSecurityConfigurerAdapter extends WebSecurityConfigurerAd
                 .authorizeRequests()
                 .antMatchers(API_ROOT_URL).authenticated() // Protected API End-points
                 .and()
-                .addFilterBefore(buildLoginProcessingFilter(AUTHENTICATION_URL), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(buildLoginProcessingFilter(AUTHENTICATION_URL),
+                        UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(permitAllEndpointList,
                         API_ROOT_URL), UsernamePasswordAuthenticationFilter.class);
     }
