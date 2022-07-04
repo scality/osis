@@ -1020,7 +1020,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     }
 
     @Override
-    public OsisCaps updateOsisCaps(OsisCaps osisCaps) {
+    public ScalityOsisCaps updateOsisCaps(ScalityOsisCaps osisCaps) {
         throw new NotImplementedException();
     }
 
