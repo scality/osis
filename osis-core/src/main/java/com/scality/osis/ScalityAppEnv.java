@@ -7,7 +7,6 @@
 package com.scality.osis;
 
 import com.scality.osis.vaultadmin.utils.VaultAdminUtils;
-import com.vmware.osis.platform.AppEnv;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -28,7 +27,7 @@ import static com.scality.osis.utils.ScalityConstants.DEFAULT_VAULT_HEALTHCHECK_
 
 @Component
 @Primary
-public class ScalityAppEnv extends AppEnv {
+public class ScalityAppEnv {
     public static final String COMMA = ",";
 
     @Autowired
@@ -178,5 +177,10 @@ public class ScalityAppEnv extends AppEnv {
             vaultHealthCheckTimeout = DEFAULT_VAULT_HEALTHCHECK_TIMEOUT;
         }
         return Integer.parseInt(vaultHealthCheckTimeout);
+    }
+
+    // function migrated from VMware Ceph implementation AppEnv
+    public String getS3Endpoint() {
+        return env.getProperty("osis.scality.vaultS3Interface.endpoint");
     }
 }

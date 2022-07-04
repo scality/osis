@@ -15,7 +15,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 /**
  * @author ges
  */
-@ComponentScan(basePackages = {"com.vmware.osis","com.scality.osis"})
+@ComponentScan(basePackages = {"com.scality.osis"})
 @SpringBootApplication
 @EnableSwagger2
 @EnableAsync
