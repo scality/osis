@@ -8,7 +8,7 @@ package com.scality.osis.resource;
 
 import com.scality.osis.model.ScalityOsisCaps;
 import com.scality.osis.annotation.NotImplement;
-import com.vmware.osis.resource.OsisCapsManager;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -24,7 +24,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Component
-public class ScalityOsisCapsManager extends OsisCapsManager {
+public class ScalityOsisCapsManager implements InitializingBean {
 
     @Autowired
     private ApplicationContext applicationContext;
