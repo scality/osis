@@ -13,7 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Collection;
 
-import static com.vmware.osis.security.jwt.AuthConstants.ROLE_ADMIN;
+import static com.scality.osis.security.jwt.AuthConstants.ROLE_ADMIN;
 
 public class PlatformUserDetails implements UserDetails {
 
