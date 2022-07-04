@@ -7,7 +7,7 @@
 package com.scality.osis.resource;
 
 import com.scality.osis.model.ScalityOsisCaps;
-import com.vmware.osis.annotation.NotImplement;
+import com.scality.osis.annotation.NotImplement;
 import com.vmware.osis.resource.OsisCapsManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -54,8 +54,7 @@ public class ScalityOsisCapsManager extends OsisCapsManager {
 
     private Map<String, Object> getBeans(Class<? extends Annotation>... annotationTypes) {
         Map<String, Object> result = new LinkedHashMap<>();
-        Arrays.stream(annotationTypes).
-                forEach(at -> result.putAll(applicationContext.getBeansWithAnnotation(at)));
+        Arrays.stream(annotationTypes).forEach(at -> result.putAll(applicationContext.getBeansWithAnnotation(at)));
         return result;
     }
 
@@ -63,4 +62,3 @@ public class ScalityOsisCapsManager extends OsisCapsManager {
         return t.negate();
     }
 }
-

@@ -7,7 +7,7 @@
 package com.scality.osis.resource;
 
 import com.scality.osis.service.ScalityOsisService;
-import com.vmware.osis.annotation.NotImplement;
+import com.scality.osis.annotation.NotImplement;
 import com.scality.osis.model.*;
 import com.scality.osis.model.exception.*;
 import com.vmware.osis.validation.Update;
