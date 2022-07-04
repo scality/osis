@@ -6,7 +6,7 @@
 package com.vmware.osis.security.jwt.endpoint;
 
 import com.scality.osis.ScalityAppEnv;
-import com.vmware.osis.platform.security.PlatformUserDetailsService;
+import com.scality.osis.security.platform.PlatformUserDetailsService;
 import com.vmware.osis.security.jwt.JwtTokenFactory;
 import com.vmware.osis.security.jwt.model.*;
 import com.vmware.osis.security.jwt.model.exception.InvalidJwtTokenException;
@@ -24,9 +24,7 @@ import java.util.Arrays;
 
 import static com.vmware.osis.security.jwt.AuthConstants.ROLE_ADMIN;
 
-@ConditionalOnProperty(value = "security.jwt.enabled",
-        havingValue = "true",
-        matchIfMissing = true)
+@ConditionalOnProperty(value = "security.jwt.enabled", havingValue = "true", matchIfMissing = true)
 @RestController
 public class RefreshTokenEndpoint {
     @Autowired
@@ -38,11 +36,12 @@ public class RefreshTokenEndpoint {
     @Autowired
     private ScalityAppEnv appEnv;
 
-    @PostMapping(value = "/api/v1/auth/token", produces = {MediaType.APPLICATION_JSON_VALUE})
-    public @ResponseBody
-    RefreshTokenResponse refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest, HttpServletResponse response) {
+    @PostMapping(value = "/api/v1/auth/token", produces = { MediaType.APPLICATION_JSON_VALUE })
+    public @ResponseBody RefreshTokenResponse refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest,
+            HttpServletResponse response) {
         RawAccessToken rawToken = new RawAccessToken(refreshTokenRequest.getRefreshToken());
-        RefreshToken refreshToken = RefreshToken.create(rawToken, appEnv.getTokenSigningKey()).orElseThrow(InvalidJwtTokenException::new);
+        RefreshToken refreshToken = RefreshToken.create(rawToken, appEnv.getTokenSigningKey())
+                .orElseThrow(InvalidJwtTokenException::new);
 
         String jti = refreshToken.getJti();
         if (!tokenVerifier.verify(jti)) {
@@ -55,7 +54,8 @@ public class RefreshTokenEndpoint {
             throw new UsernameNotFoundException(String.format("User not found: %s", subject));
         }
 
-        UserContext userContext = UserContext.create(user.getUsername(), Arrays.asList(new SimpleGrantedAuthority(ROLE_ADMIN)));
+        UserContext userContext = UserContext.create(user.getUsername(),
+                Arrays.asList(new SimpleGrantedAuthority(ROLE_ADMIN)));
 
         return new RefreshTokenResponse(tokenFactory.createAccessJwtToken(userContext).getToken());
     }

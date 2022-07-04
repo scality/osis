@@ -5,7 +5,7 @@
 
 package com.vmware.osis.security.jwt.login;
 
-import com.vmware.osis.platform.security.PlatformUserDetailsService;
+import com.scality.osis.security.platform.PlatformUserDetailsService;
 import com.vmware.osis.security.jwt.model.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -28,7 +28,8 @@ public class LoginAuthenticationProvider implements AuthenticationProvider {
     private final UserDetailsService userService;
 
     @Autowired
-    public LoginAuthenticationProvider(final PlatformUserDetailsService userService, final BCryptPasswordEncoder encoder) {
+    public LoginAuthenticationProvider(final PlatformUserDetailsService userService,
+            final BCryptPasswordEncoder encoder) {
         this.userService = userService;
         this.encoder = encoder;
     }
@@ -48,8 +49,8 @@ public class LoginAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("Authentication Failed. Username or Password not valid.");
         }
 
-
-        UserContext userContext = UserContext.create(user.getUsername(), Arrays.asList(new SimpleGrantedAuthority(ROLE_ADMIN)));
+        UserContext userContext = UserContext.create(user.getUsername(),
+                Arrays.asList(new SimpleGrantedAuthority(ROLE_ADMIN)));
 
         return new UsernamePasswordAuthenticationToken(userContext, null, userContext.getAuthorities());
     }
