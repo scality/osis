@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt.endpoint;
+package com.scality.osis.security.jwt.endpoint;
 
 import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.security.platform.PlatformUserDetailsService;
-import com.vmware.osis.security.jwt.JwtTokenFactory;
-import com.vmware.osis.security.jwt.model.*;
-import com.vmware.osis.security.jwt.model.exception.InvalidJwtTokenException;
-import com.vmware.osis.security.jwt.verifier.JwtTokenVerifier;
+import com.scality.osis.security.jwt.JwtTokenFactory;
+import com.scality.osis.security.jwt.model.*;
+import com.scality.osis.security.jwt.model.exception.InvalidJwtTokenException;
+import com.scality.osis.security.jwt.verifier.JwtTokenVerifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 
-import static com.vmware.osis.security.jwt.AuthConstants.ROLE_ADMIN;
+import static com.scality.osis.security.jwt.AuthConstants.ROLE_ADMIN;
 
 @ConditionalOnProperty(value = "security.jwt.enabled", havingValue = "true", matchIfMissing = true)
 @RestController

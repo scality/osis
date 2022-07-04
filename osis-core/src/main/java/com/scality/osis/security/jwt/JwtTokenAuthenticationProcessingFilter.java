@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt;
+package com.scality.osis.security.jwt;
 
-import com.vmware.osis.security.config.OsisJwtWebSecurityConfigurerAdapter;
-import com.vmware.osis.security.jwt.extractor.JwtTokenExtractor;
-import com.vmware.osis.security.jwt.model.JwtAuthenticationToken;
-import com.vmware.osis.security.jwt.model.RawAccessToken;
+import com.scality.osis.security.config.OsisJwtWebSecurityConfigurerAdapter;
+import com.scality.osis.security.jwt.extractor.JwtTokenExtractor;
+import com.scality.osis.security.jwt.model.JwtAuthenticationToken;
+import com.scality.osis.security.jwt.model.RawAccessToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -30,7 +30,7 @@ public class JwtTokenAuthenticationProcessingFilter extends AbstractAuthenticati
 
     @Autowired
     public JwtTokenAuthenticationProcessingFilter(AuthenticationFailureHandler failureHandler,
-                                                  JwtTokenExtractor tokenExtractor, RequestMatcher matcher) {
+            JwtTokenExtractor tokenExtractor, RequestMatcher matcher) {
         super(matcher);
         this.failureHandler = failureHandler;
         this.tokenExtractor = tokenExtractor;
@@ -45,7 +45,7 @@ public class JwtTokenAuthenticationProcessingFilter extends AbstractAuthenticati
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
-                                            Authentication authResult) throws IOException, ServletException {
+            Authentication authResult) throws IOException, ServletException {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authResult);
         SecurityContextHolder.setContext(context);
@@ -54,7 +54,7 @@ public class JwtTokenAuthenticationProcessingFilter extends AbstractAuthenticati
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
-                                              AuthenticationException failed) throws IOException, ServletException {
+            AuthenticationException failed) throws IOException, ServletException {
         SecurityContextHolder.clearContext();
         failureHandler.onAuthenticationFailure(request, response, failed);
     }

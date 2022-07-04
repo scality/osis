@@ -3,7 +3,7 @@
  *SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt.model;
+package com.scality.osis.security.jwt.model;
 
 public class JwtResponse {
     private String accessToken;

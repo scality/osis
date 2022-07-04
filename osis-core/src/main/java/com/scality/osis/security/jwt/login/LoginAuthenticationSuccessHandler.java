@@ -3,13 +3,13 @@
  *SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt.login;
+package com.scality.osis.security.jwt.login;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vmware.osis.security.jwt.JwtTokenFactory;
-import com.vmware.osis.security.jwt.model.JwtResponse;
-import com.vmware.osis.security.jwt.model.JwtToken;
-import com.vmware.osis.security.jwt.model.UserContext;
+import com.scality.osis.security.jwt.JwtTokenFactory;
+import com.scality.osis.security.jwt.model.JwtResponse;
+import com.scality.osis.security.jwt.model.JwtToken;
+import com.scality.osis.security.jwt.model.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,8 +25,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.vmware.osis.security.jwt.AuthConstants.KEY_ACCESS_TOKEN;
-import static com.vmware.osis.security.jwt.AuthConstants.KEY_REFRESH_TOKEN;
+import static com.scality.osis.security.jwt.AuthConstants.KEY_ACCESS_TOKEN;
+import static com.scality.osis.security.jwt.AuthConstants.KEY_REFRESH_TOKEN;
 
 public class LoginAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
@@ -41,7 +41,7 @@ public class LoginAuthenticationSuccessHandler implements AuthenticationSuccessH
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+            Authentication authentication) throws IOException, ServletException {
         UserContext userContext = (UserContext) authentication.getPrincipal();
 
         JwtToken accessToken = tokenFactory.createAccessJwtToken(userContext);
@@ -63,6 +63,5 @@ public class LoginAuthenticationSuccessHandler implements AuthenticationSuccessH
         }
         session.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
     }
-
 
 }

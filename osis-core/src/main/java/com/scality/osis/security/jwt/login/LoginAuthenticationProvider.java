@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt.login;
+package com.scality.osis.security.jwt.login;
 
 import com.scality.osis.security.platform.PlatformUserDetailsService;
-import com.vmware.osis.security.jwt.model.UserContext;
+import com.scality.osis.security.jwt.model.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -21,7 +21,7 @@ import org.springframework.util.Assert;
 
 import java.util.Arrays;
 
-import static com.vmware.osis.security.jwt.AuthConstants.ROLE_ADMIN;
+import static com.scality.osis.security.jwt.AuthConstants.ROLE_ADMIN;
 
 public class LoginAuthenticationProvider implements AuthenticationProvider {
     private final BCryptPasswordEncoder encoder;

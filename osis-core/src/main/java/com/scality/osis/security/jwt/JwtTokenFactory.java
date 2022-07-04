@@ -3,13 +3,13 @@
  *SPDX-License-Identifier: Apache License 2.0
  */
 
-package com.vmware.osis.security.jwt;
+package com.scality.osis.security.jwt;
 
 import com.scality.osis.ScalityAppEnv;
-import com.vmware.osis.security.jwt.model.AccessToken;
-import com.vmware.osis.security.jwt.model.JwtToken;
-import com.vmware.osis.security.jwt.model.Scopes;
-import com.vmware.osis.security.jwt.model.UserContext;
+import com.scality.osis.security.jwt.model.AccessToken;
+import com.scality.osis.security.jwt.model.JwtToken;
+import com.scality.osis.security.jwt.model.Scopes;
+import com.scality.osis.security.jwt.model.UserContext;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -22,7 +22,7 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.vmware.osis.security.jwt.AuthConstants.CLAIMS_SCOPES;
+import static com.scality.osis.security.jwt.AuthConstants.CLAIMS_SCOPES;
 
 public class JwtTokenFactory {
     private final ScalityAppEnv appEnv;
