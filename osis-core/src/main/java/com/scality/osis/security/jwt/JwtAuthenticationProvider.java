@@ -5,7 +5,7 @@
 
 package com.vmware.osis.security.jwt;
 
-import com.vmware.osis.platform.AppEnv;
+import com.scality.osis.ScalityAppEnv;
 import com.vmware.osis.security.jwt.model.JwtAuthenticationToken;
 import com.vmware.osis.security.jwt.model.RawAccessToken;
 import com.vmware.osis.security.jwt.model.UserContext;
@@ -23,10 +23,10 @@ import java.util.stream.Collectors;
 import static com.vmware.osis.security.jwt.AuthConstants.CLAIMS_SCOPES;
 
 public class JwtAuthenticationProvider implements AuthenticationProvider {
-    private final AppEnv appEnv;
+    private final ScalityAppEnv appEnv;
 
     @Autowired
-    public JwtAuthenticationProvider(AppEnv appEnv) {
+    public JwtAuthenticationProvider(ScalityAppEnv appEnv) {
         this.appEnv = appEnv;
     }
 

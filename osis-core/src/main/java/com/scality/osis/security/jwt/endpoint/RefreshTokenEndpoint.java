@@ -5,7 +5,7 @@
 
 package com.vmware.osis.security.jwt.endpoint;
 
-import com.vmware.osis.platform.AppEnv;
+import com.scality.osis.ScalityAppEnv;
 import com.vmware.osis.platform.security.PlatformUserDetailsService;
 import com.vmware.osis.security.jwt.JwtTokenFactory;
 import com.vmware.osis.security.jwt.model.*;
@@ -36,7 +36,7 @@ public class RefreshTokenEndpoint {
     @Autowired
     private JwtTokenVerifier tokenVerifier;
     @Autowired
-    private AppEnv appEnv;
+    private ScalityAppEnv appEnv;
 
     @PostMapping(value = "/api/v1/auth/token", produces = {MediaType.APPLICATION_JSON_VALUE})
     public @ResponseBody
