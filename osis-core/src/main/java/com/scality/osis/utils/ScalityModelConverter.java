@@ -14,14 +14,14 @@ import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.vaultclient.dto.UpdateAccountAttributesRequestDTO;
-import com.vmware.osis.model.OsisS3Credential;
-import com.vmware.osis.model.OsisTenant;
-import com.vmware.osis.model.OsisUser;
-import com.vmware.osis.model.PageInfo;
-import com.vmware.osis.model.PageOfS3Credentials;
-import com.vmware.osis.model.PageOfTenants;
-import com.vmware.osis.model.PageOfUsers;
-import com.vmware.osis.model.exception.BadRequestException;
+import com.scality.osis.model.OsisS3Credential;
+import com.scality.osis.model.OsisTenant;
+import com.scality.osis.model.OsisUser;
+import com.scality.osis.model.PageInfo;
+import com.scality.osis.model.PageOfS3Credentials;
+import com.scality.osis.model.PageOfTenants;
+import com.scality.osis.model.PageOfUsers;
+import com.scality.osis.model.exception.BadRequestException;
 import com.scality.vaultclient.dto.AccountData;
 import com.scality.vaultclient.dto.CreateAccountRequestDTO;
 import com.scality.vaultclient.dto.CreateAccountResponseDTO;
@@ -42,21 +42,24 @@ import static com.scality.osis.utils.ScalityConstants.*;
  */
 public final class ScalityModelConverter {
 
-
     private ScalityModelConverter() {
     }
 
-    /* All Converter methods below converts OSIS model objects to Vault/Scality request formats */
+    /*
+     * All Converter methods below converts OSIS model objects to Vault/Scality
+     * request formats
+     */
 
     /**
      * Converts OSIS Tenant object to Vault Create Account request
+     * 
      * @param osisTenant the osis tenant
      *
      * @return the create account request dto
      */
     public static CreateAccountRequestDTO toScalityCreateAccountRequest(OsisTenant osisTenant) {
-        if(!osisTenant.getActive()){
-//            Scality does not support inactive tenant creation
+        if (!osisTenant.getActive()) {
+            // Scality does not support inactive tenant creation
             throw new BadRequestException("Creating inactive tenant is not supported");
         }
         CreateAccountRequestDTO createAccountRequestDTO = new CreateAccountRequestDTO();
@@ -75,13 +78,14 @@ public final class ScalityModelConverter {
 
     /**
      * Converts OSIS Tenant object to Vault Update Account Attributes request
+     * 
      * @param osisTenant the osis tenant
      *
      * @return the update account attributes request dto
      */
     public static UpdateAccountAttributesRequestDTO toUpdateAccountAttributesRequestDTO(OsisTenant osisTenant) {
-        if(!osisTenant.getActive()){
-//            Scality does not support inactive tenants
+        if (!osisTenant.getActive()) {
+            // Scality does not support inactive tenants
             throw new BadRequestException("Deactivating a tenant is not supported");
         }
         UpdateAccountAttributesRequestDTO updateAccountAttributesRequestDTO = new UpdateAccountAttributesRequestDTO();
@@ -95,6 +99,7 @@ public final class ScalityModelConverter {
 
     /**
      * Created Vault List Accounts request for List Tenants
+     * 
      * @param limit the max number of items
      *
      * @return the create account request dto
@@ -108,10 +113,11 @@ public final class ScalityModelConverter {
 
     /**
      * Creates Vault List Users request for List users
-     * @param limit the max number of items
+     * 
+     * @param limit  the max number of items
      *
      * @param offset the starting offset of the users list
-     * @param limit the max number of the users in the response
+     * @param limit  the max number of the users in the response
      * @return the IAM list users request dto
      */
     public static ListUsersRequest toIAMListUsersRequest(Long offset, Long limit) {
@@ -124,7 +130,7 @@ public final class ScalityModelConverter {
      * Creates Vault List Access Keys request
      *
      * @param username the IAM User's username
-     * @param limit the max number of the access keys in the response
+     * @param limit    the max number of the access keys in the response
      * @return the IAM list Access Keys request dto
      */
     public static ListAccessKeysRequest toIAMListAccessKeysRequest(String username, Long limit) {
@@ -137,10 +143,11 @@ public final class ScalityModelConverter {
      * Creates Vault Update Access Key request
      *
      * @param username the IAM User's username
-     * @param limit the max number of the access keys in the response
+     * @param limit    the max number of the access keys in the response
      * @return the IAM list Access Keys request dto
      */
-    public static UpdateAccessKeyRequest toIAMUpdateAccessKeyRequest(String username, String accessKey, Boolean isActive) {
+    public static UpdateAccessKeyRequest toIAMUpdateAccessKeyRequest(String username, String accessKey,
+            Boolean isActive) {
         return new UpdateAccessKeyRequest()
                 .withUserName(username)
                 .withAccessKeyId(accessKey)
@@ -149,6 +156,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates IAM Get User request
+     * 
      * @param username Vault username
      *
      * @return the IAM get user request dto
@@ -160,6 +168,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates IAM Delete User request
+     * 
      * @param username Vault username
      *
      * @return the IAM delete user request dto
@@ -171,6 +180,7 @@ public final class ScalityModelConverter {
 
     /**
      * Created Vault List Accounts request for Query Tenants
+     * 
      * @param limit the max number of items
      *
      * @return the create account request dto
@@ -184,6 +194,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates Vault Assume Role request request for given account id
+     * 
      * @param accountID the account ID
      *
      * @return the assume role request dto
@@ -195,14 +206,16 @@ public final class ScalityModelConverter {
     }
 
     /**
-     * Creates GenerateAccountAccessKeyRequest dto for given account id and duration in seconds
-     * @param accountID the account ID
+     * Creates GenerateAccountAccessKeyRequest dto for given account id and duration
+     * in seconds
+     * 
+     * @param accountID       the account ID
      * @param durationSeconds the duration in seconds
      *
      * @return the GenerateAccountAccessKeyRequest dto
      */
     public static GenerateAccountAccessKeyRequest toGenerateAccountAccessKeyRequest(String accountID,
-                                                                                    long durationSeconds) {
+            long durationSeconds) {
         return GenerateAccountAccessKeyRequest.builder()
                 .accountName(accountID)
                 .durationSeconds(durationSeconds)
@@ -211,6 +224,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates CreateRoleRequest dto
+     * 
      * @param assumeRoleName the role name
      *
      * @return the CreateRoleRequest dto
@@ -223,6 +237,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates CreatePolicyRequest dto for admin policy for OSIS role
+     * 
      * @param tenantId the account id
      *
      * @return the CreatePolicyRequest dto
@@ -236,8 +251,9 @@ public final class ScalityModelConverter {
 
     /**
      * Creates AttachRolePolicyRequest dto for attaching admin policy to OSIS role
+     * 
      * @param policyArn the policy arn
-     * @param roleName the OSIS role name
+     * @param roleName  the OSIS role name
      *
      * @return the AttachRolePolicyRequest dto
      */
@@ -249,8 +265,9 @@ public final class ScalityModelConverter {
 
     /**
      * Creates DeleteAccessKeyRequest dto
+     * 
      * @param accessKeyId the accesskeyId
-     * @param username the username
+     * @param username    the username
      *
      * @return the DeleteAccessKeyRequest dto
      */
@@ -258,7 +275,7 @@ public final class ScalityModelConverter {
         DeleteAccessKeyRequest deleteAccessKeyRequest = new DeleteAccessKeyRequest()
                 .withAccessKeyId(accessKeyId);
 
-        if(!StringUtils.isEmpty(username)) {
+        if (!StringUtils.isEmpty(username)) {
             deleteAccessKeyRequest.setUserName(username);
         }
 
@@ -267,6 +284,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates GetAccountRequestDTO
+     * 
      * @param accountID the accountID
      *
      * @return the GetAccountRequestDTO
@@ -279,6 +297,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates GetAccountRequestDTO using canonicalID
+     * 
      * @param canonicalID the canonicalID
      *
      * @return the GetAccountRequestDTO
@@ -304,19 +323,21 @@ public final class ScalityModelConverter {
     }
 
     public static CreateUserRequest toCreateUserRequest(OsisUser osisUser) {
-        OsisUser.RoleEnum role = (osisUser.getRole() != null) ? osisUser.getRole() :OsisUser.RoleEnum.UNKNOWN ;
+        OsisUser.RoleEnum role = (osisUser.getRole() != null) ? osisUser.getRole() : OsisUser.RoleEnum.UNKNOWN;
         return new CreateUserRequest()
                 .withUserName(osisUser.getCdUserId())
                 .withPath(
                         toUserPath(osisUser.getUsername(),
-                                    role,
-                                    osisUser.getEmail(),
-                                    osisUser.getCdTenantId(),
-                                    osisUser.getCanonicalUserId()));
+                                role,
+                                osisUser.getEmail(),
+                                osisUser.getCdTenantId(),
+                                osisUser.getCanonicalUserId()));
     }
 
-    private static String toUserPath(String username, OsisUser.RoleEnum role, String email, String cdTenantId, String canonicalUserId) {
-        return USER_PATH_SEPARATOR + username + USER_PATH_SEPARATOR + role.getValue() + USER_PATH_SEPARATOR + email + USER_PATH_SEPARATOR + cdTenantId + USER_PATH_SEPARATOR
+    private static String toUserPath(String username, OsisUser.RoleEnum role, String email, String cdTenantId,
+            String canonicalUserId) {
+        return USER_PATH_SEPARATOR + username + USER_PATH_SEPARATOR + role.getValue() + USER_PATH_SEPARATOR + email
+                + USER_PATH_SEPARATOR + cdTenantId + USER_PATH_SEPARATOR
                 + canonicalUserId + USER_PATH_SEPARATOR;
     }
 
@@ -372,7 +393,7 @@ public final class ScalityModelConverter {
 
     /**
      * Generates tenant email string using tenant name.
-     *  example email address: tenant.name@osis.scality.com
+     * example email address: tenant.name@osis.scality.com
      *
      * @param name the name
      * @return the string
@@ -384,23 +405,25 @@ public final class ScalityModelConverter {
     /**
      * Converts OSIS cdTenantIDs list to Vault Account customAttributes Map Format
      *
-     * @param cdTenantIds the cd tenant ids list. Example:<code>["9b7e3259-aace-414c-bfd8-94daa0efefaf","7b7e3259-aace-414c-bfd8-94daa0efefaf"]</code>
+     * @param cdTenantIds the cd tenant ids list.
+     *                    Example:<code>["9b7e3259-aace-414c-bfd8-94daa0efefaf","7b7e3259-aace-414c-bfd8-94daa0efefaf"]</code>
      * @return the customAttributes map.
-     *          Example: <code>{("cd_tenant_id==9b7e3259-aace-414c-bfd8-94daa0efefaf", ""),
+     *         Example:
+     *         <code>{("cd_tenant_id==9b7e3259-aace-414c-bfd8-94daa0efefaf", ""),
      *                          ("cd_tenant_id==7b7e3259-aace-414c-bfd8-94daa0efefaf", "")}</code>
      */
-    public static Map<String,String> toScalityCustomAttributes(List<String> cdTenantIds) {
+    public static Map<String, String> toScalityCustomAttributes(List<String> cdTenantIds) {
         return cdTenantIds.stream()
-                .collect(Collectors.toMap(str-> CD_TENANT_ID_PREFIX + str, str -> ""));
+                .collect(Collectors.toMap(str -> CD_TENANT_ID_PREFIX + str, str -> ""));
     }
 
     /**
      * Converts account ID to Vault super role arn
      *
      * @param accountID account id
-     * @param roleName role name
+     * @param roleName  role name
      * @return the role arn.
-     *          Example: <code>arn:aws:iam::[account-id]:role/[role-name]</code>
+     *         Example: <code>arn:aws:iam::[account-id]:role/[role-name]</code>
      */
     private static String toRoleArn(String accountID, String roleName) {
         return ROLE_ARN_FORMAT
@@ -409,11 +432,13 @@ public final class ScalityModelConverter {
     }
 
     public static String extractCdTenantId(String filter) {
-        return filter.split(FILTER_KEY_VALUE_SEPARATOR) [1];
+        return filter.split(FILTER_KEY_VALUE_SEPARATOR)[1];
     }
 
-    /* Converter methods below will convert Vault/Scality responses to OSIS model objects @param accountResponse the account response */
-
+    /*
+     * Converter methods below will convert Vault/Scality responses to OSIS model
+     * objects @param accountResponse the account response
+     */
 
     /**
      * Converts Vault Create Account response to OSIS Tenant object
@@ -465,12 +490,12 @@ public final class ScalityModelConverter {
         final OsisUser osisUser = new OsisUser();
 
         osisUser.setTenantId(account.getId());
-        if(!account.getCustomAttributes().isEmpty()) {
+        if (!account.getCustomAttributes().isEmpty()) {
             osisUser.setCdTenantId(ScalityModelConverter.toOsisCDTenantIds(account.getCustomAttributes()).get(0));
         }
         osisUser.setCanonicalUserId(account.getCanonicalId());
 
-        if(!users.isEmpty()) {
+        if (!users.isEmpty()) {
             OsisUser user = users.get(users.size() - 1);
             osisUser.setUsername(user.getUsername());
             osisUser.setUserId(user.getUserId());
@@ -487,15 +512,18 @@ public final class ScalityModelConverter {
      * Converts Vault Account customAttributes Map Format to OSIS cdTenantIDs list.
      *
      * @param customAttributes the customAttributes map.
-     *      *          Example: <code>{("cd_tenant_id==9b7e3259-aace-414c-bfd8-94daa0efefaf", ""),
+     *                         * Example:
+     *                         <code>{("cd_tenant_id==9b7e3259-aace-414c-bfd8-94daa0efefaf", ""),
      *      *                          ("cd_tenant_id==7b7e3259-aace-414c-bfd8-94daa0efefaf", "")}</code>
-     * @return the cd tenant ids list. Example:<code>["9b7e3259-aace-414c-bfd8-94daa0efefaf","7b7e3259-aace-414c-bfd8-94daa0efefaf"]</code>
+     * @return the cd tenant ids list.
+     *         Example:<code>["9b7e3259-aace-414c-bfd8-94daa0efefaf","7b7e3259-aace-414c-bfd8-94daa0efefaf"]</code>
      */
-    public static List<String> toOsisCDTenantIds(Map<String,String> customAttributes) {
-        if(customAttributes==null || customAttributes.size() == 0)
+    public static List<String> toOsisCDTenantIds(Map<String, String> customAttributes) {
+        if (customAttributes == null || customAttributes.size() == 0)
             return new ArrayList<>();
 
-        List<String> cdTenantIds = new ArrayList<String>(customAttributes.keySet()).stream().collect(Collectors.toList());
+        List<String> cdTenantIds = new ArrayList<String>(customAttributes.keySet()).stream()
+                .collect(Collectors.toList());
         cdTenantIds.replaceAll(x -> StringUtils.removeStart(x, CD_TENANT_ID_PREFIX));
         return cdTenantIds;
     }
@@ -508,10 +536,11 @@ public final class ScalityModelConverter {
      * @param limit
      * @return the page of tenants
      */
-    public static PageOfTenants toPageOfTenants(ListAccountsResponseDTO listAccountsResponseDTO, long offset, long limit) {
+    public static PageOfTenants toPageOfTenants(ListAccountsResponseDTO listAccountsResponseDTO, long offset,
+            long limit) {
         List<OsisTenant> tenantItems = new ArrayList<>();
 
-        for(AccountData account: listAccountsResponseDTO.getAccounts()){
+        for (AccountData account : listAccountsResponseDTO.getAccounts()) {
             tenantItems.add(toOsisTenant(account));
         }
 
@@ -549,7 +578,8 @@ public final class ScalityModelConverter {
     /**
      * Converts Vault Generate Account AccessKey response to AWS Credentials
      *
-     * @param generateAccountAccessKeyResponse the Generate Account AccessKey response dto
+     * @param generateAccountAccessKeyResponse the Generate Account AccessKey
+     *                                         response dto
      * @return the AWS credentials for API authentication.
      */
     public static Credentials toCredentials(GenerateAccountAccessKeyResponse generateAccountAccessKeyResponse) {
@@ -578,7 +608,8 @@ public final class ScalityModelConverter {
     }
 
     private static OsisUser.RoleEnum roleFromUserPath(String path) {
-        return path.split("/").length > 2 ? OsisUser.RoleEnum.fromValue(path.split("/")[2]) : OsisUser.RoleEnum.ANONYMOUS;
+        return path.split("/").length > 2 ? OsisUser.RoleEnum.fromValue(path.split("/")[2])
+                : OsisUser.RoleEnum.ANONYMOUS;
     }
 
     private static String emailFromUserPath(String path) {
@@ -593,7 +624,8 @@ public final class ScalityModelConverter {
         return path.split("/").length > 5 ? path.split("/")[5] : userId;
     }
 
-    public static OsisS3Credential toOsisS3Credentials(String cdTenantId, String tenantId, String username, CreateAccessKeyResult createAccessKeyResult) {
+    public static OsisS3Credential toOsisS3Credentials(String cdTenantId, String tenantId, String username,
+            CreateAccessKeyResult createAccessKeyResult) {
         return new OsisS3Credential()
                 .accessKey(createAccessKeyResult.getAccessKey().getAccessKeyId())
                 .secretKey(createAccessKeyResult.getAccessKey().getSecretAccessKey())
@@ -607,7 +639,8 @@ public final class ScalityModelConverter {
                 .immutable(Boolean.TRUE);
     }
 
-    public static OsisS3Credential toOsisS3Credentials(String tenantId, AccessKeyMetadata accessKeyMetadata, String secretKey) {
+    public static OsisS3Credential toOsisS3Credentials(String tenantId, AccessKeyMetadata accessKeyMetadata,
+            String secretKey) {
         OsisS3Credential s3Credential = new OsisS3Credential()
                 .accessKey(accessKeyMetadata.getAccessKeyId())
                 .active(accessKeyMetadata.getStatus()
@@ -633,7 +666,7 @@ public final class ScalityModelConverter {
     public static PageOfUsers toPageOfUsers(ListUsersResult listUsersResult, long offset, long limit, String tenantId) {
         List<OsisUser> userItems = new ArrayList<>();
 
-        for(User user: listUsersResult.getUsers()){
+        for (User user : listUsersResult.getUsers()) {
             userItems.add(toOsisUser(user, tenantId));
         }
 
@@ -678,11 +711,12 @@ public final class ScalityModelConverter {
      * @param secretKeyMap
      * @return the page of users
      */
-    public static PageOfS3Credentials toPageOfS3Credentials(ListAccessKeysResult listAccessKeysResult, long offset, long limit, OsisTenant tenant, Map<String, String> secretKeyMap) {
+    public static PageOfS3Credentials toPageOfS3Credentials(ListAccessKeysResult listAccessKeysResult, long offset,
+            long limit, OsisTenant tenant, Map<String, String> secretKeyMap) {
         List<OsisS3Credential> credentials = new ArrayList<>();
         List<OsisS3Credential> credentialsNoSK = new ArrayList<>();
 
-        for(AccessKeyMetadata accessKeyMetadata: listAccessKeysResult.getAccessKeyMetadata()){
+        for (AccessKeyMetadata accessKeyMetadata : listAccessKeysResult.getAccessKeyMetadata()) {
 
             OsisS3Credential s3Credential = new OsisS3Credential()
                     .accessKey(accessKeyMetadata.getAccessKeyId())
@@ -694,7 +728,7 @@ public final class ScalityModelConverter {
                     .cdTenantId(tenant.getCdTenantIds().get(0))
                     .creationDate(accessKeyMetadata.getCreateDate().toInstant())
                     .immutable(Boolean.TRUE);
-            if(null != secretKeyMap.get(accessKeyMetadata.getAccessKeyId())) {
+            if (null != secretKeyMap.get(accessKeyMetadata.getAccessKeyId())) {
                 // If secret key is available, add credential object to the list
                 s3Credential.setSecretKey(secretKeyMap.get(accessKeyMetadata.getAccessKeyId()));
                 credentials.add(s3Credential);
@@ -705,7 +739,7 @@ public final class ScalityModelConverter {
         }
 
         // Add credential objects with no secret keys to the bottom of the list
-        if(!credentialsNoSK.isEmpty()) {
+        if (!credentialsNoSK.isEmpty()) {
             credentials.addAll(credentialsNoSK);
         }
 
@@ -740,19 +774,21 @@ public final class ScalityModelConverter {
      * @param limit
      * @return the page of s3credentials
      */
-    public static PageOfS3Credentials toPageOfS3Credentials(OsisS3Credential osisS3Credential, String cdTenantId, long offset, long limit) {
+    public static PageOfS3Credentials toPageOfS3Credentials(OsisS3Credential osisS3Credential, String cdTenantId,
+            long offset, long limit) {
 
-        if(osisS3Credential !=null){
+        if (osisS3Credential != null) {
             osisS3Credential.setCdTenantId(cdTenantId);
         }
 
         PageInfo pageInfo = new PageInfo();
         pageInfo.setLimit(limit);
         pageInfo.setOffset(offset);
-        pageInfo.setTotal( (osisS3Credential == null) ? 0 : 1l );
+        pageInfo.setTotal((osisS3Credential == null) ? 0 : 1l);
 
         PageOfS3Credentials pageOfS3Credentials = new PageOfS3Credentials();
-        pageOfS3Credentials.items( (osisS3Credential == null) ? new ArrayList<>() : Collections.singletonList(osisS3Credential));
+        pageOfS3Credentials
+                .items((osisS3Credential == null) ? new ArrayList<>() : Collections.singletonList(osisS3Credential));
         pageOfS3Credentials.setPageInfo(pageInfo);
         return pageOfS3Credentials;
     }

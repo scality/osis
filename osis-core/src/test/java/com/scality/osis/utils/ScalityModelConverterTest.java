@@ -3,8 +3,8 @@ package com.scality.osis.utils;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
-import com.vmware.osis.model.*;
-import com.vmware.osis.model.exception.BadRequestException;
+import com.scality.osis.model.*;
+import com.scality.osis.model.exception.BadRequestException;
 import com.scality.vaultclient.dto.*;
 import org.junit.jupiter.api.Test;
 
@@ -25,24 +25,24 @@ import static com.scality.osis.utils.ScalityTestUtils.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
 public class ScalityModelConverterTest {
 
     @Test
-    public void testToScalityAccountEmailTest(){
+    public void testToScalityAccountEmailTest() {
         assertEquals(SAMPLE_SCALITY_ACCOUNT_EMAIL,
-                ScalityModelConverter.generateTenantEmail(SAMPLE_TENANT_NAME),"failed generateTenantEmail");
+                ScalityModelConverter.generateTenantEmail(SAMPLE_TENANT_NAME), "failed generateTenantEmail");
     }
 
     @Test
-    public void testToOsisCDTenantIdsTest(){
+    public void testToOsisCDTenantIdsTest() {
         final List<String> result = ScalityModelConverter.toOsisCDTenantIds(SAMPLE_CUSTOM_ATTRIBUTES);
         assertTrue(SAMPLE_CD_TENANT_IDS.size() == result.size() &&
-                SAMPLE_CD_TENANT_IDS.containsAll(result) && result.containsAll(SAMPLE_CD_TENANT_IDS), "failed toOsisCDTenantIdsTest");
+                SAMPLE_CD_TENANT_IDS.containsAll(result) && result.containsAll(SAMPLE_CD_TENANT_IDS),
+                "failed toOsisCDTenantIdsTest");
     }
 
     @Test
-    public void  testToScalityCreateAccountRequestTest() throws Exception {
+    public void testToScalityCreateAccountRequestTest() throws Exception {
 
         final OsisTenant osisTenant = new OsisTenant();
         osisTenant.tenantId(SAMPLE_TENANT_ID);
@@ -50,15 +50,19 @@ public class ScalityModelConverterTest {
         osisTenant.cdTenantIds(SAMPLE_CD_TENANT_IDS);
         osisTenant.active(true);
 
-        final CreateAccountRequestDTO createAccountRequestDTO = ScalityModelConverter.toScalityCreateAccountRequest(osisTenant);
+        final CreateAccountRequestDTO createAccountRequestDTO = ScalityModelConverter
+                .toScalityCreateAccountRequest(osisTenant);
 
-        assertEquals(SAMPLE_SCALITY_ACCOUNT_EMAIL, createAccountRequestDTO.getEmailAddress(), "failed  toScalityCreateAccountRequestTest:getEmailAddress()");
-        assertEquals(SAMPLE_TENANT_NAME, createAccountRequestDTO.getName(), "failed  toScalityCreateAccountRequestTest:getName()");
-        assertEquals(SAMPLE_TENANT_ID, createAccountRequestDTO.getExternalAccountId(), "failed  toScalityCreateAccountRequestTest:getExternalAccountId()");
+        assertEquals(SAMPLE_SCALITY_ACCOUNT_EMAIL, createAccountRequestDTO.getEmailAddress(),
+                "failed  toScalityCreateAccountRequestTest:getEmailAddress()");
+        assertEquals(SAMPLE_TENANT_NAME, createAccountRequestDTO.getName(),
+                "failed  toScalityCreateAccountRequestTest:getName()");
+        assertEquals(SAMPLE_TENANT_ID, createAccountRequestDTO.getExternalAccountId(),
+                "failed  toScalityCreateAccountRequestTest:getExternalAccountId()");
     }
 
     @Test
-    public void  testToScalityCreateAccountRequestNullTenantId() {
+    public void testToScalityCreateAccountRequestNullTenantId() {
 
         final OsisTenant osisTenant = new OsisTenant();
         osisTenant.tenantId(null);
@@ -66,13 +70,15 @@ public class ScalityModelConverterTest {
         osisTenant.cdTenantIds(SAMPLE_CD_TENANT_IDS);
         osisTenant.active(true);
 
-        final CreateAccountRequestDTO createAccountRequestDTO = ScalityModelConverter.toScalityCreateAccountRequest(osisTenant);
+        final CreateAccountRequestDTO createAccountRequestDTO = ScalityModelConverter
+                .toScalityCreateAccountRequest(osisTenant);
 
-        assertNull(createAccountRequestDTO.getExternalAccountId(), "toScalityCreateAccountRequestTest should throw Null Pointer :getExternalAccountId()");
+        assertNull(createAccountRequestDTO.getExternalAccountId(),
+                "toScalityCreateAccountRequestTest should throw Null Pointer :getExternalAccountId()");
     }
 
     @Test
-    public void  testToScalityCreateAccountRequestActiveErr(){
+    public void testToScalityCreateAccountRequestActiveErr() {
         final OsisTenant osisTenant = new OsisTenant();
         osisTenant.active(false);
         assertThrows(BadRequestException.class, () -> {
@@ -90,34 +96,40 @@ public class ScalityModelConverterTest {
         data.setCustomAttributes(SAMPLE_CUSTOM_ATTRIBUTES);
         final Account account = new Account();
         account.setData(data);
-        final CreateAccountResponseDTO responseDTO = new CreateAccountResponseDTO ();
+        final CreateAccountResponseDTO responseDTO = new CreateAccountResponseDTO();
         responseDTO.setAccount(account);
 
-        //vault specific email address format for ose-scality
+        // vault specific email address format for ose-scality
         final OsisTenant osisTenant = ScalityModelConverter.toOsisTenant(responseDTO);
-        assertEquals(SAMPLE_TENANT_ID, osisTenant.getTenantId(), "failed createAccountResponseToOsisTenantTest:getTenantId()");
-        assertEquals(SAMPLE_TENANT_NAME, osisTenant.getName(), "failed createAccountResponseToOsisTenantTest:getName()");
+        assertEquals(SAMPLE_TENANT_ID, osisTenant.getTenantId(),
+                "failed createAccountResponseToOsisTenantTest:getTenantId()");
+        assertEquals(SAMPLE_TENANT_NAME, osisTenant.getName(),
+                "failed createAccountResponseToOsisTenantTest:getName()");
         assertTrue(SAMPLE_CD_TENANT_IDS.size() == osisTenant.getCdTenantIds().size() &&
                 SAMPLE_CD_TENANT_IDS.containsAll(osisTenant.getCdTenantIds())
-                && osisTenant.getCdTenantIds().containsAll(SAMPLE_CD_TENANT_IDS), "failed createAccountResponseToOsisTenantTest:getCdTenantIds()");
+                && osisTenant.getCdTenantIds().containsAll(SAMPLE_CD_TENANT_IDS),
+                "failed createAccountResponseToOsisTenantTest:getCdTenantIds()");
         assertTrue(osisTenant.getActive(), "failed createAccountResponseToOsisTenantTest:getActive()");
     }
 
     @Test
-    public void  testGetAssumeRoleRequestForAccount() {
+    public void testGetAssumeRoleRequestForAccount() {
 
+        final AssumeRoleRequest assumeRoleRequest = ScalityModelConverter
+                .getAssumeRoleRequestForAccount(SAMPLE_TENANT_ID, SAMPLE_ASSUME_ROLE_NAME);
 
-        final AssumeRoleRequest assumeRoleRequest = ScalityModelConverter.getAssumeRoleRequestForAccount(SAMPLE_TENANT_ID, SAMPLE_ASSUME_ROLE_NAME);
-
-        assertEquals(TEST_ROLE_ARN, assumeRoleRequest.getRoleArn(), "failed  testGetAssumeRoleRequestForAccount:getRoleArn()");
-        assertTrue(assumeRoleRequest.getRoleSessionName().startsWith(TEST_SESSION_NAME_PREFIX), "failed  testGetAssumeRoleRequestForAccount:getRoleSessionName()");
+        assertEquals(TEST_ROLE_ARN, assumeRoleRequest.getRoleArn(),
+                "failed  testGetAssumeRoleRequestForAccount:getRoleArn()");
+        assertTrue(assumeRoleRequest.getRoleSessionName().startsWith(TEST_SESSION_NAME_PREFIX),
+                "failed  testGetAssumeRoleRequestForAccount:getRoleSessionName()");
     }
 
     @Test
     public void testToGenerateAccountAccessKeyRequest() {
         // Setup
         // Run the test
-        final GenerateAccountAccessKeyRequest result = ScalityModelConverter.toGenerateAccountAccessKeyRequest(SAMPLE_TENANT_NAME, SAMPLE_DURATION_SECONDS);
+        final GenerateAccountAccessKeyRequest result = ScalityModelConverter
+                .toGenerateAccountAccessKeyRequest(SAMPLE_TENANT_NAME, SAMPLE_DURATION_SECONDS);
 
         // Verify the results
         assertEquals(SAMPLE_TENANT_NAME, result.getAccountName());
@@ -151,7 +163,8 @@ public class ScalityModelConverterTest {
     public void testToAttachAdminPolicyRequest() {
         // Setup
         // Run the test
-        final AttachRolePolicyRequest result = ScalityModelConverter.toAttachAdminPolicyRequest(TEST_POLICY_ARN, TEST_NAME);
+        final AttachRolePolicyRequest result = ScalityModelConverter.toAttachAdminPolicyRequest(TEST_POLICY_ARN,
+                TEST_NAME);
 
         // Verify the results
         assertEquals(TEST_NAME, result.getRoleName());
@@ -162,7 +175,8 @@ public class ScalityModelConverterTest {
     public void testToDeleteAccessKeyRequest() {
         // Setup
         // Run the test
-        final DeleteAccessKeyRequest result = ScalityModelConverter.toDeleteAccessKeyRequest(TEST_ACCESS_KEY, TEST_NAME);
+        final DeleteAccessKeyRequest result = ScalityModelConverter.toDeleteAccessKeyRequest(TEST_ACCESS_KEY,
+                TEST_NAME);
 
         // Verify the results
         assertEquals(TEST_NAME, result.getUserName());
@@ -236,7 +250,7 @@ public class ScalityModelConverterTest {
     }
 
     @Test
-    public void  testToCreateUserRequest() {
+    public void testToCreateUserRequest() {
         final OsisUser osisUser = new OsisUser();
         osisUser.setCanonicalUserId(TEST_CANONICAL_ID);
         osisUser.setTenantId(TEST_TENANT_ID);
@@ -247,7 +261,7 @@ public class ScalityModelConverterTest {
         osisUser.setEmail(SAMPLE_SCALITY_USER_EMAIL);
         osisUser.setCdTenantId(TEST_TENANT_ID);
 
-        final CreateUserRequest createUserRequest =  ScalityModelConverter.toCreateUserRequest(osisUser);
+        final CreateUserRequest createUserRequest = ScalityModelConverter.toCreateUserRequest(osisUser);
 
         assertEquals(TEST_USER_ID, createUserRequest.getUserName());
         assertTrue(createUserRequest.getPath().contains(TEST_NAME));
@@ -273,7 +287,7 @@ public class ScalityModelConverterTest {
     public void testToGetPolicyRequest() {
         // Setup
         final GetPolicyRequest expectedResult = new GetPolicyRequest();
-        expectedResult.setPolicyArn("arn:aws:iam::" + TEST_TENANT_ID +":policy/userPolicy@" + TEST_TENANT_ID);
+        expectedResult.setPolicyArn("arn:aws:iam::" + TEST_TENANT_ID + ":policy/userPolicy@" + TEST_TENANT_ID);
 
         // Run the test
         final GetPolicyRequest result = ScalityModelConverter.toGetPolicyRequest(TEST_TENANT_ID);
@@ -288,7 +302,8 @@ public class ScalityModelConverterTest {
         final CreatePolicyRequest expectedResult = new CreatePolicyRequest();
         expectedResult.setPolicyName("userPolicy@" + TEST_TENANT_ID);
         expectedResult.setPolicyDocument(DEFAULT_USER_POLICY_DOCUMENT);
-        expectedResult.setDescription("This is a common user policy created by OSIS for all the users belonging to the "+ TEST_TENANT_ID +" account");
+        expectedResult.setDescription("This is a common user policy created by OSIS for all the users belonging to the "
+                + TEST_TENANT_ID + " account");
 
         // Run the test
         final CreatePolicyRequest result = ScalityModelConverter.toCreateUserPolicyRequest(TEST_TENANT_ID);
@@ -305,7 +320,8 @@ public class ScalityModelConverterTest {
         expectedResult.setPolicyArn(TEST_POLICY_ARN);
 
         // Run the test
-        final AttachUserPolicyRequest result = ScalityModelConverter.toAttachUserPolicyRequest(TEST_POLICY_ARN, TEST_USER_ID);
+        final AttachUserPolicyRequest result = ScalityModelConverter.toAttachUserPolicyRequest(TEST_POLICY_ARN,
+                TEST_USER_ID);
 
         // Verify the results
         assertEquals(expectedResult, result);
@@ -319,7 +335,8 @@ public class ScalityModelConverterTest {
         expectedResult.setPolicyArn(TEST_POLICY_ARN);
 
         // Run the test
-        final DetachUserPolicyRequest result = ScalityModelConverter.toDetachUserPolicyRequest(TEST_POLICY_ARN, TEST_USER_ID);
+        final DetachUserPolicyRequest result = ScalityModelConverter.toDetachUserPolicyRequest(TEST_POLICY_ARN,
+                TEST_USER_ID);
 
         // Verify the results
         assertEquals(expectedResult, result);
@@ -329,11 +346,12 @@ public class ScalityModelConverterTest {
     public void testToOsisUser() {
         // Setup
         final CreateUserResult createUserResult = new CreateUserResult();
-        final String path = "/"+ TEST_NAME +"/"
-                + OsisUser.RoleEnum.TENANT_USER.getValue() +"/"
-                + SAMPLE_SCALITY_USER_EMAIL  + "/"
-                + TEST_TENANT_ID  + "/";
-        createUserResult.setUser(new User(path, TEST_USER_ID, TEST_USER_ID, "arn", new GregorianCalendar(2019, Calendar.JANUARY, 1).getTime()));
+        final String path = "/" + TEST_NAME + "/"
+                + OsisUser.RoleEnum.TENANT_USER.getValue() + "/"
+                + SAMPLE_SCALITY_USER_EMAIL + "/"
+                + TEST_TENANT_ID + "/";
+        createUserResult.setUser(new User(path, TEST_USER_ID, TEST_USER_ID, "arn",
+                new GregorianCalendar(2019, Calendar.JANUARY, 1).getTime()));
 
         final OsisUser osisUser = new OsisUser();
         osisUser.setTenantId(TEST_TENANT_ID);
@@ -359,7 +377,8 @@ public class ScalityModelConverterTest {
         createAccessKeyResult.setAccessKey(new AccessKey(TEST_USER_ID, TEST_ACCESS_KEY, "status", TEST_SECRET_KEY));
 
         // Run the test
-        final OsisS3Credential result = ScalityModelConverter.toOsisS3Credentials(TEST_TENANT_ID, TEST_TENANT_ID, TEST_NAME, createAccessKeyResult);
+        final OsisS3Credential result = ScalityModelConverter.toOsisS3Credentials(TEST_TENANT_ID, TEST_TENANT_ID,
+                TEST_NAME, createAccessKeyResult);
 
         // Verify the results
         assertEquals(TEST_USER_ID, result.getCdUserId());
@@ -381,7 +400,8 @@ public class ScalityModelConverterTest {
                 .withUserName(TEST_USER_ID);
 
         // Run the test
-        final OsisS3Credential result = ScalityModelConverter.toOsisS3Credentials(TEST_TENANT_ID, accesskeyMetaData, TEST_SECRET_KEY);
+        final OsisS3Credential result = ScalityModelConverter.toOsisS3Credentials(TEST_TENANT_ID, accesskeyMetaData,
+                TEST_SECRET_KEY);
 
         // Verify the results
         assertEquals(TEST_USER_ID, result.getCdUserId());
@@ -403,7 +423,8 @@ public class ScalityModelConverterTest {
                 .withUserName(TEST_USER_ID);
 
         // Run the test
-        final OsisS3Credential result = ScalityModelConverter.toOsisS3Credentials(TEST_TENANT_ID, accesskeyMetaData, null);
+        final OsisS3Credential result = ScalityModelConverter.toOsisS3Credentials(TEST_TENANT_ID, accesskeyMetaData,
+                null);
 
         // Verify the results
         assertEquals(TEST_USER_ID, result.getCdUserId());
@@ -433,7 +454,7 @@ public class ScalityModelConverterTest {
         account.setName(SAMPLE_TENANT_NAME);
         account.setEmailAddress(SAMPLE_SCALITY_ACCOUNT_EMAIL);
         account.setId(SAMPLE_TENANT_ID);
-        account.setCustomAttributes(Collections.singletonMap(CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID , ""));
+        account.setCustomAttributes(Collections.singletonMap(CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID, ""));
         account.setCanonicalId(TEST_CANONICAL_ID);
 
         final OsisUser osisUser = new OsisUser();
@@ -460,13 +481,14 @@ public class ScalityModelConverterTest {
     @Test
     public void testToPageOfUsers() {
         // Setup
-        final String path = "/"+ TEST_NAME +"/"
-                + OsisUser.RoleEnum.TENANT_USER.getValue() +"/"
-                + SAMPLE_SCALITY_USER_EMAIL  + "/"
-                + TEST_TENANT_ID  + "/"
-                + TEST_CANONICAL_ID  + "/";
+        final String path = "/" + TEST_NAME + "/"
+                + OsisUser.RoleEnum.TENANT_USER.getValue() + "/"
+                + SAMPLE_SCALITY_USER_EMAIL + "/"
+                + TEST_TENANT_ID + "/"
+                + TEST_CANONICAL_ID + "/";
 
-        final User user = new User(path, TEST_USER_ID, TEST_USER_ID, "arn", new GregorianCalendar(2019, Calendar.JANUARY, 1).getTime());
+        final User user = new User(path, TEST_USER_ID, TEST_USER_ID, "arn",
+                new GregorianCalendar(2019, Calendar.JANUARY, 1).getTime());
 
         final ListUsersResult listUsersResult = new ListUsersResult().withUsers(Collections.singletonList(user));
         // Run the test
@@ -518,7 +540,7 @@ public class ScalityModelConverterTest {
     @Test
     public void testExtractCdTenantId() {
         // Setup
-        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID ;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID;
 
         // Run the test
         final String cdTenantId = ScalityModelConverter.extractCdTenantId(filter);
@@ -570,7 +592,7 @@ public class ScalityModelConverterTest {
                 .withStatus(StatusType.Active)
                 .withUserName(TEST_USER_ID);
         final ListAccessKeysResult listAccessKeysResult = new ListAccessKeysResult()
-                                                                .withAccessKeyMetadata(Collections.singletonList(accesskeyMetaData));
+                .withAccessKeyMetadata(Collections.singletonList(accesskeyMetaData));
 
         final Map<String, String> secretKeyMap = new HashMap<>();
         secretKeyMap.put(TEST_ACCESS_KEY, TEST_SECRET_KEY);
@@ -581,7 +603,8 @@ public class ScalityModelConverterTest {
         osisTenant.cdTenantIds(SAMPLE_CD_TENANT_IDS);
         osisTenant.active(true);
         // Run the test
-        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, osisTenant, secretKeyMap);
+        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter
+                .toPageOfS3Credentials(listAccessKeysResult, 0, 1000, osisTenant, secretKeyMap);
 
         // Verify the results
         assertTrue(pageOfS3Credentials.getItems().size() > 0);
@@ -623,7 +646,6 @@ public class ScalityModelConverterTest {
         // Secret key only for accesskeyMetaData
         secretKeyMap.put(TEST_ACCESS_KEY, TEST_SECRET_KEY);
 
-
         final OsisTenant osisTenant = new OsisTenant();
         osisTenant.tenantId(SAMPLE_TENANT_ID);
         osisTenant.name(SAMPLE_TENANT_NAME);
@@ -631,7 +653,8 @@ public class ScalityModelConverterTest {
         osisTenant.active(true);
 
         // Run the test
-        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(listAccessKeysResult, 0, 1000, osisTenant, secretKeyMap);
+        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter
+                .toPageOfS3Credentials(listAccessKeysResult, 0, 1000, osisTenant, secretKeyMap);
 
         // Verify the results
         assertTrue(pageOfS3Credentials.getItems().size() > 0);
@@ -648,10 +671,11 @@ public class ScalityModelConverterTest {
         assertEquals(TEST_SECRET_KEY, resultWithSecret.getSecretKey());
 
         // Last entry should have secret key as "Not Available"
-        final OsisS3Credential resultWithNoSecret = pageOfS3Credentials.getItems().get(pageOfS3Credentials.getItems().size()-1);
+        final OsisS3Credential resultWithNoSecret = pageOfS3Credentials.getItems()
+                .get(pageOfS3Credentials.getItems().size() - 1);
 
         assertEquals(TEST_USER_ID, resultWithNoSecret.getCdUserId());
-        assertEquals(TEST_USER_ID , resultWithNoSecret.getUserId());
+        assertEquals(TEST_USER_ID, resultWithNoSecret.getUserId());
         assertEquals(SAMPLE_TENANT_ID, resultWithNoSecret.getTenantId());
         assertEquals(TEST_ACCESS_KEY_2, resultWithNoSecret.getAccessKey());
         assertEquals(NOT_AVAILABLE, resultWithNoSecret.getSecretKey());
@@ -670,7 +694,8 @@ public class ScalityModelConverterTest {
         s3Credential.secretKey(TEST_SECRET_KEY);
 
         // Run the test
-        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(s3Credential, SAMPLE_CD_TENANT_ID, 0, 1000);
+        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter.toPageOfS3Credentials(s3Credential,
+                SAMPLE_CD_TENANT_ID, 0, 1000);
 
         // Verify the results
         assertEquals(1, pageOfS3Credentials.getItems().size());
@@ -689,8 +714,12 @@ public class ScalityModelConverterTest {
     @Test
     public void testMaskSecretKey() {
         // Setup
-        final String sampleLog = "{\"items\":[{\"accessKey\":\"MGUWBY4ORDS8RKUQM86P\",\"secretKey\":\"4t3peduUGjO4HYIKJZ54\\u003dGmsfgIP8HCyMS6coVfc\",\"active\":true,\"creationDate\":{\"seconds\":1623302064,\"nanos\":0},\"tenantId\":\"475396941524\",\"userId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\",\"cdUserId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\"},{\"accessKey\":\"WWA4UPWFA5EM1MKZE8ZC\",\"secretKey\":\"zjwsRPUA3SUP9aRcVc/+NUO/PPz+F77sVICwCKi\\u003d\",\"active\":true,\"creationDate\":{\"seconds\":1623301987,\"nanos\":0},\"tenantId\":\"475396941524\",\"userId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\",\"cdUserId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\"}],\"pageInfo\":{\"limit\":1000,\"offset\":0,\"total\":2}}" ;
-        final String maskedLog = "{\"items\":[{\"accessKey\":\"MGUWBY4ORDS8RKUQM86P\",\"secretKey\":\"" + MASKED_SENSITIVE_DATA_STR + "\",\"active\":true,\"creationDate\":{\"seconds\":1623302064,\"nanos\":0},\"tenantId\":\"475396941524\",\"userId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\",\"cdUserId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\"},{\"accessKey\":\"WWA4UPWFA5EM1MKZE8ZC\",\"secretKey\":\"" + MASKED_SENSITIVE_DATA_STR + "\",\"active\":true,\"creationDate\":{\"seconds\":1623301987,\"nanos\":0},\"tenantId\":\"475396941524\",\"userId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\",\"cdUserId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\"}],\"pageInfo\":{\"limit\":1000,\"offset\":0,\"total\":2}}" ;
+        final String sampleLog = "{\"items\":[{\"accessKey\":\"MGUWBY4ORDS8RKUQM86P\",\"secretKey\":\"4t3peduUGjO4HYIKJZ54\\u003dGmsfgIP8HCyMS6coVfc\",\"active\":true,\"creationDate\":{\"seconds\":1623302064,\"nanos\":0},\"tenantId\":\"475396941524\",\"userId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\",\"cdUserId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\"},{\"accessKey\":\"WWA4UPWFA5EM1MKZE8ZC\",\"secretKey\":\"zjwsRPUA3SUP9aRcVc/+NUO/PPz+F77sVICwCKi\\u003d\",\"active\":true,\"creationDate\":{\"seconds\":1623301987,\"nanos\":0},\"tenantId\":\"475396941524\",\"userId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\",\"cdUserId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\"}],\"pageInfo\":{\"limit\":1000,\"offset\":0,\"total\":2}}";
+        final String maskedLog = "{\"items\":[{\"accessKey\":\"MGUWBY4ORDS8RKUQM86P\",\"secretKey\":\""
+                + MASKED_SENSITIVE_DATA_STR
+                + "\",\"active\":true,\"creationDate\":{\"seconds\":1623302064,\"nanos\":0},\"tenantId\":\"475396941524\",\"userId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\",\"cdUserId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\"},{\"accessKey\":\"WWA4UPWFA5EM1MKZE8ZC\",\"secretKey\":\""
+                + MASKED_SENSITIVE_DATA_STR
+                + "\",\"active\":true,\"creationDate\":{\"seconds\":1623301987,\"nanos\":0},\"tenantId\":\"475396941524\",\"userId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\",\"cdUserId\":\"99da7ffe-dd82-48a2-b07b-ce200da33005\"}],\"pageInfo\":{\"limit\":1000,\"offset\":0,\"total\":2}}";
 
         // Run the test
         final String result = ScalityModelConverter.maskSecretKey(sampleLog);

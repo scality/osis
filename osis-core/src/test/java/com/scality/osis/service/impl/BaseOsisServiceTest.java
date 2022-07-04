@@ -11,7 +11,7 @@ import com.scality.osis.security.utils.CipherFactory;
 import com.scality.osis.vaultadmin.impl.VaultAdminImpl;
 import com.scality.osis.vaultadmin.impl.cache.*;
 import com.scality.vaultclient.dto.*;
-import com.vmware.osis.model.OsisUser;
+import com.scality.osis.model.OsisUser;
 import com.scality.osis.resource.ScalityOsisCapsManager;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +32,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 public class BaseOsisServiceTest {
-    //vault admin mock object
+    // vault admin mock object
     @Mock
     protected static VaultAdminImpl vaultAdminMock;
 
@@ -60,7 +60,7 @@ public class BaseOsisServiceTest {
 
     @BeforeEach
     protected void init() {
-        MockitoAnnotations.initMocks( this );
+        MockitoAnnotations.initMocks(this);
         initMocks();
         scalityOsisServiceUnderTest = new ScalityOsisServiceImpl(appEnvMock, vaultAdminMock, osisCapsManagerMock);
 
@@ -68,12 +68,13 @@ public class BaseOsisServiceTest {
         ReflectionTestUtils.setField(asyncScalityOsisServiceUnderTest, "vaultAdmin", vaultAdminMock);
         ReflectionTestUtils.setField(asyncScalityOsisServiceUnderTest, "appEnv", appEnvMock);
 
-        ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "asyncScalityOsisService", asyncScalityOsisServiceUnderTest);
+        ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "asyncScalityOsisService",
+                asyncScalityOsisServiceUnderTest);
         ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "scalityRedisRepository", redisRepositoryMock);
         ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "cipherFactory", cipherFactoryMock);
     }
 
-    protected void initMocks(){
+    protected void initMocks() {
         when(appEnvMock.getConsoleEndpoint()).thenReturn(TEST_CONSOLE_URL);
         when(appEnvMock.isApiTokenEnabled()).thenReturn(false);
         when(appEnvMock.getStorageInfo()).thenReturn(Collections.singletonList("standard"));
@@ -85,7 +86,7 @@ public class BaseOsisServiceTest {
         when(appEnvMock.getAssumeRoleName()).thenReturn(SAMPLE_ASSUME_ROLE_NAME);
         when(appEnvMock.getSpringCacheType()).thenReturn(REDIS_SPRING_CACHE_TYPE);
         when(osisCapsManagerMock.getNotImplements()).thenReturn(new ArrayList<>());
-        when(vaultAdminMock.getIAMClient(any(Credentials.class),any())).thenReturn(iamMock);
+        when(vaultAdminMock.getIAMClient(any(Credentials.class), any())).thenReturn(iamMock);
 
         initCreateTenantMocks();
         initUpdateTenantMocks();
@@ -114,8 +115,8 @@ public class BaseOsisServiceTest {
 
     private void initBaseCipherMocks() {
         try {
-            when(baseCipherMock.encrypt(any(),any(),any())).thenReturn(mockSecretKeyRepoData());
-            when(baseCipherMock.decrypt(any(),any(),any())).thenReturn(TEST_SECRET_KEY);
+            when(baseCipherMock.encrypt(any(), any(), any())).thenReturn(mockSecretKeyRepoData());
+            when(baseCipherMock.decrypt(any(), any(), any())).thenReturn(TEST_SECRET_KEY);
         } catch (Exception e) {
             init();
         }
@@ -153,16 +154,16 @@ public class BaseOsisServiceTest {
     }
 
     protected void initCreateTenantMocks() {
-        //initialize mock create account response
+        // initialize mock create account response
         when(vaultAdminMock.createAccount(any(CreateAccountRequestDTO.class)))
                 .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
                     final CreateAccountRequestDTO request = invocation.getArgument(0);
                     final AccountData data = new AccountData();
                     data.setEmailAddress(request.getEmailAddress());
                     data.setName(request.getName());
-                    if(StringUtils.isEmpty(request.getExternalAccountId())){
+                    if (StringUtils.isEmpty(request.getExternalAccountId())) {
                         data.setId(SAMPLE_TENANT_ID);
-                    } else{
+                    } else {
                         data.setId(request.getExternalAccountId());
                     }
                     data.setCustomAttributes(request.getCustomAttributes());
@@ -176,7 +177,7 @@ public class BaseOsisServiceTest {
     }
 
     protected void initUpdateTenantMocks() {
-        //initialize mock create account response
+        // initialize mock create account response
         when(vaultAdminMock.updateAccountAttributes(any(UpdateAccountAttributesRequestDTO.class)))
                 .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
                     final UpdateAccountAttributesRequestDTO request = invocation.getArgument(0);
@@ -196,8 +197,8 @@ public class BaseOsisServiceTest {
 
     protected void initListTenantMocks() {
 
-        //initialize mock list accounts response
-        when(vaultAdminMock.listAccounts(anyLong(),any(ListAccountsRequestDTO.class)))
+        // initialize mock list accounts response
+        when(vaultAdminMock.listAccounts(anyLong(), any(ListAccountsRequestDTO.class)))
                 .thenAnswer((Answer<ListAccountsResponseDTO>) invocation -> {
                     final long offset = invocation.getArgument(0);
                     final ListAccountsRequestDTO request = invocation.getArgument(1);
@@ -205,19 +206,21 @@ public class BaseOsisServiceTest {
                     final List<AccountData> accounts = new ArrayList<>();
 
                     // Generate Accounts with ids (markerVal + i) to maxItems count
-                    for( int index = 0; index < maxItems; index++){
+                    for (int index = 0; index < maxItems; index++) {
                         final AccountData data = new AccountData();
                         data.setEmailAddress("xyz@scality.com");
                         data.setName(TEST_NAME);
-                        data.setId(SAMPLE_TENANT_ID + (index + offset)); //setting ID with index
+                        data.setId(SAMPLE_TENANT_ID + (index + offset)); // setting ID with index
 
                         // if filterStartsWith generate customAttributes for all accounts
-                        final Map<String, String> customAttributestemp  = new HashMap<>() ;
+                        final Map<String, String> customAttributestemp = new HashMap<>();
                         data.setCustomAttributes(customAttributestemp);
                         accounts.add(data);
 
-                        if(!StringUtils.isEmpty(request.getFilterKey()) && request.getFilterKey().startsWith(CD_TENANT_ID_PREFIX)) {
-                            // If filter key exists mock only one account in the response with filterKey as customAttributestemp
+                        if (!StringUtils.isEmpty(request.getFilterKey())
+                                && request.getFilterKey().startsWith(CD_TENANT_ID_PREFIX)) {
+                            // If filter key exists mock only one account in the response with filterKey as
+                            // customAttributestemp
                             customAttributestemp.put(request.getFilterKey(), "");
                             break;
                         } else {
@@ -227,14 +230,14 @@ public class BaseOsisServiceTest {
 
                     final ListAccountsResponseDTO response = new ListAccountsResponseDTO();
                     response.setAccounts(accounts);
-                    response.setMarker("M"+(offset+maxItems));
+                    response.setMarker("M" + (offset + maxItems));
                     response.setTruncated(true);
                     return response;
                 });
     }
 
     protected void initTempCredentialsMocks() {
-        //initialize mock vault admin temporary credentials response
+        // initialize mock vault admin temporary credentials response
         when(vaultAdminMock.getTempAccountCredentials(any(AssumeRoleRequest.class)))
                 .thenAnswer((Answer<Credentials>) invocation -> {
                     final Credentials credentials = new Credentials();
@@ -282,7 +285,7 @@ public class BaseOsisServiceTest {
                             .withRoleName(request.getRoleName())
                             .withCreateDate(new Date())
                             .withRoleId(SAMPLE_ID)
-                            .withArn("arn:aws:iam::" + TEST_TENANT_ID +":role/" + request.getRoleName());
+                            .withArn("arn:aws:iam::" + TEST_TENANT_ID + ":role/" + request.getRoleName());
                     response.setRole(role);
                     return response;
                 });
@@ -293,7 +296,7 @@ public class BaseOsisServiceTest {
     }
 
     protected void initDeleteAccessKeyMocks() {
-        when(iamMock.deleteAccessKey(any(DeleteAccessKeyRequest.class))).thenReturn( new DeleteAccessKeyResult());
+        when(iamMock.deleteAccessKey(any(DeleteAccessKeyRequest.class))).thenReturn(new DeleteAccessKeyResult());
     }
 
     protected void initCreatePolicyMocks() {
@@ -304,7 +307,7 @@ public class BaseOsisServiceTest {
                     final Policy policy = new Policy()
                             .withPolicyName(request.getPolicyName())
                             .withDescription(request.getDescription())
-                            .withArn("arn:aws:iam::" + TEST_TENANT_ID +":policy/" + request.getPolicyName());
+                            .withArn("arn:aws:iam::" + TEST_TENANT_ID + ":policy/" + request.getPolicyName());
                     response.setPolicy(policy);
                     return response;
                 });
@@ -315,12 +318,14 @@ public class BaseOsisServiceTest {
                 .thenAnswer((Answer<AccountData>) invocation -> {
 
                     final GetAccountRequestDTO request = invocation.getArgument(0);
-                    final String accountId = request.getAccountId() ==null ? SAMPLE_TENANT_ID : request.getAccountId();
-                    final String accountName = request.getAccountName() ==null ? SAMPLE_TENANT_NAME : request.getAccountName();
+                    final String accountId = request.getAccountId() == null ? SAMPLE_TENANT_ID : request.getAccountId();
+                    final String accountName = request.getAccountName() == null ? SAMPLE_TENANT_NAME
+                            : request.getAccountName();
                     final String accountArn = request.getAccountArn();
-                    final String emailAddress = request.getEmailAddress() ==null ? SAMPLE_SCALITY_ACCOUNT_EMAIL : request.getEmailAddress();
-                    final String canonicalId = request.getCanonicalId() ==null ? SAMPLE_ID : request.getCanonicalId();
-                    final Map<String, String> customAttributestes  = new HashMap<>() ;
+                    final String emailAddress = request.getEmailAddress() == null ? SAMPLE_SCALITY_ACCOUNT_EMAIL
+                            : request.getEmailAddress();
+                    final String canonicalId = request.getCanonicalId() == null ? SAMPLE_ID : request.getCanonicalId();
+                    final Map<String, String> customAttributestes = new HashMap<>();
                     customAttributestes.put(CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID, "");
 
                     final AccountData data = new AccountData();
@@ -407,7 +412,7 @@ public class BaseOsisServiceTest {
 
     protected void initListUserMocks() {
 
-        //initialize mock list accounts response
+        // initialize mock list accounts response
         when(iamMock.listUsers(any(ListUsersRequest.class)))
                 .thenAnswer((Answer<ListUsersResult>) invocation -> listUsersMockResponse(invocation));
     }
@@ -415,25 +420,25 @@ public class BaseOsisServiceTest {
     protected ListUsersResult listUsersMockResponse(final InvocationOnMock invocation) {
         final ListUsersRequest request = invocation.getArgument(0);
         int maxItems = request.getMaxItems();
-        final int markerVal = (request.getMarker() ==null) ? 0 : Integer.parseInt(request.getMarker());
+        final int markerVal = (request.getMarker() == null) ? 0 : Integer.parseInt(request.getMarker());
         final String pathPrefix = request.getPathPrefix();
 
-        if(!StringUtils.isEmpty(pathPrefix)){
+        if (!StringUtils.isEmpty(pathPrefix)) {
             maxItems = 1;
         }
 
         final List<User> users = new ArrayList<>();
 
         // Generate Users with ids (markerVal + i) to maxItems count
-        for( int index = 0; index < maxItems; index++){
-            final String pathFirstSection = StringUtils.isEmpty(pathPrefix) ?
-                    "/"+ TEST_NAME + (index + markerVal) +"/" :
-                    pathPrefix;
+        for (int index = 0; index < maxItems; index++) {
+            final String pathFirstSection = StringUtils.isEmpty(pathPrefix)
+                    ? "/" + TEST_NAME + (index + markerVal) + "/"
+                    : pathPrefix;
 
             final String path = pathFirstSection
-                    + OsisUser.RoleEnum.TENANT_USER.getValue() +"/"
-                    + SAMPLE_SCALITY_USER_EMAIL  + "/"
-                    + TEST_TENANT_ID  + "/";
+                    + OsisUser.RoleEnum.TENANT_USER.getValue() + "/"
+                    + SAMPLE_SCALITY_USER_EMAIL + "/"
+                    + TEST_TENANT_ID + "/";
 
             final User user = new User()
                     .withUserId(TEST_USER_ID + (index + markerVal))
@@ -452,33 +457,33 @@ public class BaseOsisServiceTest {
 
     protected void initGetUserMocks() {
 
-        //initialize mock get user response
+        // initialize mock get user response
         when(iamMock.getUser(any(GetUserRequest.class)))
                 .thenAnswer((Answer<GetUserResult>) invocation -> getUserMockResponse(invocation));
     }
 
     protected void initDeleteUserMocks() {
 
-        //initialize mock get user response
+        // initialize mock get user response
         when(iamMock.deleteUser(any(DeleteUserRequest.class)))
-                .thenAnswer((Answer<DeleteUserResult>) invocation ->  new DeleteUserResult());
+                .thenAnswer((Answer<DeleteUserResult>) invocation -> new DeleteUserResult());
     }
 
     protected void initUpdateAccessKeysMocks() {
 
-        //initialize mock update access keys response
+        // initialize mock update access keys response
         when(iamMock.updateAccessKey(any(UpdateAccessKeyRequest.class)))
-                .thenAnswer((Answer<UpdateAccessKeyResult>) invocation ->  new UpdateAccessKeyResult());
+                .thenAnswer((Answer<UpdateAccessKeyResult>) invocation -> new UpdateAccessKeyResult());
     }
 
     protected GetUserResult getUserMockResponse(final InvocationOnMock invocation) {
         final GetUserRequest request = invocation.getArgument(0);
         final String username = request.getUserName();
 
-        final String path = "/"+ TEST_NAME +"/"
-                + OsisUser.RoleEnum.TENANT_USER.getValue() +"/"
-                + SAMPLE_SCALITY_USER_EMAIL  + "/"
-                + TEST_TENANT_ID  + "/";
+        final String path = "/" + TEST_NAME + "/"
+                + OsisUser.RoleEnum.TENANT_USER.getValue() + "/"
+                + SAMPLE_SCALITY_USER_EMAIL + "/"
+                + TEST_TENANT_ID + "/";
 
         final User user = new User()
                 .withUserId(SAMPLE_ID)
@@ -492,7 +497,8 @@ public class BaseOsisServiceTest {
 
     protected void initCaches() {
         final CacheFactory cacheFactoryMock = mock(CacheFactory.class);
-        when(cacheFactoryMock.getCache(NAME_LIST_ACCOUNTS_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
+        when(cacheFactoryMock.getCache(NAME_LIST_ACCOUNTS_CACHE))
+                .thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
 
         ReflectionTestUtils.setField(vaultAdminMock, "cacheFactory", cacheFactoryMock);
         vaultAdminMock.initCaches();

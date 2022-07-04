@@ -5,10 +5,10 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
-import com.vmware.osis.model.Information;
-import com.vmware.osis.model.OsisCaps;
-import com.vmware.osis.model.OsisS3Credential;
-import com.vmware.osis.model.exception.NotImplementedException;
+import com.scality.osis.model.Information;
+import com.scality.osis.model.ScalityOsisCaps;
+import com.scality.osis.model.OsisS3Credential;
+import com.scality.osis.model.exception.NotImplementedException;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest{
+public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
 
     @Test
     public void testGetProviderConsoleUrl() {
@@ -68,16 +68,16 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest{
         final Information information = scalityOsisServiceUnderTest.getInformation(domain);
 
         // Verify the results
-        assertEquals(Information.AuthModesEnum.BASIC, information.getAuthModes().get(0), "Invalid AuthModes" );
-        assertNotNull(information.getStorageClasses(), NULL_ERR );
-        assertNotNull(information.getRegions(), NULL_ERR );
+        assertEquals(Information.AuthModesEnum.BASIC, information.getAuthModes().get(0), "Invalid AuthModes");
+        assertNotNull(information.getStorageClasses(), NULL_ERR);
+        assertNotNull(information.getRegions(), NULL_ERR);
         assertEquals(PLATFORM_NAME, information.getPlatformName(), "Invalid Platform name");
         assertEquals(PLATFORM_VERSION, information.getPlatformVersion(), "Invalid Platform Version");
         assertEquals(API_VERSION, information.getApiVersion(), "Invalid API Version");
         assertEquals(Information.StatusEnum.NORMAL, information.getStatus(), "Invalid status");
         assertEquals(TEST_S3_INTERFACE_URL, information.getServices().getS3(), "Invalid S3 interface URL");
         assertNotNull(information.getNotImplemented(), NULL_ERR);
-        assertEquals(domain + IAM_PREFIX,  information.getServices().getIam(), "Invalid IAM URL");
+        assertEquals(domain + IAM_PREFIX, information.getServices().getIam(), "Invalid IAM URL");
 
     }
 
@@ -91,25 +91,26 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest{
         final Information information = scalityOsisServiceUnderTest.getInformation(domain);
 
         // Verify the results
-        assertEquals(Information.AuthModesEnum.BEARER, information.getAuthModes().get(0), "Invalid AuthModes" );
-        assertNotNull(information.getStorageClasses(), NULL_ERR );
-        assertNotNull(information.getRegions(), NULL_ERR );
+        assertEquals(Information.AuthModesEnum.BEARER, information.getAuthModes().get(0), "Invalid AuthModes");
+        assertNotNull(information.getStorageClasses(), NULL_ERR);
+        assertNotNull(information.getRegions(), NULL_ERR);
         assertEquals(PLATFORM_NAME, information.getPlatformName(), "Invalid Platform name");
         assertEquals(PLATFORM_VERSION, information.getPlatformVersion(), "Invalid Platform Version");
         assertEquals(API_VERSION, information.getApiVersion(), "Invalid API Version");
         assertEquals(Information.StatusEnum.NORMAL, information.getStatus(), "Invalid status");
         assertEquals(TEST_S3_INTERFACE_URL, information.getServices().getS3(), "Invalid S3 interface URL");
         assertNotNull(information.getNotImplemented(), NULL_ERR);
-        assertEquals(domain + IAM_PREFIX,  information.getServices().getIam(), "Invalid IAM URL");
+        assertEquals(domain + IAM_PREFIX, information.getServices().getIam(), "Invalid IAM URL");
     }
 
     @Test
     public void testUpdateOsisCaps() {
         // Setup
-        final OsisCaps osisCaps = new OsisCaps();
+        final ScalityOsisCaps osisCaps = new ScalityOsisCaps();
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.updateOsisCaps(osisCaps), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.updateOsisCaps(osisCaps),
+                NOT_IMPLEMENTED_EXCEPTION_ERR);
 
         // Verify the results
     }
@@ -119,7 +120,8 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest{
         // Setup
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getBucketList(TEST_TENANT_ID, 0L, 0L), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        assertThrows(NotImplementedException.class,
+                () -> scalityOsisServiceUnderTest.getBucketList(TEST_TENANT_ID, 0L, 0L), NOT_IMPLEMENTED_EXCEPTION_ERR);
 
         // Verify the results
     }
@@ -217,7 +219,8 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest{
 
         asyncScalityOsisServiceUnderTest.setupAssumeRole(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME);
 
-        // Verify if all the API calls were skipped after create role if it returns "NoSuchEntity"
+        // Verify if all the API calls were skipped after create role if it returns
+        // "NoSuchEntity"
         verify(vaultAdminMock).getAccountAccessKey(any(GenerateAccountAccessKeyRequest.class));
         verify(iamMock).createRole(any(CreateRoleRequest.class));
         verify(iamMock, never()).createPolicy(any(CreatePolicyRequest.class));
@@ -234,7 +237,8 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest{
 
         asyncScalityOsisServiceUnderTest.setupAssumeRole(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME);
 
-        // Verify if all the API calls were made successfully even after createPolicy returns "EntityAlreadyExists"
+        // Verify if all the API calls were made successfully even after createPolicy
+        // returns "EntityAlreadyExists"
         verify(vaultAdminMock).getAccountAccessKey(any(GenerateAccountAccessKeyRequest.class));
         verify(iamMock).createRole(any(CreateRoleRequest.class));
         verify(iamMock).createPolicy(any(CreatePolicyRequest.class));
@@ -251,7 +255,8 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest{
 
         asyncScalityOsisServiceUnderTest.setupAssumeRole(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME);
 
-        // Verify if all the API calls were skipped after attachRolePolicy if it returns "NoSuchEntity"
+        // Verify if all the API calls were skipped after attachRolePolicy if it returns
+        // "NoSuchEntity"
         verify(vaultAdminMock).getAccountAccessKey(any(GenerateAccountAccessKeyRequest.class));
         verify(iamMock).createRole(any(CreateRoleRequest.class));
         verify(iamMock).createPolicy(any(CreatePolicyRequest.class));
@@ -266,7 +271,8 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest{
         final Policy policy = scalityOsisServiceUnderTest.getOrCreateUserPolicy(iamMock, TEST_TENANT_ID);
 
         // Verify the results
-        assertEquals("arn:aws:iam::" + TEST_TENANT_ID +":policy/userPolicy@" + TEST_TENANT_ID, policy.getArn(), "Invalid Policy arn");
+        assertEquals("arn:aws:iam::" + TEST_TENANT_ID + ":policy/userPolicy@" + TEST_TENANT_ID, policy.getArn(),
+                "Invalid Policy arn");
     }
 
     @Test
@@ -281,7 +287,8 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest{
         final Policy policy = scalityOsisServiceUnderTest.getOrCreateUserPolicy(iamMock, TEST_TENANT_ID);
 
         // Verify the results
-        assertEquals("arn:aws:iam::" + TEST_TENANT_ID +":policy/userPolicy@" + TEST_TENANT_ID, policy.getArn(), "Invalid Policy arn");
+        assertEquals("arn:aws:iam::" + TEST_TENANT_ID + ":policy/userPolicy@" + TEST_TENANT_ID, policy.getArn(),
+                "Invalid Policy arn");
         assertEquals("userPolicy@" + TEST_TENANT_ID, policy.getPolicyName(), "Invalid Policy name");
     }
 
@@ -291,7 +298,8 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest{
         // Modify get policy to return no entity found
 
         // Run the test
-        final OsisS3Credential osisCredential = scalityOsisServiceUnderTest.createOsisCredential(TEST_TENANT_ID, TEST_USER_ID, TEST_TENANT_ID, TEST_NAME, iamMock);
+        final OsisS3Credential osisCredential = scalityOsisServiceUnderTest.createOsisCredential(TEST_TENANT_ID,
+                TEST_USER_ID, TEST_TENANT_ID, TEST_NAME, iamMock);
 
         // Verify the results
         assertEquals(TEST_NAME, osisCredential.getUsername(), "Invalid username");
@@ -306,7 +314,8 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest{
     @Test
     public void testSetupAdminPolicy() throws Exception {
 
-        asyncScalityOsisServiceUnderTest.setupAdminPolicy(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME, SAMPLE_ASSUME_ROLE_NAME);
+        asyncScalityOsisServiceUnderTest.setupAdminPolicy(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME,
+                SAMPLE_ASSUME_ROLE_NAME);
 
         // Verify if all the API calls were made successfully
         verify(vaultAdminMock).getAccountAccessKey(any(GenerateAccountAccessKeyRequest.class));
@@ -322,9 +331,11 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest{
                     throw new VaultServiceException(HttpStatus.CONFLICT, "EntityAlreadyExists");
                 });
 
-        asyncScalityOsisServiceUnderTest.setupAdminPolicy(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME, SAMPLE_ASSUME_ROLE_NAME);
+        asyncScalityOsisServiceUnderTest.setupAdminPolicy(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME,
+                SAMPLE_ASSUME_ROLE_NAME);
 
-        // Verify if all the API calls were made successfully even after createPolicy returns "EntityAlreadyExists"
+        // Verify if all the API calls were made successfully even after createPolicy
+        // returns "EntityAlreadyExists"
         verify(vaultAdminMock).getAccountAccessKey(any(GenerateAccountAccessKeyRequest.class));
         verify(iamMock).createPolicy(any(CreatePolicyRequest.class));
         verify(iamMock).attachRolePolicy(any(AttachRolePolicyRequest.class));
@@ -338,14 +349,15 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest{
                     throw new VaultServiceException(HttpStatus.NOT_FOUND, "NoSuchEntity");
                 });
 
-        assertThrows(VaultServiceException.class, () -> asyncScalityOsisServiceUnderTest.setupAdminPolicy(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME, SAMPLE_ASSUME_ROLE_NAME));
+        assertThrows(VaultServiceException.class, () -> asyncScalityOsisServiceUnderTest
+                .setupAdminPolicy(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME, SAMPLE_ASSUME_ROLE_NAME));
 
-        // Verify if all the API calls were skipped after attachRolePolicy if it returns "NoSuchEntity"
+        // Verify if all the API calls were skipped after attachRolePolicy if it returns
+        // "NoSuchEntity"
         verify(vaultAdminMock).getAccountAccessKey(any(GenerateAccountAccessKeyRequest.class));
         verify(iamMock).createPolicy(any(CreatePolicyRequest.class));
         verify(iamMock).attachRolePolicy(any(AttachRolePolicyRequest.class));
         verify(iamMock, never()).deleteAccessKey(any(DeleteAccessKeyRequest.class));
     }
-
 
 }

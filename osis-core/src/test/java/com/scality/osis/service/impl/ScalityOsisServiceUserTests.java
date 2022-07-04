@@ -1,8 +1,8 @@
 package com.scality.osis.service.impl;
 
 import com.amazonaws.services.identitymanagement.model.*;
-import com.vmware.osis.model.*;
-import com.vmware.osis.model.exception.*;
+import com.scality.osis.model.*;
+import com.scality.osis.model.exception.*;
 import com.scality.vaultclient.dto.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
@@ -16,7 +16,7 @@ import static com.scality.osis.utils.ScalityTestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
+public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
 
     @Test
     public void testCreateUser() {
@@ -40,13 +40,20 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         assertEquals(TEST_NAME, result.getUsername());
         assertEquals(TEST_TENANT_ID, result.getCdTenantId());
         assertEquals(TEST_TENANT_ID, result.getTenantId());
-        assertEquals(TEST_NAME, result.getOsisS3Credentials().get(0).getUsername(), "Invalid getOsisS3Credentials username");
-        assertEquals(TEST_USER_ID, result.getOsisS3Credentials().get(0).getUserId(), "Invalid getOsisS3Credentials getUserId");
-        assertEquals(TEST_USER_ID, result.getOsisS3Credentials().get(0).getCdUserId(), "Invalid getOsisS3Credentials getCdUserId");
-        assertEquals(TEST_SECRET_KEY, result.getOsisS3Credentials().get(0).getSecretKey(), "Invalid getOsisS3Credentials getSecretKey");
-        assertEquals(TEST_ACCESS_KEY, result.getOsisS3Credentials().get(0).getAccessKey(), "Invalid getOsisS3Credentials getAccessKey");
-        assertEquals(TEST_TENANT_ID, result.getOsisS3Credentials().get(0).getTenantId(), "Invalid getOsisS3Credentials getTenantId");
-        assertEquals(TEST_TENANT_ID, result.getOsisS3Credentials().get(0).getCdTenantId(), "Invalid getOsisS3Credentials getCdTenantId");
+        assertEquals(TEST_NAME, result.getOsisS3Credentials().get(0).getUsername(),
+                "Invalid getOsisS3Credentials username");
+        assertEquals(TEST_USER_ID, result.getOsisS3Credentials().get(0).getUserId(),
+                "Invalid getOsisS3Credentials getUserId");
+        assertEquals(TEST_USER_ID, result.getOsisS3Credentials().get(0).getCdUserId(),
+                "Invalid getOsisS3Credentials getCdUserId");
+        assertEquals(TEST_SECRET_KEY, result.getOsisS3Credentials().get(0).getSecretKey(),
+                "Invalid getOsisS3Credentials getSecretKey");
+        assertEquals(TEST_ACCESS_KEY, result.getOsisS3Credentials().get(0).getAccessKey(),
+                "Invalid getOsisS3Credentials getAccessKey");
+        assertEquals(TEST_TENANT_ID, result.getOsisS3Credentials().get(0).getTenantId(),
+                "Invalid getOsisS3Credentials getTenantId");
+        assertEquals(TEST_TENANT_ID, result.getOsisS3Credentials().get(0).getCdTenantId(),
+                "Invalid getOsisS3Credentials getCdTenantId");
         assertTrue(result.getActive());
     }
 
@@ -80,7 +87,8 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
 
         when(iamMock.createUser(any(CreateUserRequest.class)))
                 .thenAnswer((Answer<CreateUserResult>) invocation -> {
-                    final AmazonIdentityManagementException iamException = new AmazonIdentityManagementException("Forbidden");
+                    final AmazonIdentityManagementException iamException = new AmazonIdentityManagementException(
+                            "Forbidden");
                     iamException.setStatusCode(HttpStatus.FORBIDDEN.value());
                     throw iamException;
                 })
@@ -95,13 +103,20 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         assertEquals(TEST_NAME, result.getUsername());
         assertEquals(TEST_TENANT_ID, result.getCdTenantId());
         assertEquals(TEST_TENANT_ID, result.getTenantId());
-        assertEquals(TEST_NAME, result.getOsisS3Credentials().get(0).getUsername(), "Invalid getOsisS3Credentials username");
-        assertEquals(TEST_USER_ID, result.getOsisS3Credentials().get(0).getUserId(), "Invalid getOsisS3Credentials getUserId");
-        assertEquals(TEST_USER_ID, result.getOsisS3Credentials().get(0).getCdUserId(), "Invalid getOsisS3Credentials getCdUserId");
-        assertEquals(TEST_SECRET_KEY, result.getOsisS3Credentials().get(0).getSecretKey(), "Invalid getOsisS3Credentials getSecretKey");
-        assertEquals(TEST_ACCESS_KEY, result.getOsisS3Credentials().get(0).getAccessKey(), "Invalid getOsisS3Credentials getAccessKey");
-        assertEquals(TEST_TENANT_ID, result.getOsisS3Credentials().get(0).getTenantId(), "Invalid getOsisS3Credentials getTenantId");
-        assertEquals(TEST_TENANT_ID, result.getOsisS3Credentials().get(0).getCdTenantId(), "Invalid getOsisS3Credentials getCdTenantId");
+        assertEquals(TEST_NAME, result.getOsisS3Credentials().get(0).getUsername(),
+                "Invalid getOsisS3Credentials username");
+        assertEquals(TEST_USER_ID, result.getOsisS3Credentials().get(0).getUserId(),
+                "Invalid getOsisS3Credentials getUserId");
+        assertEquals(TEST_USER_ID, result.getOsisS3Credentials().get(0).getCdUserId(),
+                "Invalid getOsisS3Credentials getCdUserId");
+        assertEquals(TEST_SECRET_KEY, result.getOsisS3Credentials().get(0).getSecretKey(),
+                "Invalid getOsisS3Credentials getSecretKey");
+        assertEquals(TEST_ACCESS_KEY, result.getOsisS3Credentials().get(0).getAccessKey(),
+                "Invalid getOsisS3Credentials getAccessKey");
+        assertEquals(TEST_TENANT_ID, result.getOsisS3Credentials().get(0).getTenantId(),
+                "Invalid getOsisS3Credentials getTenantId");
+        assertEquals(TEST_TENANT_ID, result.getOsisS3Credentials().get(0).getCdTenantId(),
+                "Invalid getOsisS3Credentials getCdTenantId");
         assertTrue(result.getActive());
     }
 
@@ -110,7 +125,8 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX
+                + TEST_NAME;
         // cd_tenant_id==e7ecb16e-f6b7-4d34-ad4e-5da5d5c8317;display_name%3D%3D==name
 
         when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenReturn(SAMPLE_TENANT_ID);
@@ -132,7 +148,8 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        final String filter =  DISPLAY_NAME_PREFIX + TEST_NAME + FILTER_SEPARATOR +  CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID;
+        final String filter = DISPLAY_NAME_PREFIX + TEST_NAME + FILTER_SEPARATOR + CD_TENANT_ID_PREFIX
+                + SAMPLE_CD_TENANT_ID;
 
         when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenReturn(SAMPLE_TENANT_ID);
 
@@ -153,12 +170,13 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        final String filter = TENANT_ID_PREFIX + SAMPLE_TENANT_ID + FILTER_SEPARATOR + CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
+        final String filter = TENANT_ID_PREFIX + SAMPLE_TENANT_ID + FILTER_SEPARATOR + CD_TENANT_ID_PREFIX
+                + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
 
         // Run the test
         final PageOfUsers response = scalityOsisServiceUnderTest.queryUsers(offset, limit, filter);
 
-        //verify getAccount never called as tenantID is present
+        // verify getAccount never called as tenantID is present
         verify(vaultAdminMock, never()).getAccountID(any());
 
         // Verify the results
@@ -175,7 +193,8 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + USERNAME_PREFIX + TEST_NAME;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + USERNAME_PREFIX
+                + TEST_NAME;
 
         when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenReturn(SAMPLE_TENANT_ID);
 
@@ -196,7 +215,8 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + USER_ID_PREFIX + TEST_USER_ID;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + USER_ID_PREFIX
+                + TEST_USER_ID;
 
         when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenReturn(SAMPLE_TENANT_ID);
 
@@ -217,7 +237,8 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + CD_USER_ID_PREFIX + TEST_USER_ID;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + CD_USER_ID_PREFIX
+                + TEST_USER_ID;
 
         when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenReturn(SAMPLE_TENANT_ID);
 
@@ -238,7 +259,8 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX
+                + TEST_NAME;
         // cd_tenant_id==e7ecb16e-f6b7-4d34-ad4e-5da5d5c8317;display_name%3D%3D==name
 
         // Run the test
@@ -258,7 +280,8 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX
+                + TEST_NAME;
         // cd_tenant_id==e7ecb16e-f6b7-4d34-ad4e-5da5d5c8317;display_name%3D%3D==name
 
         when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenThrow(
@@ -279,7 +302,8 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX + TEST_NAME;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX
+                + TEST_NAME;
         // cd_tenant_id==e7ecb16e-f6b7-4d34-ad4e-5da5d5c8317;display_name%3D%3D==name
 
         when(vaultAdminMock.getAccountID(any(ListAccountsRequestDTO.class))).thenReturn(SAMPLE_TENANT_ID);
@@ -321,7 +345,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Verify the results
         verify(iamMock).detachUserPolicy(any(DetachUserPolicyRequest.class));
 
-        //verify if delete user is not called if detach user policy failed
+        // verify if delete user is not called if detach user policy failed
         verify(iamMock, never()).deleteUser(any(DeleteUserRequest.class));
     }
 
@@ -411,7 +435,8 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
 
         // Run the test
         // Verify the results
-        assertThrows(VaultServiceException.class, () -> scalityOsisServiceUnderTest.getUser(TEST_TENANT_ID, TEST_USER_ID));
+        assertThrows(VaultServiceException.class,
+                () -> scalityOsisServiceUnderTest.getUser(TEST_TENANT_ID, TEST_USER_ID));
     }
 
     @Test
@@ -420,12 +445,14 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         when(iamMock.getUser(any(GetUserRequest.class)))
                 .thenAnswer((Answer<GetUserResult>) invocation -> {
                     final GetUserRequest request = invocation.getArgument(0);
-                    throw new NoSuchEntityException("The user with name " + request.getUserName() +" cannot be found.");
+                    throw new NoSuchEntityException(
+                            "The user with name " + request.getUserName() + " cannot be found.");
                 });
 
         // Run the test
         // Verify the results
-        assertThrows(VaultServiceException.class, () -> scalityOsisServiceUnderTest.getUser(TEST_TENANT_ID, TEST_USER_ID));
+        assertThrows(VaultServiceException.class,
+                () -> scalityOsisServiceUnderTest.getUser(TEST_TENANT_ID, TEST_USER_ID));
     }
 
     @Test
@@ -433,7 +460,8 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
         when(iamMock.getUser(any(GetUserRequest.class)))
                 .thenAnswer((Answer<GetUserResult>) invocation -> {
-                    final AmazonIdentityManagementException iamException = new AmazonIdentityManagementException("Forbidden");
+                    final AmazonIdentityManagementException iamException = new AmazonIdentityManagementException(
+                            "Forbidden");
                     iamException.setStatusCode(HttpStatus.FORBIDDEN.value());
                     throw iamException;
                 })
@@ -483,7 +511,9 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Setup
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.headUser(TEST_TENANT_ID, TEST_USER_ID), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        assertThrows(NotImplementedException.class,
+                () -> scalityOsisServiceUnderTest.headUser(TEST_TENANT_ID, TEST_USER_ID),
+                NOT_IMPLEMENTED_EXCEPTION_ERR);
 
         // Verify the results
 
@@ -502,7 +532,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         assertEquals(limit, response.getPageInfo().getTotal());
         assertEquals(offset, response.getPageInfo().getOffset());
         assertEquals(limit, response.getPageInfo().getLimit());
-        assertEquals((int)limit, response.getItems().size());
+        assertEquals((int) limit, response.getItems().size());
     }
 
     @Test
@@ -518,7 +548,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         assertEquals(limit, response.getPageInfo().getTotal());
         assertEquals(offset, response.getPageInfo().getOffset());
         assertEquals(limit, response.getPageInfo().getLimit());
-        assertEquals((int)limit, response.getItems().size());
+        assertEquals((int) limit, response.getItems().size());
     }
 
     @Test
@@ -528,7 +558,8 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         final long limit = 1000L;
         when(iamMock.listUsers(any(ListUsersRequest.class)))
                 .thenAnswer((Answer<ListUsersResult>) invocation -> {
-                    throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Requested offset is outside the total available items");
+                    throw new VaultServiceException(HttpStatus.BAD_REQUEST,
+                            "Requested offset is outside the total available items");
                 });
 
         // Run the test
@@ -550,7 +581,8 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
 
         when(iamMock.listUsers(any(ListUsersRequest.class)))
                 .thenAnswer((Answer<ListUsersResult>) invocation -> {
-                    final AmazonIdentityManagementException iamException = new AmazonIdentityManagementException("Forbidden");
+                    final AmazonIdentityManagementException iamException = new AmazonIdentityManagementException(
+                            "Forbidden");
                     iamException.setStatusCode(HttpStatus.FORBIDDEN.value());
                     throw iamException;
                 })
@@ -563,7 +595,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         assertEquals(limit, response.getPageInfo().getTotal());
         assertEquals(offset, response.getPageInfo().getOffset());
         assertEquals(limit, response.getPageInfo().getLimit());
-        assertEquals((int)limit, response.getItems().size());
+        assertEquals((int) limit, response.getItems().size());
 
     }
 
@@ -594,7 +626,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         assertEquals(limit, response.getPageInfo().getTotal());
         assertEquals(offset, response.getPageInfo().getOffset());
         assertEquals(limit, response.getPageInfo().getLimit());
-        assertEquals((int)limit, response.getItems().size());
+        assertEquals((int) limit, response.getItems().size());
         // Assert if at least one user is inactive
         assertFalse(response.getItems().get(0).getActive());
     }
@@ -638,6 +670,5 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest{
         // Verify the results
         assertTrue(resUser.getActive());
     }
-
 
 }

@@ -6,10 +6,10 @@ import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.scality.vaultclient.dto.GetAccountRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsRequestDTO;
 import com.scality.vaultclient.dto.ListAccountsResponseDTO;
-import com.vmware.osis.model.OsisTenant;
-import com.vmware.osis.model.PageOfTenants;
-import com.vmware.osis.model.exception.BadRequestException;
-import com.vmware.osis.model.exception.NotImplementedException;
+import com.scality.osis.model.OsisTenant;
+import com.scality.osis.model.PageOfTenants;
+import com.scality.osis.model.exception.BadRequestException;
+import com.scality.osis.model.exception.NotImplementedException;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
@@ -24,10 +24,10 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.when;
 
-public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
+public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
 
     @Test
-    public void testCreateTenant(){
+    public void testCreateTenant() {
 
         // Call Scality Osis service to create a tenant
         final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.createTenant(createSampleOsisTenantObj());
@@ -35,12 +35,13 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
         assertEquals(SAMPLE_ID, osisTenantRes.getTenantId());
         assertEquals(SAMPLE_TENANT_NAME, osisTenantRes.getName());
         assertTrue(SAMPLE_CD_TENANT_IDS.size() == osisTenantRes.getCdTenantIds().size() &&
-                SAMPLE_CD_TENANT_IDS.containsAll(osisTenantRes.getCdTenantIds()) && osisTenantRes.getCdTenantIds().containsAll(SAMPLE_CD_TENANT_IDS));
+                SAMPLE_CD_TENANT_IDS.containsAll(osisTenantRes.getCdTenantIds())
+                && osisTenantRes.getCdTenantIds().containsAll(SAMPLE_CD_TENANT_IDS));
         assertTrue(osisTenantRes.getActive());
     }
 
     @Test
-    public void testCreateTenantInactive(){
+    public void testCreateTenantInactive() {
         final OsisTenant osisTenantReq = createSampleOsisTenantObj();
         osisTenantReq.active(false);
 
@@ -65,7 +66,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
     }
 
     @Test
-    public void testCreateTenant400(){
+    public void testCreateTenant400() {
 
         when(vaultAdminMock.createAccount(any(CreateAccountRequestDTO.class)))
                 .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
@@ -91,7 +92,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
         assertEquals(limit, response.getPageInfo().getTotal());
         assertEquals(offset, response.getPageInfo().getOffset());
         assertEquals(limit, response.getPageInfo().getLimit());
-        assertEquals((int)limit, response.getItems().size());
+        assertEquals((int) limit, response.getItems().size());
         assertNotNull(response.getItems().get(0).getCdTenantIds());
     }
 
@@ -104,12 +105,11 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
         // Call Scality Osis service to list tenants
         final PageOfTenants response = scalityOsisServiceUnderTest.listTenants(offset, limit);
 
-
         // Verify the results
         assertEquals(limit, response.getPageInfo().getTotal());
         assertEquals(offset, response.getPageInfo().getOffset());
         assertEquals(limit, response.getPageInfo().getLimit());
-        assertEquals((int)limit, response.getItems().size());
+        assertEquals((int) limit, response.getItems().size());
         assertNotNull(response.getItems().get(0).getCdTenantIds());
     }
 
@@ -118,9 +118,10 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
-        when(vaultAdminMock.listAccounts(anyLong(),any(ListAccountsRequestDTO.class)))
+        when(vaultAdminMock.listAccounts(anyLong(), any(ListAccountsRequestDTO.class)))
                 .thenAnswer((Answer<ListAccountsResponseDTO>) invocation -> {
-                    throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Requested offset is outside the total available items");
+                    throw new VaultServiceException(HttpStatus.BAD_REQUEST,
+                            "Requested offset is outside the total available items");
                 });
 
         final PageOfTenants response = scalityOsisServiceUnderTest.listTenants(offset, limit);
@@ -181,7 +182,6 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
         // Call Scality Osis service to list tenants
         final PageOfTenants response = scalityOsisServiceUnderTest.queryTenants(offset, limit, filter);
 
-
         // Verify the results
         assertEquals(1, response.getPageInfo().getTotal());
         assertEquals(offset, response.getPageInfo().getOffset());
@@ -205,7 +205,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
         assertEquals(limit, response.getPageInfo().getTotal());
         assertEquals(offset, response.getPageInfo().getOffset());
         assertEquals(limit, response.getPageInfo().getLimit());
-        assertEquals((int)limit, response.getItems().size());
+        assertEquals((int) limit, response.getItems().size());
         assertNotNull(response.getItems().get(0).getCdTenantIds());
     }
 
@@ -216,9 +216,10 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
         final long limit = 1000L;
         final String filter = CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID;
 
-        when(vaultAdminMock.listAccounts(anyLong(),any(ListAccountsRequestDTO.class)))
+        when(vaultAdminMock.listAccounts(anyLong(), any(ListAccountsRequestDTO.class)))
                 .thenAnswer((Answer<ListAccountsResponseDTO>) invocation -> {
-                    throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Requested offset is outside the total available items");
+                    throw new VaultServiceException(HttpStatus.BAD_REQUEST,
+                            "Requested offset is outside the total available items");
                 });
 
         final PageOfTenants response = scalityOsisServiceUnderTest.queryTenants(offset, limit, filter);
@@ -236,7 +237,8 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
         // Setup
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.deleteTenant(TEST_TENANT_ID, false), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        assertThrows(NotImplementedException.class,
+                () -> scalityOsisServiceUnderTest.deleteTenant(TEST_TENANT_ID, false), NOT_IMPLEMENTED_EXCEPTION_ERR);
 
         // Verify the results
     }
@@ -245,12 +247,14 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
     public void testUpdateTenant() {
 
         // Call Scality Osis service to update a tenant
-        final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.updateTenant(SAMPLE_ID, createSampleOsisTenantObj());
+        final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.updateTenant(SAMPLE_ID,
+                createSampleOsisTenantObj());
 
         assertEquals(SAMPLE_ID, osisTenantRes.getTenantId());
         assertEquals(SAMPLE_TENANT_NAME, osisTenantRes.getName());
         assertTrue(SAMPLE_CD_TENANT_IDS.size() == osisTenantRes.getCdTenantIds().size() &&
-                SAMPLE_CD_TENANT_IDS.containsAll(osisTenantRes.getCdTenantIds()) && osisTenantRes.getCdTenantIds().containsAll(SAMPLE_CD_TENANT_IDS));
+                SAMPLE_CD_TENANT_IDS.containsAll(osisTenantRes.getCdTenantIds())
+                && osisTenantRes.getCdTenantIds().containsAll(SAMPLE_CD_TENANT_IDS));
         assertTrue(osisTenantRes.getActive());
     }
 
@@ -269,7 +273,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
     }
 
     @Test
-    public void testUpdateTenantInactive(){
+    public void testUpdateTenantInactive() {
         final OsisTenant osisTenantReq = createSampleOsisTenantObj();
         osisTenantReq.active(false);
 
@@ -280,7 +284,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
     }
 
     @Test
-    public void testUpdateTenant400(){
+    public void testUpdateTenant400() {
 
         when(vaultAdminMock.updateAccountAttributes(any()))
                 .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
@@ -306,7 +310,8 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest{
         expectedResult.setCdTenantIds(Arrays.asList(TEST_STR));
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getTenant(TEST_TENANT_ID), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getTenant(TEST_TENANT_ID),
+                NOT_IMPLEMENTED_EXCEPTION_ERR);
 
         // Verify the results
     }
