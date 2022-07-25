@@ -1,0 +1,56 @@
+name: test-and-build
+
+on:
+  push:
+    branches-ignore:
+      - development/**
+      - q/*/**
+
+jobs:
+  gradle_build_and_code_coverage:
+    name: Gradle build and code coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SIGNING_KEY: ${{ secrets.SIGNING_SECRET_KEY_RING_FILE }}
+      NEXUS_UNAME: ${{ secrets.NEXUS_USERNAME }}
+      NEXUS_PWD: ${{ secrets.NEXUS_PASSWORD }}
+      SIGNING_KEYID: ${{ secrets.SIGNING_KEY_ID }}
+      SIGNING_PWD: ${{ secrets.SIGNING_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: "corretto"
+          java-version: "8"
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 6.7.1
+
+      - name: Gradle build
+        run: gradle build
+
+      - name: Get archive upload signing key
+        run: echo "$SIGNING_KEY" | base64 --decode > $GITHUB_WORKSPACE/secring.gpg
+
+      - name: Gradle Upload Archives
+        run: gradle uploadArchives -Psigning.secretKeyRingFile=$GITHUB_WORKSPACE/secring.gpg -PnexusUsername=$NEXUS_UNAME -PnexusPassword=$NEXUS_PWD -Psigning.keyId=$SIGNING_KEYID -Psigning.password=$SIGNING_PWD
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+          name: codecov-osis
+          fail_ci_if_error: true
+
+  docker-build:
+    name: Development docker image
+    uses: ./.github/workflows/docker-build.yml
+    secrets:
+      REGISTRY_LOGIN: ${{ secrets.REGISTRY_LOGIN }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}

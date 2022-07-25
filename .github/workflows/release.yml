@@ -1,0 +1,37 @@
+---
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to be released"
+        required: true
+
+jobs:
+  docker-build:
+    name: Docker image
+    uses: ./.github/workflows/docker-build.yml
+    with:
+      namespace: osis
+      tag: ${{ github.event.inputs.tag }}
+    secrets:
+      REGISTRY_LOGIN: ${{ secrets.REGISTRY_LOGIN }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+
+  release:
+    name: Creating GitHub Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - docker-build
+    steps:
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: Release ${{ github.event.inputs.tag }}
+          tag_name: ${{ github.event.inputs.tag }}
+          generate_release_notes: true
+          target_commitish: ${{ github.sha }}
