@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-docker:
+  docker-build:
     uses: ./.github/workflows/docker-build.yaml
     with:
       namespace: osis
@@ -26,7 +26,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: Release ${{ github.event.inputs.tag }}
-          tag_name: ${{ github.event.inputs.tag }}
+          name: Release 0.0.27
+          tag_name: 0.0.27
           generate_release_notes: true
           target_commitish: ${{ github.sha }}
