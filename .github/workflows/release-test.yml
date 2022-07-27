@@ -1,0 +1,32 @@
+---
+name: release-test
+
+on:
+  push:
+    branches:
+      - feature/**
+  workflow_dispatch:
+
+jobs:
+  build-docker:
+    uses: ./.github/workflows/docker-build.yaml
+    with:
+      namespace: osis
+      tag: 0.0.27
+    secrets:
+      REGISTRY_LOGIN: ${{ secrets.REGISTRY_LOGIN }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+  release:
+    runs-on: ubuntu-latest
+    needs:
+      - build-docker
+    steps:
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: Release ${{ github.event.inputs.tag }}
+          tag_name: ${{ github.event.inputs.tag }}
+          generate_release_notes: true
+          target_commitish: ${{ github.sha }}
