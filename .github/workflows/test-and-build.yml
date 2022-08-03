@@ -32,8 +32,8 @@ jobs:
         with:
           gradle-version: 6.7.1
 
-      - name: Gradle build
-        run: gradle build
+      - name: Execute build with Gradle wrapper
+        run: ./gradlew build
 
       - name: Get archive upload signing key
         run: echo "$SIGNING_KEY" | base64 --decode > $GITHUB_WORKSPACE/secring.gpg
