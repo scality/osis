@@ -217,11 +217,10 @@ public class ScalityOsisController {
     }, tags = { "bucketlist", "optional", })
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "The bucket list of the platform tenant is returned", response = OsisBucketMeta.class, responseContainer = "List"),
-            @ApiResponse(code = 501, message = "The optional API is not implemented") })
+    })
     @ApiImplicitParams({
     })
     @GetMapping(value = "/api/v1/bucket-list", produces = "application/json")
-    @NotImplement(name = ScalityOsisConstants.GET_BUCKET_LIST_API_CODE)
     public PageOfOsisBucketMeta getBucketList(
             @NotNull @ApiParam(value = "The ID of the tenant to get its bueckt list", required = true) @Valid @RequestParam(value = "tenant_id", required = true) String tenantId,
             @ApiParam(value = "The start index of buckets to return") @Valid @RequestParam(value = "offset", required = false, defaultValue = "0") long offset,

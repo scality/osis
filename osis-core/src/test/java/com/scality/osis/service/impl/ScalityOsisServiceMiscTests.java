@@ -1,30 +1,26 @@
 package com.scality.osis.service.impl;
 
 import com.amazonaws.services.identitymanagement.model.*;
+import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import com.scality.osis.model.*;
+import com.scality.osis.model.exception.NotImplementedException;
+import com.scality.osis.s3.impl.S3ServiceException;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
-import com.scality.osis.model.Information;
-import com.scality.osis.model.ScalityOsisCaps;
-import com.scality.osis.model.OsisS3Credential;
-import com.scality.osis.model.exception.NotImplementedException;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import static com.scality.osis.utils.ScalityConstants.IAM_PREFIX;
 import static com.scality.osis.utils.ScalityTestUtils.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
 
@@ -75,7 +71,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         assertEquals(PLATFORM_VERSION, information.getPlatformVersion(), "Invalid Platform Version");
         assertEquals(API_VERSION, information.getApiVersion(), "Invalid API Version");
         assertEquals(Information.StatusEnum.NORMAL, information.getStatus(), "Invalid status");
-        assertEquals(TEST_S3_INTERFACE_URL, information.getServices().getS3(), "Invalid S3 interface URL");
+        assertEquals(TEST_S3_URL, information.getServices().getS3(), "Invalid S3 URL");
         assertNotNull(information.getNotImplemented(), NULL_ERR);
         assertEquals(domain + IAM_PREFIX, information.getServices().getIam(), "Invalid IAM URL");
 
@@ -98,7 +94,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         assertEquals(PLATFORM_VERSION, information.getPlatformVersion(), "Invalid Platform Version");
         assertEquals(API_VERSION, information.getApiVersion(), "Invalid API Version");
         assertEquals(Information.StatusEnum.NORMAL, information.getStatus(), "Invalid status");
-        assertEquals(TEST_S3_INTERFACE_URL, information.getServices().getS3(), "Invalid S3 interface URL");
+        assertEquals(TEST_S3_URL, information.getServices().getS3(), "Invalid S3 URL");
         assertNotNull(information.getNotImplemented(), NULL_ERR);
         assertEquals(domain + IAM_PREFIX, information.getServices().getIam(), "Invalid IAM URL");
     }
@@ -118,12 +114,53 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     @Test
     public void testGetBucketList() {
         // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
 
         // Run the test
-        assertThrows(NotImplementedException.class,
-                () -> scalityOsisServiceUnderTest.getBucketList(TEST_TENANT_ID, 0L, 0L), NOT_IMPLEMENTED_EXCEPTION_ERR);
+        final PageOfOsisBucketMeta response = scalityOsisServiceUnderTest.getBucketList(SAMPLE_TENANT_ID, offset, limit);
 
         // Verify the results
+        assertEquals(TEST_BUCKET_TOTAL_NUMBER, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals((int) limit, response.getItems().size());
+    }
+
+    @Test
+    public void testGetBucketListWithOffset() {
+        // Setup
+        final long offset = 2000L;
+        final long limit = 1000L;
+
+        // Run the test
+        final PageOfOsisBucketMeta response = scalityOsisServiceUnderTest.getBucketList(SAMPLE_TENANT_ID, offset, limit);
+
+        // Verify the results
+        assertEquals(TEST_BUCKET_TOTAL_NUMBER, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals((int) limit, response.getItems().size());
+    }
+
+    @Test
+    public void testGetBucketListErr() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        when(s3ClientMock.listBuckets())
+                .thenAnswer((Answer<List<Bucket>>) invocation -> {
+                    throw new S3ServiceException(HttpStatus.BAD_REQUEST,
+                            "Requested offset is outside the total available items");
+                });
+
+        final PageOfOsisBucketMeta response = scalityOsisServiceUnderTest.getBucketList(SAMPLE_TENANT_ID, offset, limit);
+
+        // Verify the results
+        assertEquals(0L, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(0L, response.getItems().size());
     }
 
     @Test
@@ -358,6 +395,28 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         verify(iamMock).createPolicy(any(CreatePolicyRequest.class));
         verify(iamMock).attachRolePolicy(any(AttachRolePolicyRequest.class));
         verify(iamMock, never()).deleteAccessKey(any(DeleteAccessKeyRequest.class));
+    }
+
+    @Test
+    public void testSetupExistingButNotEqualAdminPolicy() throws Exception {
+        when(iamMock.createPolicy(any(CreatePolicyRequest.class)))
+                .thenAnswer((Answer<CreatePolicyResult>) invocation -> {
+                    final AmazonIdentityManagementException error = new AmazonIdentityManagementException("EntityAlreadyExists");
+                    error.setStatusCode(HttpStatus.CONFLICT.value());
+                    throw error;
+                });
+        when(iamMock.getPolicyVersion(any(GetPolicyVersionRequest.class)))
+                .thenAnswer((Answer<GetPolicyVersionResult>) invocation ->
+                        new GetPolicyVersionResult().withPolicyVersion(new PolicyVersion().withDocument("")));
+
+        asyncScalityOsisServiceUnderTest.setupAdminPolicy(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME,
+                SAMPLE_ASSUME_ROLE_NAME);
+
+        // Verify if the following API calls were made successfully when setup
+        // existing admin policy but policy documents are not equal
+        verify(iamMock).getPolicy(any(GetPolicyRequest.class));
+        verify(iamMock).getPolicyVersion(any(GetPolicyVersionRequest.class));
+        verify(iamMock).createPolicyVersion(any(CreatePolicyVersionRequest.class));
     }
 
 }

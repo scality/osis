@@ -20,6 +20,20 @@ public class PageInfo {
   @NotNull
   private Long total;
 
+  public PageInfo() {}
+
+  public PageInfo(Long limit, Long offset) {
+    this.limit = limit;
+    this.offset = offset;
+    this.total = 0L;
+  }
+
+  public PageInfo(Long limit, Long offset, Long total) {
+    this.limit = limit;
+    this.offset = offset;
+    this.total = total;
+  }
+
   public PageInfo limit(Long limit) {
     this.limit = limit;
     return this;

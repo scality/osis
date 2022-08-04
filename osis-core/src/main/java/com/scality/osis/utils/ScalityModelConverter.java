@@ -9,6 +9,7 @@ import com.amazonaws.services.identitymanagement.model.User;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import com.amazonaws.services.s3.model.Bucket;
 import com.scality.osis.model.*;
 import com.scality.osis.model.exception.BadRequestException;
 import com.scality.vaultclient.dto.*;
@@ -347,6 +348,17 @@ public final class ScalityModelConverter {
                 .withPolicyArn(toUserPolicyArn(accountId));
     }
 
+    public static GetPolicyRequest toGetAdminPolicyRequest(String accountId) {
+        return new GetPolicyRequest()
+                .withPolicyArn(toAdminPolicyArn(accountId));
+    }
+
+    public static GetPolicyVersionRequest toGetAdminPolicyVersionRequest(String accountId, String versionId) {
+        return new GetPolicyVersionRequest()
+                .withPolicyArn(toAdminPolicyArn(accountId))
+                .withVersionId(versionId);
+    }
+
     public static CreatePolicyRequest toCreateUserPolicyRequest(String tenantId) {
         return new CreatePolicyRequest()
                 .withPolicyName(toUserPolicyName(tenantId))
@@ -354,6 +366,12 @@ public final class ScalityModelConverter {
                 .withDescription(toUserPolicyDescription(tenantId));
     }
 
+    public static CreatePolicyVersionRequest toCreateAdminPolicyVersionRequest(String tenantId) {
+        return new CreatePolicyVersionRequest()
+                .withPolicyArn(toAdminPolicyArn(tenantId))
+                .withPolicyDocument(DEFAULT_ADMIN_POLICY_DOCUMENT)
+                .withSetAsDefault(true);
+    }
     public static AttachUserPolicyRequest toAttachUserPolicyRequest(String policyArn, String username) {
         return new AttachUserPolicyRequest()
                 .withPolicyArn(policyArn)
@@ -543,10 +561,7 @@ public final class ScalityModelConverter {
             tenantItems.add(toOsisTenant(account));
         }
 
-        PageInfo pageInfo = new PageInfo();
-        pageInfo.setLimit(limit);
-        pageInfo.setOffset(offset);
-        pageInfo.setTotal((long) tenantItems.size());
+        PageInfo pageInfo = new PageInfo(limit, offset, (long) tenantItems.size());
 
         PageOfTenants pageOfTenants = new PageOfTenants();
         pageOfTenants.items(tenantItems);
@@ -563,10 +578,7 @@ public final class ScalityModelConverter {
     public static PageOfTenants toPageOfTenants(AccountData accountData, long offset, long limit) {
         List<OsisTenant> tenantItems = Collections.singletonList(toOsisTenant(accountData));
 
-        PageInfo pageInfo = new PageInfo();
-        pageInfo.setLimit(limit);
-        pageInfo.setOffset(offset);
-        pageInfo.setTotal((long) tenantItems.size());
+        PageInfo pageInfo = new PageInfo(limit, offset, (long) tenantItems.size());
 
         PageOfTenants pageOfTenants = new PageOfTenants();
         pageOfTenants.items(tenantItems);
@@ -672,10 +684,7 @@ public final class ScalityModelConverter {
             userItems.add(toOsisUser(user, tenantId));
         }
 
-        PageInfo pageInfo = new PageInfo();
-        pageInfo.setLimit(limit);
-        pageInfo.setOffset(offset);
-        pageInfo.setTotal((long) userItems.size());
+        PageInfo pageInfo = new PageInfo(limit, offset, (long) userItems.size());
 
         PageOfUsers pageOfUsers = new PageOfUsers();
         pageOfUsers.items(userItems);
@@ -693,10 +702,7 @@ public final class ScalityModelConverter {
      */
     public static PageOfUsers toPageOfUsers(OsisUser osisUser, long offset, long limit) {
 
-        PageInfo pageInfo = new PageInfo();
-        pageInfo.setLimit(limit);
-        pageInfo.setOffset(offset);
-        pageInfo.setTotal(1l);
+        PageInfo pageInfo = new PageInfo(limit, offset, 1L);
 
         PageOfUsers pageOfUsers = new PageOfUsers();
         pageOfUsers.items(Collections.singletonList(osisUser));
@@ -745,10 +751,7 @@ public final class ScalityModelConverter {
             credentials.addAll(credentialsNoSK);
         }
 
-        PageInfo pageInfo = new PageInfo();
-        pageInfo.setLimit(limit);
-        pageInfo.setOffset(offset);
-        pageInfo.setTotal((long) credentials.size());
+        PageInfo pageInfo = new PageInfo(limit, offset, (long) credentials.size());
 
         PageOfS3Credentials pageOfS3Credentials = new PageOfS3Credentials();
         pageOfS3Credentials.items(credentials);
@@ -783,10 +786,7 @@ public final class ScalityModelConverter {
             osisS3Credential.setCdTenantId(cdTenantId);
         }
 
-        PageInfo pageInfo = new PageInfo();
-        pageInfo.setLimit(limit);
-        pageInfo.setOffset(offset);
-        pageInfo.setTotal((osisS3Credential == null) ? 0 : 1l);
+        PageInfo pageInfo = new PageInfo(limit, offset, (osisS3Credential == null) ? 0 : 1L);
 
         PageOfS3Credentials pageOfS3Credentials = new PageOfS3Credentials();
         pageOfS3Credentials
@@ -806,6 +806,46 @@ public final class ScalityModelConverter {
 
     public static String maskSecretKey(String logStatement) {
         return logStatement.replaceAll(SECRET_KEY_REGEX, "$1" + MASKED_SENSITIVE_DATA_STR);
+    }
+
+    /**
+     * Converts S3 Bucket to OSIS bucket meta
+     *
+     * @param bucket S3 Bucket instance
+     * @return the OSIS bucket meta
+     */
+    public static OsisBucketMeta toOsisBucketMeta(Bucket bucket, String userId) {
+
+        return new OsisBucketMeta()
+                .name(bucket.getName())
+                .creationDate(bucket.getCreationDate().toInstant())
+                .userId(userId);
+    }
+
+    /**
+     * Converts S3 list buckets response to OSIS page of bucket meta
+     *
+     * @param buckets the bucket list response
+     * @param userId userId
+     * @param offset offset
+     * @param limit limit
+     * @return the OSIS page of bucket meta
+     */
+    public static PageOfOsisBucketMeta toPageOfOsisBucketMeta(List<Bucket> buckets, String userId, long offset, long limit) {
+        List<OsisBucketMeta> bucketItems = new ArrayList<>();
+
+        List<Bucket> selectedBuckets = buckets.stream().skip(offset).limit(limit).collect(Collectors.toList());
+
+        for (Bucket bucket : selectedBuckets) {
+            bucketItems.add(toOsisBucketMeta(bucket, userId));
+        }
+
+        PageInfo pageInfo = new PageInfo(limit, offset, (long) buckets.size());
+
+        PageOfOsisBucketMeta pageOfOsisBucketMeta = new PageOfOsisBucketMeta();
+        pageOfOsisBucketMeta.setItems(bucketItems);
+        pageOfOsisBucketMeta.setPageInfo(pageInfo);
+        return pageOfOsisBucketMeta;
     }
 
 }

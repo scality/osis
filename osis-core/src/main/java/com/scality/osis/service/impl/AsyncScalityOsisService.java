@@ -6,14 +6,7 @@
 package com.scality.osis.service.impl;
 
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.model.AttachRolePolicyRequest;
-import com.amazonaws.services.identitymanagement.model.AttachRolePolicyResult;
-import com.amazonaws.services.identitymanagement.model.CreatePolicyRequest;
-import com.amazonaws.services.identitymanagement.model.CreatePolicyResult;
-import com.amazonaws.services.identitymanagement.model.CreateRoleRequest;
-import com.amazonaws.services.identitymanagement.model.CreateRoleResult;
-import com.amazonaws.services.identitymanagement.model.DeleteAccessKeyRequest;
-import com.amazonaws.services.identitymanagement.model.DeleteAccessKeyResult;
+import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.google.gson.Gson;
 import com.scality.osis.ScalityAppEnv;
@@ -25,8 +18,13 @@ import com.scality.osis.model.OsisTenant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import java.net.URLDecoder;
+import java.util.Objects;
+
+import static com.scality.osis.utils.ScalityConstants.DEFAULT_ADMIN_POLICY_DOCUMENT;
 
 @Component
 public class AsyncScalityOsisService {
@@ -156,9 +154,38 @@ public class AsyncScalityOsisService {
                         logger.debug("[Vault] Create Admin Policy response:{}", new Gson().toJson(adminPolicyResult));
 
                 } catch (Exception e) {
-                        logger.error("Cannot create admin policy for Tenant ID:{}. Admin policy may already exists for this Tenant."
-                                        +
-                                        " Exception details:{}", tenantId, e.getMessage());
+                        if (e instanceof AmazonIdentityManagementException &&
+                                ((AmazonIdentityManagementException) e).getStatusCode() == HttpStatus.CONFLICT.value()){
+                                logger.debug("[Vault] Admin Policy already exists, checking if policy document changes");
+
+                                GetPolicyRequest getAdminPolicyRequest = ScalityModelConverter.toGetAdminPolicyRequest(tenantId);
+                                logger.debug("[Vault] Get Admin Policy Request:{}", new Gson().toJson(getAdminPolicyRequest));
+
+                                GetPolicyResult getAdminPolicyResult = iamClient.getPolicy(getAdminPolicyRequest);
+                                String defaultPolicyVersionId = getAdminPolicyResult.getPolicy().getDefaultVersionId();
+                                logger.debug("[Vault] Get Admin Policy Result:{}, defaultPolicyVersionId: {}",
+                                        new Gson().toJson(getAdminPolicyResult), defaultPolicyVersionId);
+
+                                GetPolicyVersionRequest getAdminPolicyVersionRequest = ScalityModelConverter.toGetAdminPolicyVersionRequest(tenantId, defaultPolicyVersionId);
+                                logger.debug("[Vault] Get Admin Policy Default Version Request:{}", new Gson().toJson(getAdminPolicyVersionRequest));
+
+                                GetPolicyVersionResult getAdminPolicyVersionResult =  iamClient.getPolicyVersion(getAdminPolicyVersionRequest);
+                                logger.debug("[Vault] Get Admin Policy Default Version result:{}", new Gson().toJson(getAdminPolicyVersionResult));
+
+                                if (!Objects.equals(URLDecoder.decode(getAdminPolicyVersionResult.getPolicyVersion().getDocument()),
+                                        URLDecoder.decode(DEFAULT_ADMIN_POLICY_DOCUMENT))) {
+                                        logger.debug("Default Admin Policy Document changed, before: {}, current: {}",
+                                                getAdminPolicyVersionResult.getPolicyVersion().getDocument(),
+                                                DEFAULT_ADMIN_POLICY_DOCUMENT);
+                                        CreatePolicyVersionRequest createAdminPolicyVersionRequest = ScalityModelConverter.toCreateAdminPolicyVersionRequest(tenantId);
+                                        logger.debug("[Vault] Create new Admin Policy Version Request:{}", new Gson().toJson(createAdminPolicyVersionRequest));
+                                        CreatePolicyVersionResult createAdminPolicyVersionResult = iamClient.createPolicyVersion(createAdminPolicyVersionRequest);
+                                        logger.debug("[Vault] Create new Admin Policy Version Result:{}", new Gson().toJson(createAdminPolicyVersionResult));
+                                        return;
+                                }
+                        }
+                        logger.error("Cannot create admin policy for Tenant ID:{}. " +
+                                "Exception details:{}", tenantId, e.getMessage());
                 }
                 /* Attach admin policy to `osis` role */
                 AttachRolePolicyRequest attachAdminPolicyRequest = ScalityModelConverter.toAttachAdminPolicyRequest(
