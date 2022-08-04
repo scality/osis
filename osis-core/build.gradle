@@ -1,5 +1,5 @@
 dependencies {
-    compile project(':vault-admin-client')
+    compile project(':storage-platform-clients')
 }
 test {
     useJUnitPlatform()

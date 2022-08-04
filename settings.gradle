@@ -1,4 +1,4 @@
 rootProject.name = 'osis-scality'
 include 'osis-app'
 include 'osis-core'
-include 'vault-admin-client'
+include 'storage-platform-clients'

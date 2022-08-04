@@ -13,10 +13,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.platform.commons.util.StringUtils;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.util.*;
+
+import static org.mockito.Mockito.*;
 
 /** Created by saitharun on 2020/12/21. */
 public class BaseTest {

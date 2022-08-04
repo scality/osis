@@ -39,7 +39,7 @@ test {
 
 group = 'com.scality'
 version = '1.0.0'
-description = 'osis-vault-admin'
+description = 'storage-platform-clients'
 sourceCompatibility = '1.8'
 
 tasks.withType(JavaCompile) {
