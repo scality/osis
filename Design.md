@@ -76,7 +76,6 @@ This API will list tenants on Vault.
 * Vault `list-accounts` api will be called using vaultclient with parameters
    1. `marker` (if exists from `markerCache`)
    1. `max-limit`
-   1.  `filterKeyStartsWith=cd_tenant_id` (Only return the accounts with at least one `cd_tenant_id`)
 
 * <u>`markerCache`</u>
     * Every time `List Accounts` API is called by the OSIS, if `isTruncated` is `true` in the response, then `marker` value will be stored in the `markerCache` with the key as `(max-limit +1)`
