@@ -107,7 +107,6 @@ public final class ScalityModelConverter {
     public static ListAccountsRequestDTO toScalityListAccountsRequest(long limit) {
         return ListAccountsRequestDTO.builder()
                 .maxItems((int) limit)
-                .filterKeyStartsWith(CD_TENANT_ID_PREFIX)
                 .build();
     }
 
