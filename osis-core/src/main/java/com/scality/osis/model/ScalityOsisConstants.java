@@ -14,7 +14,6 @@ public final class ScalityOsisConstants {
 
     }
 
-    public static final String GET_TENANT_API_CODE = "getTenant";
     public static final String DELETE_TENANT_API_CODE = "deleteTenant";
     public static final String HEAD_USER_API_CODE = "headUser";
     public static final String UPDATE_CREDENTIAL_STATUS_API_CODE = "updateCredentialStatus";
@@ -23,10 +22,10 @@ public final class ScalityOsisConstants {
     public static final String GET_BUCKET_LIST_API_CODE = "getBucketList";
     public static final String GET_BUCKET_ID_LOGGING_API_CODE = "getBucketLoggingId";
     public static final String GET_ANONYMOUS_USER_API_CODE = "getAnonymousUser";
-    public static final String GET_CONSOLE_API_CODE = "getConsole";
 
-    public static final List<String> API_CODES = Arrays.asList(GET_TENANT_API_CODE,
-            DELETE_TENANT_API_CODE, HEAD_USER_API_CODE, UPDATE_CREDENTIAL_STATUS_API_CODE,
-            GET_USAGE_API_CODE, GET_BUCKET_LIST_API_CODE,
-            GET_BUCKET_ID_LOGGING_API_CODE, GET_ANONYMOUS_USER_API_CODE);
+    public static final List<String> API_CODES = Arrays.asList(
+        DELETE_TENANT_API_CODE, HEAD_USER_API_CODE, UPDATE_CREDENTIAL_STATUS_API_CODE,
+        GET_USAGE_API_CODE, GET_BUCKET_LIST_API_CODE,
+        GET_BUCKET_ID_LOGGING_API_CODE, GET_ANONYMOUS_USER_API_CODE
+    );
 }
