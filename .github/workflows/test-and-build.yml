@@ -46,7 +46,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
           name: codecov-osis
-          fail_ci_if_error: true
 
   docker-build:
     name: Development docker image
