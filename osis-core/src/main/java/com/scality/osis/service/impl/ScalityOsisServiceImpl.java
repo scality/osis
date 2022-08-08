@@ -688,7 +688,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
         try {
             logger.info("Get Tenant request received:: tenant ID:{}", tenantId);
             AccountData accountResponse = vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId));
-            logger.info("Head Tenant response:: {}", accountResponse);
+            logger.info("Get Tenant response:: {}", accountResponse);
             OsisTenant resOsisTenant = ScalityModelConverter.toOsisTenant(accountResponse);
             return resOsisTenant;
 

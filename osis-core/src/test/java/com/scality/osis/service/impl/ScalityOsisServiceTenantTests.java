@@ -15,7 +15,6 @@ import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
 import static com.scality.osis.utils.ScalityTestUtils.*;
@@ -300,18 +299,21 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     @Test
     public void testGetTenant() {
         // Setup
-        final OsisTenant expectedResult = new OsisTenant();
-        expectedResult.active(false);
-        expectedResult.name(TEST_NAME);
-        expectedResult.setName(TEST_NAME);
-        expectedResult.tenantId(TEST_TENANT_ID);
-        expectedResult.setTenantId(TEST_TENANT_ID);
-        expectedResult.cdTenantIds(Arrays.asList(TEST_STR));
-        expectedResult.setCdTenantIds(Arrays.asList(TEST_STR));
-
+//        final OsisTenant expectedResult = new OsisTenant();
+//        expectedResult.setName(SAMPLE_TENANT_NAME);
+//        expectedResult.tenantId(SAMPLE_CD_TENANT_ID);
+//        expectedResult.setTenantId(SAMPLE_CD_TENANT_ID);
+//        expectedResult.cdTenantIds(Arrays.asList(SAMPLE_CD_TENANT_ID));
+//        expectedResult.setCdTenantIds(Arrays.asList(SAMPLE_CD_TENANT_ID));
+        final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.getTenant(SAMPLE_CD_TENANT_ID);
+        assertEquals(SAMPLE_TENANT_NAME, osisTenantRes.getName());
+//        assertTrue(SAMPLE_CD_TENANT_IDS.size() == osisTenantRes.getCdTenantIds().size() &&
+//                SAMPLE_CD_TENANT_IDS.containsAll(osisTenantRes.getCdTenantIds())
+//                && osisTenantRes.getCdTenantIds().containsAll(SAMPLE_CD_TENANT_IDS));
+//        assertTrue(osisTenantRes.getActive());
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getTenant(TEST_TENANT_ID),
-                NOT_IMPLEMENTED_EXCEPTION_ERR);
+//        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getTenant(TEST_TENANT_ID),
+//                NOT_IMPLEMENTED_EXCEPTION_ERR);
 
         // Verify the results
     }
