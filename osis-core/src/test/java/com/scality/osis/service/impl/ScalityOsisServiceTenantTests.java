@@ -300,19 +300,20 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     @Test
     public void testGetTenant() {
         // Setup
-        final OsisTenant expectedResult = new OsisTenant();
-        expectedResult.active(false);
-        expectedResult.name(TEST_NAME);
-        expectedResult.setName(TEST_NAME);
-        expectedResult.tenantId(TEST_TENANT_ID);
-        expectedResult.setTenantId(TEST_TENANT_ID);
-        expectedResult.cdTenantIds(Arrays.asList(TEST_STR));
-        expectedResult.setCdTenantIds(Arrays.asList(TEST_STR));
-
-        // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getTenant(TEST_TENANT_ID),
-                NOT_IMPLEMENTED_EXCEPTION_ERR);
-
+//        final OsisTenant expectedResult = new OsisTenant();
+//        expectedResult.active(false);
+//        expectedResult.name(TEST_NAME);
+//        expectedResult.setName(TEST_NAME);
+//        expectedResult.tenantId(TEST_TENANT_ID);
+//        expectedResult.setTenantId(TEST_TENANT_ID);
+//        expectedResult.cdTenantIds(Arrays.asList(TEST_STR));
+//        expectedResult.setCdTenantIds(Arrays.asList(TEST_STR));
+//
+//        // Run the test
+//        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getTenant(TEST_TENANT_ID),
+//                NOT_IMPLEMENTED_EXCEPTION_ERR);
+        final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.getTenant(SAMPLE_CD_TENANT_ID);
+        assertEquals(SAMPLE_TENANT_NAME, osisTenantRes.getName());
         // Verify the results
     }
 
