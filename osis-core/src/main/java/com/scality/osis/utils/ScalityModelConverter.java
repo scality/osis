@@ -9,6 +9,14 @@ import com.amazonaws.services.identitymanagement.model.User;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import com.scality.vaultclient.dto.*;
+import com.scality.osis.model.OsisS3Credential;
+import com.scality.osis.model.OsisTenant;
+import com.scality.osis.model.OsisUser;
+import com.scality.osis.model.PageInfo;
+import com.scality.osis.model.PageOfS3Credentials;
+import com.scality.osis.model.PageOfTenants;
+import com.scality.osis.model.PageOfUsers;
 import com.scality.osis.model.*;
 import com.scality.osis.model.exception.BadRequestException;
 import com.scality.vaultclient.dto.*;
@@ -95,6 +103,19 @@ public final class ScalityModelConverter {
     }
 
     /**
+     * Converts accessKey to Vault Get User by AccessKey request
+     *
+     * @param accessKey the accessKey
+     *
+     * @return the Get User by AccessKey request dto
+     */
+    public static GetUserByAccessKeyRequestDTO toScalityGetUserByAccessKeyRequest(String accessKey) {
+        return GetUserByAccessKeyRequestDTO.builder()
+                .accessKey(accessKey)
+                .build();
+    }
+
+    /**
      * Creates Vault List Users request for List users
      *
      * @param limit  the max number of items
@@ -126,8 +147,9 @@ public final class ScalityModelConverter {
      * Creates Vault Update Access Key request
      *
      * @param username the IAM User's username
-     * @param limit    the max number of the access keys in the response
-     * @return the IAM list Access Keys request dto
+     * @param accessKey access key
+     * @param isActive true/false
+     * @return the IAM update Access Keys request dto
      */
     public static UpdateAccessKeyRequest toIAMUpdateAccessKeyRequest(String username, String accessKey,
             Boolean isActive) {

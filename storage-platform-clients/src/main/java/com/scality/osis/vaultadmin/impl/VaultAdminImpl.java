@@ -379,4 +379,9 @@ public class VaultAdminImpl implements VaultAdmin{
   public CreateAccountResponseDTO updateAccountAttributes(UpdateAccountAttributesRequestDTO updateAccountAttributesRequestDTO) {
     return ExternalServiceFactory.executeVaultService(vaultAccountClient::updateAccountAttributes, updateAccountAttributesRequestDTO);
   }
+
+  @Override
+  public GetUserByAccessKeyResponseDTO getUserByAccessKey(GetUserByAccessKeyRequestDTO getUserByAccessKeyRequest) {
+    return ExternalServiceFactory.executeVaultService(vaultAccountClient::getUserByAccessKey, getUserByAccessKeyRequest);
+  }
 }

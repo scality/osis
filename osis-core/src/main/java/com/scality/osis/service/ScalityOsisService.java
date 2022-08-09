@@ -56,6 +56,8 @@ public interface ScalityOsisService {
 
     PageOfS3Credentials listS3Credentials(String tenantId, String userId, Long offset, Long limit);
 
+    OsisS3Credential updateCredentialStatus(String tenantId, String userId, String accessKey, OsisS3Credential osisS3Credential);
+
     String getProviderConsoleUrl();
 
     String getTenantConsoleUrl(String tenantId);

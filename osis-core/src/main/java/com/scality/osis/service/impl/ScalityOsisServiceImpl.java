@@ -908,6 +908,55 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     }
 
     @Override
+    public OsisS3Credential updateCredentialStatus(String tenantId, String userId, String accessKey, OsisS3Credential osisS3Credential) {
+        String tenantIdOfCurrentUser = tenantId != null && !tenantId.isEmpty() ? tenantId : osisS3Credential.getTenantId();
+        String userIdOfCurrentUser = userId != null && !userId.isEmpty() ? userId : osisS3Credential.getUserId();
+        logger.info("UpdateCredentialStatus request received:: tenant ID:{}, user ID:{}, accessKey:{}, isActive: {}",
+                tenantIdOfCurrentUser, userIdOfCurrentUser, accessKey, osisS3Credential.getActive());
+
+        try {
+            if (tenantIdOfCurrentUser == null || tenantIdOfCurrentUser.isEmpty()
+                    || userIdOfCurrentUser == null || userIdOfCurrentUser.isEmpty()) {
+                logger.info("UpdatedCredentialStatus: Missing tenantId/userId in both parameter and request body, call Vault superAdmin API GetUserByAccessKey");
+
+                GetUserByAccessKeyRequestDTO getUserByAccessKeyRequest = ScalityModelConverter.toScalityGetUserByAccessKeyRequest(accessKey);
+                logger.debug("UpdatedCredentialStatus: [Vault]GetUserByAccessKey request:{}", new Gson().toJson(getUserByAccessKeyRequest));
+
+                GetUserByAccessKeyResponseDTO getUserByAccessKeyResponse = vaultAdmin.getUserByAccessKey(getUserByAccessKeyRequest);
+                logger.debug("UpdatedCredentialStatus: [Vault]GetUserByAccessKey response:{}", new Gson().toJson(getUserByAccessKeyResponse));
+
+                tenantIdOfCurrentUser = getUserByAccessKeyResponse.getData().getParentId();
+                userIdOfCurrentUser = getUserByAccessKeyResponse.getData().getName();
+                logger.info("UpdatedCredentialStatus: GetUserByAccessKey response received, tenant id: {}, user id: {}", tenantIdOfCurrentUser, userIdOfCurrentUser);
+            }
+
+            Credentials tempCredentials = getCredentials(tenantIdOfCurrentUser);
+            final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials,
+                    appEnv.getRegionInfo().get(0));
+            UpdateAccessKeyRequest updateAccessKeyRequest = ScalityModelConverter.toIAMUpdateAccessKeyRequest(
+                    userIdOfCurrentUser,
+                    accessKey,
+                    osisS3Credential.getActive());
+            iam.updateAccessKey(updateAccessKeyRequest);
+            OsisS3Credential newOsisS3Credential = this.getS3Credential(tenantIdOfCurrentUser, userIdOfCurrentUser, accessKey);
+            logger.info("UpdatedCredentialStatus response:{}", ScalityModelConverter.maskSecretKey(new Gson().toJson(newOsisS3Credential)));
+            return newOsisS3Credential;
+        } catch (Exception e) {
+            if (isAdminPolicyError(e)) {
+                try {
+                    generateAdminPolicy(tenantIdOfCurrentUser);
+                    return updateCredentialStatus(tenantIdOfCurrentUser, userIdOfCurrentUser, accessKey, osisS3Credential);
+                } catch (Exception ex) {
+                    e = ex;
+                }
+            }
+
+            logger.error("UpdateCredentialStatus error. Error details: ", e);
+            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        }
+    }
+
+    @Override
     public PageOfUsers listUsers(String tenantId, long offset, long limit) {
         try {
             logger.info("List Users request received:: tenant ID:{}, offset:{}, limit:{}", tenantId, offset, limit);

@@ -2,6 +2,7 @@ package com.scality.osis.service.impl;
 
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.*;
+import com.amazonaws.services.identitymanagement.model.User;
 import com.amazonaws.services.securitytoken.model.*;
 import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.redis.service.ScalityRedisRepository;
@@ -404,6 +405,19 @@ public class BaseOsisServiceTest {
                 .withAccessKeyId(TEST_ACCESS_KEY)
                 .withCreateDate(new Date())
                 .withStatus(StatusType.Active)
+                .withUserName(request.getUserName());
+
+        return new ListAccessKeysResult()
+                .withAccessKeyMetadata(Collections.singletonList(accessKeyMetadata));
+    }
+
+    protected ListAccessKeysResult listInactiveAccessKeysMockResponse(final InvocationOnMock invocation) {
+        final ListAccessKeysRequest request = invocation.getArgument(0);
+
+        final AccessKeyMetadata accessKeyMetadata = new AccessKeyMetadata()
+                .withAccessKeyId(TEST_ACCESS_KEY)
+                .withCreateDate(new Date())
+                .withStatus(StatusType.Inactive)
                 .withUserName(request.getUserName());
 
         return new ListAccessKeysResult()

@@ -22,7 +22,7 @@ dependencies {
     testCompile 'org.javaswift:joss:0.9.13'
     testCompile 'org.apache.httpcomponents:httpclient:4.5.2'
     testCompile 'ch.qos.logback:logback-classic:1.2.1'
-    implementation 'com.scality:vaultclient:0.4.0-SNAPSHOT'
+    implementation 'com.scality:vaultclient:0.5.0'
     implementation 'com.amazonaws:aws-java-sdk-s3:1.11.914'
     implementation 'com.amazonaws:aws-java-sdk-sts:1.11.914'
     implementation 'com.amazonaws:aws-java-sdk-iam:1.11.914'

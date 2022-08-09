@@ -8,15 +8,7 @@ package com.scality.osis.vaultadmin;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
-import com.scality.vaultclient.dto.AccountData;
-import com.scality.vaultclient.dto.CreateAccountRequestDTO;
-import com.scality.vaultclient.dto.CreateAccountResponseDTO;
-import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
-import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
-import com.scality.vaultclient.dto.GetAccountRequestDTO;
-import com.scality.vaultclient.dto.ListAccountsRequestDTO;
-import com.scality.vaultclient.dto.ListAccountsResponseDTO;
-import com.scality.vaultclient.dto.UpdateAccountAttributesRequestDTO;
+import com.scality.vaultclient.dto.*;
 import com.scality.vaultclient.services.AccountServicesClient;
 import com.scality.vaultclient.services.SecurityTokenServicesClient;
 
@@ -122,4 +114,13 @@ public interface VaultAdmin {
    * @return The updated account as a create account response object.
    */
   CreateAccountResponseDTO updateAccountAttributes(UpdateAccountAttributesRequestDTO updateAccountAttributesRequestDTO);
+
+  /**
+   * Get User by accessKey
+   * <p>This method will get the User from Vault using a user accessKey.
+   *
+   * @param getUserByAccessKeyRequest the get user by accessKey request dto
+   * @return The get user by accessKey response object.
+   */
+  GetUserByAccessKeyResponseDTO getUserByAccessKey(GetUserByAccessKeyRequestDTO getUserByAccessKeyRequest);
 }

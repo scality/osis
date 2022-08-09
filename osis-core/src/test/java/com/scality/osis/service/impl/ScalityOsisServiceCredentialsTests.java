@@ -1,10 +1,13 @@
 package com.scality.osis.service.impl;
 
 import com.amazonaws.services.identitymanagement.model.*;
-import com.scality.osis.vaultadmin.impl.VaultServiceException;
 import com.scality.osis.model.OsisS3Credential;
 import com.scality.osis.model.PageOfS3Credentials;
 import com.scality.osis.model.exception.NotImplementedException;
+import com.scality.osis.vaultadmin.impl.VaultServiceException;
+import com.scality.vaultclient.dto.GetUserByAccessKeyRequestDTO;
+import com.scality.vaultclient.dto.GetUserByAccessKeyResponseDTO;
+import com.scality.vaultclient.dto.UserData;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
@@ -445,4 +448,169 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
 
     }
 
+    @Test
+    public void testUpdateCredentialDeactivate() {
+        // Setup
+        final OsisS3Credential osisS3Credential = new OsisS3Credential();
+        osisS3Credential.setUserId(TEST_USER_ID);
+        osisS3Credential.setTenantId(SAMPLE_TENANT_ID);
+        osisS3Credential.setActive(false);
+        osisS3Credential.setCdUserId(TEST_USER_ID);
+        osisS3Credential.setAccessKey(TEST_ACCESS_KEY);
+
+        when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
+                .thenAnswer((Answer<ListAccessKeysResult>) this::listInactiveAccessKeysMockResponse);
+
+        // Run the test
+        final OsisS3Credential resS3Credential = scalityOsisServiceUnderTest.updateCredentialStatus(SAMPLE_TENANT_ID, TEST_USER_ID, TEST_ACCESS_KEY, osisS3Credential);
+
+        // Verify the results
+        assertFalse(resS3Credential.getActive());
+    }
+
+    @Test
+    public void testUpdateCredentialActivate() {
+        // Setup
+        final OsisS3Credential osisS3Credential = new OsisS3Credential();
+        osisS3Credential.setUserId(TEST_USER_ID);
+        osisS3Credential.setTenantId(SAMPLE_TENANT_ID);
+        osisS3Credential.setActive(true);
+        osisS3Credential.setCdUserId(TEST_USER_ID);
+        osisS3Credential.setAccessKey(TEST_ACCESS_KEY);
+
+        // Run the test
+        final OsisS3Credential resS3Credential = scalityOsisServiceUnderTest.updateCredentialStatus(SAMPLE_TENANT_ID, TEST_USER_ID, TEST_ACCESS_KEY, osisS3Credential);
+
+        // Verify the results
+        assertTrue(resS3Credential.getActive());
+    }
+
+    @Test
+    public void testUpdateCredentialDeactivateNoAdminPolicy() throws Exception {
+        // Setup
+        final OsisS3Credential osisS3Credential = new OsisS3Credential();
+        osisS3Credential.setUserId(TEST_USER_ID);
+        osisS3Credential.setTenantId(SAMPLE_TENANT_ID);
+        osisS3Credential.setActive(false);
+        osisS3Credential.setCdUserId(TEST_USER_ID);
+        osisS3Credential.setAccessKey(TEST_ACCESS_KEY);
+
+        when(iamMock.updateAccessKey(any(UpdateAccessKeyRequest.class)))
+                .thenAnswer((Answer<UpdateAccessKeyResult>) invocation -> {
+                    final AmazonIdentityManagementException iamException = new AmazonIdentityManagementException(
+                            "Forbidden");
+                    iamException.setStatusCode(HttpStatus.FORBIDDEN.value());
+                    throw iamException;
+                })
+                .thenAnswer((Answer<UpdateAccessKeyResult>) invocation -> new UpdateAccessKeyResult());
+
+        when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
+                .thenAnswer((Answer<ListAccessKeysResult>) this::listInactiveAccessKeysMockResponse);
+
+        // Run the test
+        final OsisS3Credential resS3CredentialActive = scalityOsisServiceUnderTest.updateCredentialStatus(SAMPLE_TENANT_ID,
+                TEST_USER_ID, TEST_ACCESS_KEY, osisS3Credential);
+
+        // Verify the results
+        assertNotNull(resS3CredentialActive);
+        assertFalse(resS3CredentialActive.getActive());
+    }
+
+    @Test
+    public void testUpdateCredentialActivateNoAdminPolicy() throws Exception {
+        // Setup
+        final OsisS3Credential osisS3Credential = new OsisS3Credential();
+        osisS3Credential.setUserId(TEST_USER_ID);
+        osisS3Credential.setTenantId(SAMPLE_TENANT_ID);
+        osisS3Credential.setActive(true);
+        osisS3Credential.setCdUserId(TEST_USER_ID);
+        osisS3Credential.setAccessKey(TEST_ACCESS_KEY);
+
+        when(iamMock.updateAccessKey(any(UpdateAccessKeyRequest.class)))
+                .thenAnswer((Answer<UpdateAccessKeyResult>) invocation -> {
+                    final AmazonIdentityManagementException iamException = new AmazonIdentityManagementException(
+                            "Forbidden");
+                    iamException.setStatusCode(HttpStatus.FORBIDDEN.value());
+                    throw iamException;
+                })
+                .thenAnswer((Answer<UpdateAccessKeyResult>) invocation -> new UpdateAccessKeyResult());
+
+
+        // Run the test
+        final OsisS3Credential resS3CredentialInavtive = scalityOsisServiceUnderTest.updateCredentialStatus(SAMPLE_TENANT_ID,
+                TEST_USER_ID, TEST_ACCESS_KEY, osisS3Credential);
+
+        // Verify the results
+        assertNotNull(resS3CredentialInavtive);
+        assertTrue(resS3CredentialInavtive.getActive());
+    }
+
+    @Test
+    public void testUpdateCredentialDeactivateWithoutTenantIdAndUserId() {
+        // Setup
+        final OsisS3Credential osisS3Credential = new OsisS3Credential();
+        osisS3Credential.setActive(false);
+
+        when(vaultAdminMock.getUserByAccessKey(any(GetUserByAccessKeyRequestDTO.class)))
+                .thenAnswer((Answer<GetUserByAccessKeyResponseDTO>) innovation -> {
+                    final GetUserByAccessKeyResponseDTO response = new GetUserByAccessKeyResponseDTO();
+                    final UserData user = new UserData();
+                    user.setName(TEST_USER_ID);
+                    user.setParentId(SAMPLE_TENANT_ID);
+                    response.setData(user);
+                    return response;
+                });
+
+        when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
+                .thenAnswer((Answer<ListAccessKeysResult>) this::listInactiveAccessKeysMockResponse);
+
+        // Run the test
+        final OsisS3Credential resS3Credential = scalityOsisServiceUnderTest.updateCredentialStatus(null, null, TEST_ACCESS_KEY, osisS3Credential);
+
+        // Verify the results
+        assertEquals(resS3Credential.getTenantId(), SAMPLE_TENANT_ID);
+        assertEquals(resS3Credential.getUserId(), TEST_USER_ID);
+        assertFalse(resS3Credential.getActive());
+    }
+
+    @Test
+    public void testUpdateCredentialActivateWithoutTenantIdAndUserId() {
+        // Setup
+        final OsisS3Credential osisS3Credential = new OsisS3Credential();
+        osisS3Credential.setActive(true);
+
+        when(vaultAdminMock.getUserByAccessKey(any(GetUserByAccessKeyRequestDTO.class)))
+                .thenAnswer((Answer<GetUserByAccessKeyResponseDTO>) innovation -> {
+                    final GetUserByAccessKeyResponseDTO response = new GetUserByAccessKeyResponseDTO();
+                    final UserData user = new UserData();
+                    user.setName(TEST_USER_ID);
+                    user.setParentId(SAMPLE_TENANT_ID);
+                    response.setData(user);
+                    return response;
+                });
+
+        // Run the test
+        final OsisS3Credential resS3Credential = scalityOsisServiceUnderTest.updateCredentialStatus(null, null, TEST_ACCESS_KEY, osisS3Credential);
+
+        // Verify the results
+        assertEquals(resS3Credential.getTenantId(), SAMPLE_TENANT_ID);
+        assertEquals(resS3Credential.getUserId(), TEST_USER_ID);
+        assertTrue(resS3Credential.getActive());
+    }
+
+    @Test
+    public void testUpdateCredential400() {
+        // Setup
+        when(iamMock.updateAccessKey(any(UpdateAccessKeyRequest.class)))
+                .thenAnswer((Answer<UpdateAccessKeyResult>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Bad Request");
+                });
+
+        // Run the test
+        // Verify the results
+        assertThrows(VaultServiceException.class, () -> {
+            scalityOsisServiceUnderTest.updateCredentialStatus(TEST_TENANT_ID,
+                    TEST_USER_ID, TEST_ACCESS_KEY, new OsisS3Credential().active(true));
+        });
+    }
 }

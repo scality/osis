@@ -1,6 +1,7 @@
 package com.scality.osis.utils;
 
 import com.amazonaws.services.identitymanagement.model.*;
+import com.amazonaws.services.identitymanagement.model.User;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.osis.model.*;

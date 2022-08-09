@@ -589,18 +589,16 @@ public class ScalityOsisController {
     }, tags = { "s3credential", "optional", })
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "The status of the S3 credential is updated", response = OsisS3Credential.class),
-            @ApiResponse(code = 400, message = "Bad Request", response = Error.class),
-            @ApiResponse(code = 501, message = "The optional API is not implemented") })
+            @ApiResponse(code = 400, message = "Bad Request", response = Error.class)})
     @ApiImplicitParams({
     })
     @PatchMapping(value = "/api/v1/s3credentials/{accessKey}", produces = "application/json", consumes = "application/json")
-    @NotImplement(name = ScalityOsisConstants.UPDATE_CREDENTIAL_STATUS_API_CODE)
     public OsisS3Credential updateCredentialStatus(
-            @NotNull @ApiParam(value = "The ID of the tenant which the user belongs to", required = true) @Valid @RequestParam(value = "tenant_id", required = true) String tenantId,
-            @NotNull @ApiParam(value = "The ID of the user which the status updated S3 credential belongs to", required = true) @Valid @RequestParam(value = "user_id", required = true) String userId,
-            @ApiParam(value = "The access key of the S3 credential to update status", required = true) @PathVariable("accessKey") String accessKey,
-            @ApiParam(value = "The S3 credential containing the status to update. Only property 'active' takes effect", required = true) @Valid @RequestBody OsisS3Credential osisS3Credential) {
-        throw new NotImplementedException();
+            @ApiParam(value = "The ID of the tenant which the user belongs to") @RequestParam(value = "tenant_id", required = false) String tenantId,
+            @ApiParam(value = "The ID of the user which the status updated S3 credential belongs to") @RequestParam(value = "user_id", required = false) String userId,
+            @NotNull @ApiParam(value = "The access key of the S3 credential to update status", required = true) @PathVariable("accessKey") String accessKey,
+            @ApiParam(value = "The S3 credential containing the status to update. Only property 'active' takes effect", required = true) @RequestBody OsisS3Credential osisS3Credential) {
+        return osisService.updateCredentialStatus(tenantId, userId, accessKey, osisS3Credential);
     }
 
     /**
