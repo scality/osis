@@ -348,7 +348,7 @@ public class ScalityOsisController {
     @ApiImplicitParams({
     })
     @GetMapping(value = "/api/v1/tenants/{tenantId}", produces = "application/json")
-    @NotImplement(name = ScalityOsisConstants.GET_TENANT_API_CODE)
+//    @NotImplement(name = ScalityOsisConstants.GET_TENANT_API_CODE)
     public OsisTenant getTenant(
             @ApiParam(value = "Tenant ID to get the tenant from the platform", required = true) @PathVariable("tenantId") String tenantId) {
         return osisService.getTenant(tenantId);
