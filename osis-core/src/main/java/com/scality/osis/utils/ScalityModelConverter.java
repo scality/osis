@@ -463,6 +463,19 @@ public final class ScalityModelConverter {
     }
 
     /**
+     * Converts Vault AccountData object to OSIS Tenant object
+     *
+     * @return the osis tenant
+     */
+    public static OsisTenant toDeactivatedOsisTenant(AccountData account) {
+        return new OsisTenant()
+                .name(account.getName())
+                .active(false)
+                .cdTenantIds(toOsisCDTenantIds(account.getCustomAttributes()))
+                .tenantId(account.getId());
+    }
+
+    /**
      * Converts IAM User object to OSIS User object
      *
      * @return the osis User
@@ -540,7 +553,11 @@ public final class ScalityModelConverter {
         List<OsisTenant> tenantItems = new ArrayList<>();
 
         for (AccountData account : listAccountsResponseDTO.getAccounts()) {
-            tenantItems.add(toOsisTenant(account));
+            if(account.getCustomAttributes() == null) {
+                tenantItems.add(toDeactivatedOsisTenant(account));
+            } else {
+                tenantItems.add(toOsisTenant(account));
+            }
         }
 
         PageInfo pageInfo = new PageInfo();
