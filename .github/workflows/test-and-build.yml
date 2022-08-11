@@ -21,35 +21,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: "corretto"
-          java-version: "8"
+      # - name: Setup Java
+      #   uses: actions/setup-java@v3
+      #   with:
+      #     distribution: "corretto"
+      #     java-version: "8"
 
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: 6.7.1
+      # - name: Setup Gradle
+      #   uses: gradle/gradle-build-action@v2
+      #   with:
+      #     gradle-version: 6.7.1
 
-      - name: Execute build with Gradle wrapper
-        run: ./gradlew build
+      # - name: Execute build with Gradle wrapper
+      #   run: ./gradlew build
 
       - name: Get archive upload signing key
-        run: echo "$SIGNING_KEY" | base64 --decode > $GITHUB_WORKSPACE/secring.gpg
+        run: echo "$SIGNING_KEY"
 
-      - name: Gradle Upload Archives
-        run: gradle uploadArchives -Psigning.secretKeyRingFile=$GITHUB_WORKSPACE/secring.gpg -PnexusUsername=$NEXUS_UNAME -PnexusPassword=$NEXUS_PWD -Psigning.keyId=$SIGNING_KEYID -Psigning.password=$SIGNING_PWD
+      # - name: Gradle Upload Archives
+      #   run: gradle uploadArchives -Psigning.secretKeyRingFile=$GITHUB_WORKSPACE/secring.gpg -PnexusUsername=$NEXUS_UNAME -PnexusPassword=$NEXUS_PWD -Psigning.keyId=$SIGNING_KEYID -Psigning.password=$SIGNING_PWD
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
-          name: codecov-osis
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+      #     name: codecov-osis
 
-  docker-build:
-    name: Development docker image
-    uses: ./.github/workflows/docker-build.yml
-    secrets:
-      REGISTRY_LOGIN: ${{ secrets.REGISTRY_LOGIN }}
-      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+  # docker-build:
+  #   name: Development docker image
+  #   uses: ./.github/workflows/docker-build.yml
+  #   secrets:
+  #     REGISTRY_LOGIN: ${{ secrets.REGISTRY_LOGIN }}
+  #     REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
