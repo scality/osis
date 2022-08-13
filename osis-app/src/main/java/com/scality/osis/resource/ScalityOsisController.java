@@ -343,14 +343,12 @@ public class ScalityOsisController {
     }, tags = { "tenant", "optional", })
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "The tenant is returned", response = OsisTenant.class),
-            @ApiResponse(code = 404, message = "The tenant doesn't exist"),
-            @ApiResponse(code = 501, message = "The optional API is not implemented") })
+            @ApiResponse(code = 404, message = "The tenant doesn't exist") })
     @ApiImplicitParams({
     })
     @GetMapping(value = "/api/v1/tenants/{tenantId}", produces = "application/json")
-    @NotImplement(name = ScalityOsisConstants.GET_TENANT_API_CODE)
     public OsisTenant getTenant(
-            @ApiParam(value = "Tenant ID to get the tenant from the platform", required = true) @PathVariable("tenantId") String tenantId) {
+            @NotNull @ApiParam(value = "Tenant ID to get the tenant from the platform", required = true) @PathVariable("tenantId") String tenantId) {
         return osisService.getTenant(tenantId);
     }
 
