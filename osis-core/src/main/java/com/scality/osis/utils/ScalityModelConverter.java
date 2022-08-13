@@ -5,34 +5,17 @@
 
 package com.scality.osis.utils;
 
+import com.amazonaws.services.identitymanagement.model.User;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
-import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
-import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
-import com.scality.vaultclient.dto.GetAccountRequestDTO;
-import com.scality.vaultclient.dto.ListAccountsRequestDTO;
-import com.scality.vaultclient.dto.ListAccountsResponseDTO;
-import com.scality.vaultclient.dto.UpdateAccountAttributesRequestDTO;
-import com.scality.osis.model.OsisS3Credential;
-import com.scality.osis.model.OsisTenant;
-import com.scality.osis.model.OsisUser;
-import com.scality.osis.model.PageInfo;
-import com.scality.osis.model.PageOfS3Credentials;
-import com.scality.osis.model.PageOfTenants;
-import com.scality.osis.model.PageOfUsers;
+import com.scality.osis.model.*;
 import com.scality.osis.model.exception.BadRequestException;
-import com.scality.vaultclient.dto.AccountData;
-import com.scality.vaultclient.dto.CreateAccountRequestDTO;
-import com.scality.vaultclient.dto.CreateAccountResponseDTO;
+import com.scality.vaultclient.dto.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.scality.osis.utils.ScalityConstants.*;
@@ -52,7 +35,7 @@ public final class ScalityModelConverter {
 
     /**
      * Converts OSIS Tenant object to Vault Create Account request
-     * 
+     *
      * @param osisTenant the osis tenant
      *
      * @return the create account request dto
@@ -78,7 +61,7 @@ public final class ScalityModelConverter {
 
     /**
      * Converts OSIS Tenant object to Vault Update Account Attributes request
-     * 
+     *
      * @param osisTenant the osis tenant
      *
      * @return the update account attributes request dto
@@ -99,7 +82,7 @@ public final class ScalityModelConverter {
 
     /**
      * Created Vault List Accounts request for List Tenants
-     * 
+     *
      * @param limit the max number of items
      *
      * @return the create account request dto
@@ -113,7 +96,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates Vault List Users request for List users
-     * 
+     *
      * @param limit  the max number of items
      *
      * @param offset the starting offset of the users list
@@ -156,7 +139,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates IAM Get User request
-     * 
+     *
      * @param username Vault username
      *
      * @return the IAM get user request dto
@@ -168,7 +151,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates IAM Delete User request
-     * 
+     *
      * @param username Vault username
      *
      * @return the IAM delete user request dto
@@ -180,7 +163,7 @@ public final class ScalityModelConverter {
 
     /**
      * Created Vault List Accounts request for Query Tenants
-     * 
+     *
      * @param limit the max number of items
      *
      * @return the create account request dto
@@ -194,7 +177,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates Vault Assume Role request request for given account id
-     * 
+     *
      * @param accountID the account ID
      *
      * @return the assume role request dto
@@ -208,7 +191,7 @@ public final class ScalityModelConverter {
     /**
      * Creates GenerateAccountAccessKeyRequest dto for given account id and duration
      * in seconds
-     * 
+     *
      * @param accountID       the account ID
      * @param durationSeconds the duration in seconds
      *
@@ -224,7 +207,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates CreateRoleRequest dto
-     * 
+     *
      * @param assumeRoleName the role name
      *
      * @return the CreateRoleRequest dto
@@ -237,7 +220,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates CreatePolicyRequest dto for admin policy for OSIS role
-     * 
+     *
      * @param tenantId the account id
      *
      * @return the CreatePolicyRequest dto
@@ -251,7 +234,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates AttachRolePolicyRequest dto for attaching admin policy to OSIS role
-     * 
+     *
      * @param policyArn the policy arn
      * @param roleName  the OSIS role name
      *
@@ -265,7 +248,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates DeleteAccessKeyRequest dto
-     * 
+     *
      * @param accessKeyId the accesskeyId
      * @param username    the username
      *
@@ -284,7 +267,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates GetAccountRequestDTO
-     * 
+     *
      * @param accountID the accountID
      *
      * @return the GetAccountRequestDTO
@@ -297,7 +280,7 @@ public final class ScalityModelConverter {
 
     /**
      * Creates GetAccountRequestDTO using canonicalID
-     * 
+     *
      * @param canonicalID the canonicalID
      *
      * @return the GetAccountRequestDTO
@@ -452,6 +435,8 @@ public final class ScalityModelConverter {
 
     /**
      * Converts Vault AccountData object to OSIS Tenant object
+     *
+     * @param account account object
      *
      * @return the osis tenant
      */

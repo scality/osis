@@ -6,33 +6,27 @@
 
 package com.scality.osis.service.impl;
 
-import com.amazonaws.services.identitymanagement.*;
+import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.amazonaws.util.StringUtils;
-import com.scality.osis.ScalityAppEnv;
-import com.scality.osis.redis.service.IRedisRepository;
-import com.scality.osis.resource.ScalityOsisCapsManager;
-import com.scality.osis.service.ScalityOsisService;
-import com.scality.osis.security.utils.CipherFactory;
-import com.scality.osis.utils.ScalityUtils;
-import com.google.gson.Gson;
-import com.scality.osis.utils.ScalityModelConverter;
-import com.scality.osis.vaultadmin.VaultAdmin;
-import com.scality.osis.vaultadmin.impl.VaultServiceException;
-import com.scality.vaultclient.dto.AccountData;
-import com.scality.vaultclient.dto.CreateAccountRequestDTO;
-import com.scality.vaultclient.dto.CreateAccountResponseDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.scality.vaultclient.dto.GetAccountRequestDTO;
-import com.scality.vaultclient.dto.ListAccountsRequestDTO;
-import com.scality.vaultclient.dto.ListAccountsResponseDTO;
-import com.scality.vaultclient.dto.UpdateAccountAttributesRequestDTO;
+import com.google.gson.Gson;
+import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.model.*;
 import com.scality.osis.model.exception.NotFoundException;
 import com.scality.osis.model.exception.NotImplementedException;
-import com.scality.osis.security.crypto.model.*;
+import com.scality.osis.redis.service.IRedisRepository;
+import com.scality.osis.resource.ScalityOsisCapsManager;
+import com.scality.osis.security.crypto.model.SecretKeyRepoData;
+import com.scality.osis.security.utils.CipherFactory;
+import com.scality.osis.service.ScalityOsisService;
+import com.scality.osis.utils.ScalityModelConverter;
+import com.scality.osis.utils.ScalityUtils;
+import com.scality.osis.vaultadmin.VaultAdmin;
+import com.scality.osis.vaultadmin.impl.VaultServiceException;
+import com.scality.vaultclient.dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,12 +36,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.scality.osis.utils.ScalityConstants.*;
@@ -120,7 +109,6 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             logger.debug("[Vault]CreateAccount response:{}", new Gson().toJson(accountResponse));
 
             OsisTenant resOsisTenant = ScalityModelConverter.toOsisTenant(accountResponse);
-
             // call async service to setup the assume role for the new tenant
             asyncScalityOsisService.setupAssumeRole(resOsisTenant);
 
@@ -685,7 +673,25 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public OsisTenant getTenant(String tenantId) {
-        throw new NotImplementedException();
+        try {
+            logger.info("Get Tenant request received, tenantId:{}", tenantId);
+            GetAccountRequestDTO getAccountRequest = ScalityModelConverter.toGetAccountRequestWithID(tenantId);
+
+            logger.debug("[Vault]GetAccount request:{}", new Gson().toJson(getAccountRequest));
+
+            AccountData accountData = vaultAdmin.getAccount(getAccountRequest);
+
+            logger.debug("[Vault]GetAccount response:{}", new Gson().toJson(accountData));
+
+            OsisTenant resOsisTenant;
+            resOsisTenant = ScalityModelConverter.toOsisTenant(accountData);
+            logger.info("Get Tenant response:{}", new Gson().toJson(resOsisTenant));
+
+            return resOsisTenant;
+        } catch (Exception e) {
+            logger.error("The tenant doesn't exist. Error details: ", e);
+            throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        }
     }
 
     @Override

@@ -15,10 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import static com.scality.osis.utils.ScalityConstants.FILTER_KEY_VALUE_SEPARATOR;
-import static com.scality.osis.utils.ScalityConstants.FILTER_SEPARATOR;
-import static com.scality.osis.utils.ScalityConstants.ICON_PATH;
-import static com.scality.osis.utils.ScalityConstants.UUID_REGEX;
+import static com.scality.osis.utils.ScalityConstants.*;
 
 /**
  * Helper class with static common utils methods.
