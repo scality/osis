@@ -1,28 +1,23 @@
 package com.scality.osis.service.impl;
 
-import com.scality.osis.vaultadmin.impl.VaultServiceException;
-import com.scality.vaultclient.dto.CreateAccountRequestDTO;
-import com.scality.vaultclient.dto.CreateAccountResponseDTO;
-import com.scality.vaultclient.dto.GetAccountRequestDTO;
-import com.scality.vaultclient.dto.ListAccountsRequestDTO;
-import com.scality.vaultclient.dto.ListAccountsResponseDTO;
 import com.scality.osis.model.OsisTenant;
 import com.scality.osis.model.PageOfTenants;
 import com.scality.osis.model.exception.BadRequestException;
 import com.scality.osis.model.exception.NotImplementedException;
+import com.scality.osis.vaultadmin.impl.VaultServiceException;
+import com.scality.vaultclient.dto.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
 import static com.scality.osis.utils.ScalityTestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
 
@@ -298,22 +293,49 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetTenant() {
+    public void testGetTenantActive() {
         // Setup
-        final OsisTenant expectedResult = new OsisTenant();
-        expectedResult.active(false);
-        expectedResult.name(TEST_NAME);
-        expectedResult.setName(TEST_NAME);
-        expectedResult.tenantId(TEST_TENANT_ID);
-        expectedResult.setTenantId(TEST_TENANT_ID);
-        expectedResult.cdTenantIds(Arrays.asList(TEST_STR));
-        expectedResult.setCdTenantIds(Arrays.asList(TEST_STR));
 
         // Run the test
-        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getTenant(TEST_TENANT_ID),
-                NOT_IMPLEMENTED_EXCEPTION_ERR);
+        final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.getTenant(SAMPLE_TENANT_ID);
 
         // Verify the results
+        assertEquals(SAMPLE_TENANT_NAME, osisTenantRes.getName());
+        assertTrue(osisTenantRes.getActive());
+    }
+
+    @Test
+    public void testGetTenantInactive() {
+        // Setup
+        when(vaultAdminMock.getAccount(any(GetAccountRequestDTO.class)))
+                .thenAnswer((Answer<AccountData>) innovation -> {
+            final AccountData accountData = new AccountData();
+            accountData.setId(SAMPLE_TENANT_ID);
+            accountData.setName(SAMPLE_TENANT_NAME);
+            final Map<String, String> customAttributes = new HashMap<>();
+            accountData.setCustomAttributes(customAttributes);
+            return accountData;
+        });
+
+        // Run the test
+        final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.getTenant(SAMPLE_TENANT_ID);
+
+        // Verify the results
+        assertEquals(SAMPLE_TENANT_NAME, osisTenantRes.getName());
+        assertFalse(osisTenantRes.getActive());
+    }
+
+    @Test
+    public void testGetTenantNotExists() {
+
+        when(vaultAdminMock.getAccount(any(GetAccountRequestDTO.class)))
+                .thenAnswer((Answer<AccountData>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.NOT_FOUND, "Bad Request");
+                });
+
+        assertThrows(VaultServiceException.class, () -> {
+            scalityOsisServiceUnderTest.getTenant(SAMPLE_ID);
+        });
     }
 
     @Test
