@@ -11,8 +11,6 @@ import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
 import static com.scality.osis.utils.ScalityTestUtils.*;
@@ -293,7 +291,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetTenantActive() {
+    public void testGetTenant() {
         // Setup
 
         // Run the test
@@ -302,27 +300,6 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
         // Verify the results
         assertEquals(SAMPLE_TENANT_NAME, osisTenantRes.getName());
         assertTrue(osisTenantRes.getActive());
-    }
-
-    @Test
-    public void testGetTenantInactive() {
-        // Setup
-        when(vaultAdminMock.getAccount(any(GetAccountRequestDTO.class)))
-                .thenAnswer((Answer<AccountData>) innovation -> {
-            final AccountData accountData = new AccountData();
-            accountData.setId(SAMPLE_TENANT_ID);
-            accountData.setName(SAMPLE_TENANT_NAME);
-            final Map<String, String> customAttributes = new HashMap<>();
-            accountData.setCustomAttributes(customAttributes);
-            return accountData;
-        });
-
-        // Run the test
-        final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.getTenant(SAMPLE_TENANT_ID);
-
-        // Verify the results
-        assertEquals(SAMPLE_TENANT_NAME, osisTenantRes.getName());
-        assertFalse(osisTenantRes.getActive());
     }
 
     @Test

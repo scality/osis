@@ -1,16 +1,16 @@
 package com.scality.osis.utils;
 
-import com.scality.vaultclient.dto.AccountData;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import static com.scality.osis.utils.ScalityConstants.*;
-import static com.scality.osis.utils.ScalityTestUtils.*;
+import static com.scality.osis.utils.ScalityTestUtils.SAMPLE_TENANT_ID;
+import static com.scality.osis.utils.ScalityTestUtils.TEST_USER_ID;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ScalityUtilsTest {
 
@@ -46,36 +46,5 @@ public class ScalityUtilsTest {
 
         // Verify the results
         assertTrue(filterMap.isEmpty());
-    }
-
-    @Test
-    public void testVaultAccountContainsCdTenantIdsTrue() {
-        // Setup
-        final AccountData accountData = new AccountData();
-        final Map<String, String> customAttributes = new HashMap<>();
-        customAttributes.put(CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID, "");
-        accountData.setId(SAMPLE_TENANT_ID);
-        accountData.setCustomAttributes(customAttributes);
-
-        // Run the test
-        final boolean result = ScalityUtils.vaultAccountContainsCdTenantIds(accountData);
-
-        // Verify the results
-        assertTrue(result);
-    }
-
-    @Test
-    public void testVaultAccountContainsCdTenantIdsFalse() {
-        // Setup
-        final AccountData accountData = new AccountData();
-        final Map<String, String> customAttributes = new HashMap<>();
-        accountData.setId(SAMPLE_TENANT_ID);
-        accountData.setCustomAttributes(customAttributes);
-
-        // Run the test
-        final boolean result = ScalityUtils.vaultAccountContainsCdTenantIds(accountData);
-
-        // Verify the results
-        assertFalse(result);
     }
 }
