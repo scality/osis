@@ -616,7 +616,25 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public OsisS3Credential getS3Credential(String accessKey) {
-        throw new NotImplementedException();
+        try {
+            logger.info("Get s3 credential request received:: accessKey:{}", accessKey);
+            if (accessKey == null || accessKey.isEmpty()) {
+                throw new Exception("accessKey can't be empty for getS3Credential.");
+            }
+            logger.info("Get S3 Credential: call Vault superAdmin API GetUserByAccessKey");
+            Map<String, String> result = getTenantIdAndUserIdByAccessKeyFromVault(accessKey);
+            final String tenantId = result.get("tenantId");
+            final String userId = result.get("userId");
+            logger.info("Get S3 Credential: GetUserByAccessKey response received, tenant id: {}, user id: {}", tenantId, userId);
+
+            return getS3Credential(tenantId, userId, accessKey);
+
+        } catch (Exception e) {
+            logger.error(
+                    "Get S3 credential :: The S3 Credential doesn't exist for the given access key. Error details:",
+                    e);
+            throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        }
     }
 
     @Override
@@ -625,65 +643,69 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     }
 
     private OsisS3Credential getS3Credential(String tenantId, String userId, String accessKey, long limit) {
-
-        if (!StringUtils.isNullOrEmpty(tenantId) && !StringUtils.isNullOrEmpty(userId)) {
-            try {
-                logger.info("Get s3 credential request received:: tenant ID:{}, user ID:{}, accessKey:{}",
-                        tenantId, userId, accessKey);
-
-                Credentials tempCredentials = getCredentials(tenantId);
-                final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials,
-                        appEnv.getRegionInfo().get(0));
-
-                ListAccessKeysRequest listAccessKeysRequest = ScalityModelConverter.toIAMListAccessKeysRequest(userId,
-                        limit);
-
-                logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
-
-                ListAccessKeysResult listAccessKeysResult = iam.listAccessKeys(listAccessKeysRequest);
-
-                logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
-
-                Optional<AccessKeyMetadata> accessKeyResult = listAccessKeysResult.getAccessKeyMetadata()
-                        .stream()
-                        .filter(accessKeyMetadata -> accessKeyMetadata.getAccessKeyId().equals(accessKey))
-                        .findAny();
-
-                if (accessKeyResult.isPresent()) {
-                    AccessKeyMetadata accessKeyMetadata = accessKeyResult.get();
-
-                    String secretKey = retrieveSecretKey(
-                            ScalityModelConverter.toRepoKeyForCredentials(userId, accessKeyMetadata.getAccessKeyId()));
-
-                    OsisS3Credential osisCredential = ScalityModelConverter.toOsisS3Credentials(tenantId,
-                            accessKeyMetadata,
-                            secretKey);
-                    logger.info("Get S3 credential  response:{}",
-                            ScalityModelConverter.maskSecretKey(new Gson().toJson(osisCredential)));
-
-                    return osisCredential;
-                } else {
-                    throw new NotFoundException("The S3 Credential doesn't exist for the given access key");
-                }
-
-            } catch (Exception e) {
-
-                if (isAdminPolicyError(e)) {
-                    try {
-                        generateAdminPolicy(tenantId);
-                        return getS3Credential(tenantId, userId, accessKey);
-                    } catch (Exception ex) {
-                        e = ex;
-                    }
-                }
-                logger.error(
-                        "Get S3 credential :: The S3 Credential doesn't exist for the given access key. Error details:",
-                        e);
-                throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        try {
+            logger.info("Get s3 credential request received:: tenant ID:{}, user ID:{}, accessKey:{}",
+                    tenantId, userId, accessKey);
+            if (accessKey == null || accessKey.isEmpty()) {
+                throw new Exception("accessKey can't be empty for getS3Credential.");
             }
-        } else {
-            throw new VaultServiceException(HttpStatus.NOT_FOUND,
-                    "TenantID and UserID are mandatory for this platform");
+            if (tenantId == null || tenantId.isEmpty() || userId == null || userId.isEmpty()) {
+                logger.info("Get S3 Credential: Missing tenantId/userId in request, call Vault superAdmin API GetUserByAccessKey");
+                Map<String, String> result = getTenantIdAndUserIdByAccessKeyFromVault(accessKey);
+                tenantId = result.get("tenantId");
+                userId = result.get("userId");
+                logger.info("Get S3 Credential: GetUserByAccessKey response received, tenant id: {}, user id: {}", tenantId, userId);
+            }
+
+            Credentials tempCredentials = getCredentials(tenantId);
+            final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials,
+                    appEnv.getRegionInfo().get(0));
+
+            ListAccessKeysRequest listAccessKeysRequest = ScalityModelConverter.toIAMListAccessKeysRequest(userId,
+                    limit);
+
+            logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
+
+            ListAccessKeysResult listAccessKeysResult = iam.listAccessKeys(listAccessKeysRequest);
+
+            logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
+
+            Optional<AccessKeyMetadata> accessKeyResult = listAccessKeysResult.getAccessKeyMetadata()
+                    .stream()
+                    .filter(accessKeyMetadata -> accessKeyMetadata.getAccessKeyId().equals(accessKey))
+                    .findAny();
+
+            if (accessKeyResult.isPresent()) {
+                AccessKeyMetadata accessKeyMetadata = accessKeyResult.get();
+
+                String secretKey = retrieveSecretKey(
+                        ScalityModelConverter.toRepoKeyForCredentials(userId, accessKeyMetadata.getAccessKeyId()));
+
+                OsisS3Credential osisCredential = ScalityModelConverter.toOsisS3Credentials(tenantId,
+                        accessKeyMetadata,
+                        secretKey);
+                logger.info("Get S3 credential  response:{}",
+                        ScalityModelConverter.maskSecretKey(new Gson().toJson(osisCredential)));
+
+                return osisCredential;
+            } else {
+                throw new NotFoundException("The S3 Credential doesn't exist for the given access key");
+            }
+
+        } catch (Exception e) {
+
+            if (isAdminPolicyError(e)) {
+                try {
+                    generateAdminPolicy(tenantId);
+                    return getS3Credential(tenantId, userId, accessKey);
+                } catch (Exception ex) {
+                    e = ex;
+                }
+            }
+            logger.error(
+                    "Get S3 credential :: The S3 Credential doesn't exist for the given access key. Error details:",
+                    e);
+            throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
     }
 

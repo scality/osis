@@ -280,10 +280,10 @@ public class ScalityOsisController {
     })
     @GetMapping(value = "/api/v1/s3credentials/{accessKey}", produces = "application/json")
     public OsisS3Credential getCredential(
-            @NotNull @ApiParam(value = "The ID of the tenant which the user belongs to", required = false) @Valid @RequestParam(value = "tenant_id", required = false) Optional<String> tenantId,
-            @NotNull @ApiParam(value = "The ID of the user which the S3 credential belongs to", required = false) @Valid @RequestParam(value = "user_id", required = false) Optional<String> userId,
-            @ApiParam(value = "The access key of the S3 credential to get", required = true) @PathVariable("accessKey") String accessKey) {
-        return osisService.getS3Credential(tenantId.orElse(""), userId.orElse(""), accessKey);
+            @ApiParam(value = "The ID of the tenant which the user belongs to") @Valid @RequestParam(value = "tenant_id", required = false) String tenantId,
+            @ApiParam(value = "The ID of the user which the S3 credential belongs to") @Valid @RequestParam(value = "user_id", required = false) String userId,
+            @NotNull @ApiParam(value = "The access key of the S3 credential to get", required = true) @PathVariable("accessKey") String accessKey) {
+        return osisService.getS3Credential(tenantId, userId, accessKey);
     }
 
     /**
