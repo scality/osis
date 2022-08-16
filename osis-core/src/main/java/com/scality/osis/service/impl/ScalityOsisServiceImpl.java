@@ -484,34 +484,50 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public void deleteS3Credential(String tenantId, String userId, String accessKey) {
-        if (!StringUtils.isNullOrEmpty(tenantId) &&
-                !StringUtils.isNullOrEmpty(userId) &&
-                !StringUtils.isNullOrEmpty(accessKey)) {
-            try {
-                logger.info("Delete S3 credential request received:: tenant ID:{}, user ID:{}, accessKey:{}",
-                        tenantId, userId, accessKey);
-
-                Credentials tempCredentials = getCredentials(tenantId);
-                final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials,
-                        appEnv.getRegionInfo().get(0));
-
-                DeleteAccessKeyRequest deleteAccessKeyRequest = ScalityModelConverter
-                        .toDeleteAccessKeyRequest(accessKey, userId);
-
-                logger.debug("[Vault] Delete Access Key Request:{}", new Gson().toJson(deleteAccessKeyRequest));
-
-                DeleteAccessKeyResult deleteAccessKeyResult = iam.deleteAccessKey(deleteAccessKeyRequest);
-
-                logger.debug("[Vault] Delete Access Key response:{}", new Gson().toJson(deleteAccessKeyResult));
-
-                deleteSecretKey(ScalityModelConverter.toRepoKeyForCredentials(userId, accessKey));
-
-                logger.info("Delete S3 credential successful:: tenant ID:{}, user ID:{}, accessKey:{}",
-                        tenantId, userId, accessKey);
-
-            } catch (Exception e) {
-                logger.error("Delete S3 credential failed. Error details:", e);
+        try {
+            logger.info("Delete S3 Credential request received:: tenant ID:{}, user ID:{}, accessKey:{}",
+                    tenantId, userId, accessKey);
+            if (accessKey == null || accessKey.isEmpty()) {
+                throw new Exception("accessKey can't be empty for deleteS3Credential.");
             }
+
+            if (tenantId == null || tenantId.isEmpty() || userId == null || userId.isEmpty()) {
+                logger.info("Delete S3 Credential: Missing tenantId/userId in request, call Vault superAdmin API GetUserByAccessKey");
+                Map<String, String> result = getTenantIdAndUserIdByAccessKeyFromVault(accessKey);
+                tenantId = result.get("tenantId");
+                userId = result.get("userId");
+                logger.info("Delete S3 Credential: GetUserByAccessKey response received, tenant id: {}, user id: {}", tenantId, userId);
+            }
+
+            Credentials tempCredentials = getCredentials(tenantId);
+            final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials,
+                    appEnv.getRegionInfo().get(0));
+
+            DeleteAccessKeyRequest deleteAccessKeyRequest = ScalityModelConverter
+                    .toDeleteAccessKeyRequest(accessKey, userId);
+
+            logger.debug("[Vault] Delete Access Key Request:{}", new Gson().toJson(deleteAccessKeyRequest));
+
+            DeleteAccessKeyResult deleteAccessKeyResult = iam.deleteAccessKey(deleteAccessKeyRequest);
+
+            logger.debug("[Vault] Delete Access Key response:{}", new Gson().toJson(deleteAccessKeyResult));
+
+            deleteSecretKey(ScalityModelConverter.toRepoKeyForCredentials(userId, accessKey));
+
+            logger.info("Delete S3 credential successful:: tenant ID:{}, user ID:{}, accessKey:{}",
+                    tenantId, userId, accessKey);
+
+        } catch (Exception e) {
+            if (isAdminPolicyError(e)) {
+                try {
+                    generateAdminPolicy(tenantId);
+                    deleteS3Credential(tenantId, userId, accessKey);
+                } catch (Exception ex) {
+                    e = ex;
+                }
+            }
+
+            logger.error("Delete S3 credential failed. Error details:", e);
         }
     }
 
@@ -918,15 +934,9 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             if (tenantIdOfCurrentUser == null || tenantIdOfCurrentUser.isEmpty()
                     || userIdOfCurrentUser == null || userIdOfCurrentUser.isEmpty()) {
                 logger.info("UpdatedCredentialStatus: Missing tenantId/userId in both parameter and request body, call Vault superAdmin API GetUserByAccessKey");
-
-                GetUserByAccessKeyRequestDTO getUserByAccessKeyRequest = ScalityModelConverter.toScalityGetUserByAccessKeyRequest(accessKey);
-                logger.debug("UpdatedCredentialStatus: [Vault]GetUserByAccessKey request:{}", new Gson().toJson(getUserByAccessKeyRequest));
-
-                GetUserByAccessKeyResponseDTO getUserByAccessKeyResponse = vaultAdmin.getUserByAccessKey(getUserByAccessKeyRequest);
-                logger.debug("UpdatedCredentialStatus: [Vault]GetUserByAccessKey response:{}", new Gson().toJson(getUserByAccessKeyResponse));
-
-                tenantIdOfCurrentUser = getUserByAccessKeyResponse.getData().getParentId();
-                userIdOfCurrentUser = getUserByAccessKeyResponse.getData().getName();
+                Map<String, String> result = getTenantIdAndUserIdByAccessKeyFromVault(accessKey);
+                tenantIdOfCurrentUser = result.get("tenantId");
+                userIdOfCurrentUser = result.get("userId");
                 logger.info("UpdatedCredentialStatus: GetUserByAccessKey response received, tenant id: {}, user id: {}", tenantIdOfCurrentUser, userIdOfCurrentUser);
             }
 
@@ -1285,5 +1295,20 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             springLocalCache.remove(repoKey);
         }
         logger.debug("[Cache] Delete Secret Key from cache successful");
+    }
+
+    private Map<String, String> getTenantIdAndUserIdByAccessKeyFromVault(String accessKey) {
+
+        GetUserByAccessKeyRequestDTO getUserByAccessKeyRequest = ScalityModelConverter.toScalityGetUserByAccessKeyRequest(accessKey);
+
+        GetUserByAccessKeyResponseDTO getUserByAccessKeyResponse = vaultAdmin.getUserByAccessKey(getUserByAccessKeyRequest);
+
+        String tenantId = getUserByAccessKeyResponse.getData().getParentId();
+        String userId = getUserByAccessKeyResponse.getData().getName();
+
+        Map<String, String> result = new HashMap<>();
+        result.put("tenantId", tenantId);
+        result.put("userId", userId);
+        return result;
     }
 }

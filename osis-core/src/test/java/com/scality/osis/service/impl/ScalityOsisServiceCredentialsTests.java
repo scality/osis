@@ -178,27 +178,24 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testDeleteS3CredentialEmptyUserID() {
-        // Setup
+    public void testDeleteS3CredentialWithoutTenantIdAndUserId() {
+        // set up
+        when(vaultAdminMock.getUserByAccessKey(any(GetUserByAccessKeyRequestDTO.class)))
+                .thenAnswer((Answer<GetUserByAccessKeyResponseDTO>) innovation -> {
+                    final GetUserByAccessKeyResponseDTO response = new GetUserByAccessKeyResponseDTO();
+                    final UserData user = new UserData();
+                    user.setName(TEST_USER_ID);
+                    user.setParentId(SAMPLE_TENANT_ID);
+                    response.setData(user);
+                    return response;
+                });
 
         // Run the test
-        scalityOsisServiceUnderTest.deleteS3Credential(TEST_TENANT_ID, "", TEST_ACCESS_KEY);
+        scalityOsisServiceUnderTest.deleteS3Credential(null, null, TEST_ACCESS_KEY);
 
         // Verify the results
-        verify(iamMock, never()).deleteAccessKey(any(DeleteAccessKeyRequest.class));
-        verify(redisRepositoryMock, never()).delete(any());
-    }
-
-    @Test
-    public void testDeleteS3CredentialEmptyTenantID() {
-        // Setup
-
-        // Run the test
-        scalityOsisServiceUnderTest.deleteS3Credential("", TEST_USER_ID, TEST_ACCESS_KEY);
-
-        // Verify the results
-        verify(iamMock, never()).deleteAccessKey(any(DeleteAccessKeyRequest.class));
-        verify(redisRepositoryMock, never()).delete(any());
+        verify(iamMock).deleteAccessKey(any(DeleteAccessKeyRequest.class));
+        verify(redisRepositoryMock).delete(any());
     }
 
     @Test
@@ -211,6 +208,26 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
         // Verify the results
         verify(iamMock, never()).deleteAccessKey(any(DeleteAccessKeyRequest.class));
         verify(redisRepositoryMock, never()).delete(any());
+    }
+
+    @Test
+    public void testDeleteS3CredentialNoAdminPolicy() {
+        // Setup
+        when(iamMock.deleteAccessKey(any(DeleteAccessKeyRequest.class)))
+                .thenAnswer((Answer<DeleteAccessKeyResult>) invocation -> {
+                    final AmazonIdentityManagementException iamException = new AmazonIdentityManagementException(
+                            "Forbidden");
+                    iamException.setStatusCode(HttpStatus.FORBIDDEN.value());
+                    throw iamException;
+                })
+                .thenAnswer((Answer<DeleteAccessKeyResult>) invocation -> new DeleteAccessKeyResult());
+
+
+        // Run the test
+        scalityOsisServiceUnderTest.deleteS3Credential(TEST_TENANT_ID, TEST_USER_ID, TEST_ACCESS_KEY);
+
+        // Verify the results
+        verify(redisRepositoryMock).delete(any());
     }
 
     @Test

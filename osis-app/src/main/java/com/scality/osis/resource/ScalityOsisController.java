@@ -134,16 +134,15 @@ public class ScalityOsisController {
             @Authorization(value = "basicAuth")
     }, tags = { "s3credential", "optional", })
     @ApiResponses(value = {
-            @ApiResponse(code = 204, message = "The S3 credential is deleted"),
-            @ApiResponse(code = 501, message = "The optional API is not implemented") })
+            @ApiResponse(code = 204, message = "The S3 credential is deleted")})
     @ApiImplicitParams({
     })
     @DeleteMapping(value = "/api/v1/s3credentials/{accessKey}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCredential(
-            @NotNull @ApiParam(value = "The ID of the tenant which the user belongs to", required = true) @Valid @RequestParam(value = "tenant_id", required = true) String tenantId,
-            @NotNull @ApiParam(value = "The ID of the user which the deleted S3 credential belongs to", required = true) @Valid @RequestParam(value = "user_id", required = true) String userId,
-            @ApiParam(value = "The access key of the S3 credential to delete", required = true) @PathVariable("accessKey") String accessKey) {
+            @ApiParam(value = "The ID of the tenant which the user belongs to") @RequestParam(value = "tenant_id", required = false) String tenantId,
+            @ApiParam(value = "The ID of the user which the deleted S3 credential belongs to") @RequestParam(value = "user_id", required = false) String userId,
+            @NotNull @ApiParam(value = "The access key of the S3 credential to delete", required = true) @PathVariable("accessKey") String accessKey) {
         osisService.deleteS3Credential(tenantId, userId, accessKey);
     }
 
