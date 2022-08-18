@@ -52,6 +52,7 @@ public final class ScalityTestUtils {
     public static final String TEST_SESSION_TOKEN = "session_token";
     public static final String TEST_CONSOLE_URL = "https://example.console.ose.scality.com";
     public static final String TEST_S3_INTERFACE_URL = "https://localhost:8443";
+    public static final String TEST_S3_CAPABILITIES_FILE_PATH = "s3capabilities.json";
     public static final String PLATFORM_NAME = "Scality";
     public static final String PLATFORM_VERSION = "7.10";
     public static final String API_VERSION = "1.2.0-SNAPSHOT";

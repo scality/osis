@@ -86,6 +86,7 @@ public class BaseOsisServiceTest {
         when(appEnvMock.getS3InterfaceEndpoint()).thenReturn(TEST_S3_INTERFACE_URL);
         when(appEnvMock.getAssumeRoleName()).thenReturn(SAMPLE_ASSUME_ROLE_NAME);
         when(appEnvMock.getSpringCacheType()).thenReturn(REDIS_SPRING_CACHE_TYPE);
+        when(appEnvMock.getS3CapabilitiesFilePath()).thenReturn(TEST_S3_CAPABILITIES_FILE_PATH);
         when(osisCapsManagerMock.getNotImplements()).thenReturn(new ArrayList<>());
         when(vaultAdminMock.getIAMClient(any(Credentials.class), any())).thenReturn(iamMock);
 

@@ -179,6 +179,10 @@ public class ScalityAppEnv {
         return Integer.parseInt(vaultHealthCheckTimeout);
     }
 
+    public String getS3CapabilitiesFilePath() {
+        return env.getProperty("osis.scality.s3.capabilities-file-path");
+    }
+
     // function migrated from VMware Ceph implementation AppEnv
     public String getS3Endpoint() {
         return env.getProperty("osis.scality.vaultS3Interface.endpoint");
