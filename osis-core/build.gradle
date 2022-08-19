@@ -5,4 +5,3 @@ test {
     useJUnitPlatform()
 }
 group = 'com.scality'
-version '1.0.0'

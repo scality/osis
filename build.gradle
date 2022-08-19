@@ -24,7 +24,6 @@ plugins {
 }
 
 group = 'com.scality'
-version '1.0.0'
 description = 'osis.scality'
 sourceCompatibility = '1.8'
 
@@ -100,6 +99,7 @@ sourceSets {
 }
 
 configure(allprojects) {
+    version = '1.1.0'
     ext {
         springBootVersion = '2.2.5.RELEASE'
     }
@@ -155,7 +155,6 @@ publishing {
         mavenJava(MavenPublication) {
             groupId 'com.scality'
             artifactId 'osis'
-            version '1.0.0'
 
             from components.java
 

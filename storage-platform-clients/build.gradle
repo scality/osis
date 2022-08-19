@@ -38,7 +38,6 @@ test {
 }
 
 group = 'com.scality'
-version = '1.0.0'
 description = 'storage-platform-clients'
 sourceCompatibility = '1.8'
 
