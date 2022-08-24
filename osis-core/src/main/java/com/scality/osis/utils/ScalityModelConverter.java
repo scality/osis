@@ -9,14 +9,6 @@ import com.amazonaws.services.identitymanagement.model.User;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
-import com.scality.vaultclient.dto.*;
-import com.scality.osis.model.OsisS3Credential;
-import com.scality.osis.model.OsisTenant;
-import com.scality.osis.model.OsisUser;
-import com.scality.osis.model.PageInfo;
-import com.scality.osis.model.PageOfS3Credentials;
-import com.scality.osis.model.PageOfTenants;
-import com.scality.osis.model.PageOfUsers;
 import com.scality.osis.model.*;
 import com.scality.osis.model.exception.BadRequestException;
 import com.scality.vaultclient.dto.*;
@@ -646,8 +638,10 @@ public final class ScalityModelConverter {
                 .immutable(Boolean.TRUE);
     }
 
-    public static OsisS3Credential toOsisS3Credentials(String tenantId, AccessKeyMetadata accessKeyMetadata,
-            String secretKey) {
+    public static OsisS3Credential toOsisS3Credentials(String tenantId,
+                                                       String cdTenantId,
+                                                       AccessKeyMetadata accessKeyMetadata,
+                                                       String secretKey) {
         OsisS3Credential s3Credential = new OsisS3Credential()
                 .accessKey(accessKeyMetadata.getAccessKeyId())
                 .active(accessKeyMetadata.getStatus()
@@ -655,6 +649,7 @@ public final class ScalityModelConverter {
                 .userId(accessKeyMetadata.getUserName())
                 .cdUserId(accessKeyMetadata.getUserName())
                 .tenantId(tenantId)
+                .cdTenantId(cdTenantId)
                 .creationDate(accessKeyMetadata.getCreateDate().toInstant())
                 .immutable(Boolean.TRUE)
                 .secretKey(StringUtils.isEmpty(secretKey) ? ScalityConstants.NOT_AVAILABLE : secretKey);

@@ -401,13 +401,18 @@ public class ScalityModelConverterTest {
                 .withUserName(TEST_USER_ID);
 
         // Run the test
-        final OsisS3Credential result = ScalityModelConverter.toOsisS3Credentials(TEST_TENANT_ID, accesskeyMetaData,
-                TEST_SECRET_KEY);
+        final OsisS3Credential result = ScalityModelConverter.toOsisS3Credentials(
+                TEST_TENANT_ID,
+                TEST_CD_TENANT_ID,
+                accesskeyMetaData,
+                TEST_SECRET_KEY
+        );
 
         // Verify the results
         assertEquals(TEST_USER_ID, result.getCdUserId());
         assertEquals(TEST_USER_ID, result.getUserId());
         assertEquals(TEST_TENANT_ID, result.getTenantId());
+        assertEquals(TEST_CD_TENANT_ID, result.getCdTenantId());
         assertEquals(TEST_ACCESS_KEY, result.getAccessKey());
         assertEquals(TEST_SECRET_KEY, result.getSecretKey());
         assertTrue(result.getActive());
@@ -424,13 +429,18 @@ public class ScalityModelConverterTest {
                 .withUserName(TEST_USER_ID);
 
         // Run the test
-        final OsisS3Credential result = ScalityModelConverter.toOsisS3Credentials(TEST_TENANT_ID, accesskeyMetaData,
-                null);
+        final OsisS3Credential result = ScalityModelConverter.toOsisS3Credentials(
+                TEST_TENANT_ID,
+                TEST_CD_TENANT_ID,
+                accesskeyMetaData,
+                null
+        );
 
         // Verify the results
         assertEquals(TEST_USER_ID, result.getCdUserId());
         assertEquals(TEST_USER_ID, result.getUserId());
         assertEquals(TEST_TENANT_ID, result.getTenantId());
+        assertEquals(TEST_CD_TENANT_ID, result.getCdTenantId());
         assertEquals(TEST_ACCESS_KEY, result.getAccessKey());
         assertEquals(NOT_AVAILABLE, result.getSecretKey());
         assertTrue(result.getActive());
