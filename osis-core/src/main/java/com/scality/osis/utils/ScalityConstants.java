@@ -127,4 +127,7 @@ public final class ScalityConstants {
 
     public static final long DEFAULT_MIN_OFFSET = 0l;
     public static final long DEFAULT_MAX_LIMIT = 1000l;
+
+    public static final String ANONYMOUS_USER_ID = "65a011a2-9cdf-8ec5-33ec-3d1ccaae921c";
+    public static final String ANONYMOUS_USER_NAME = "AnonymousUser";
 }

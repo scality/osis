@@ -1145,6 +1145,16 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
         return new OsisUsage();
     }
 
+    @Override
+    public AnonymousUser getAnonymousUser() {
+        logger.info("Get Anonymous User request received");
+        AnonymousUser anonymousUser = new AnonymousUser()
+                .id(ANONYMOUS_USER_ID)
+                .name(ANONYMOUS_USER_NAME);
+        logger.trace("Get Anonymous User response, {}", new Gson().toJson(anonymousUser));
+        return anonymousUser;
+    }
+
     /**
      * Gets credentials.
      *
