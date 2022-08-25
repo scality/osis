@@ -37,6 +37,7 @@ public final class ScalityTestUtils {
     public static final String SAMPLE_SCALITY_USER_EMAIL = "user.name@osis.scality.com";
 
     public static final String TEST_TENANT_ID = "tenantId";
+    public static final String TEST_CD_TENANT_ID = "cdTenantId";
     public static final String TEST_STR = "value";
     public static final String NOT_IMPLEMENTED_EXCEPTION_ERR = "expected NotImplementedException";
     public static final String NULL_ERR = "Expected Value. Found Null";

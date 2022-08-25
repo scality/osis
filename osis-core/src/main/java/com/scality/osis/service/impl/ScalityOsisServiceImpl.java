@@ -681,7 +681,15 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 String secretKey = retrieveSecretKey(
                         ScalityModelConverter.toRepoKeyForCredentials(userId, accessKeyMetadata.getAccessKeyId()));
 
+                // get Osis User by userId
+                GetUserRequest getUserRequest = ScalityModelConverter.toIAMGetUserRequest(userId);
+                logger.debug("[Vault] Get User Request:{}", new Gson().toJson(getUserRequest));
+                GetUserResult getUserResult = iam.getUser(getUserRequest);
+                logger.debug("[Vault] Get User response:{}", new Gson().toJson(getUserResult));
+                OsisUser osisUser = ScalityModelConverter.toOsisUser(getUserResult.getUser(), tenantId);
+
                 OsisS3Credential osisCredential = ScalityModelConverter.toOsisS3Credentials(tenantId,
+                        osisUser.getCdTenantId(),
                         accessKeyMetadata,
                         secretKey);
                 logger.info("Get S3 credential  response:{}",
