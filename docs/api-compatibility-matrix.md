@@ -2,11 +2,15 @@
 
 ## Epics
 
-Milestone 1 (DONE) - <https://scality.atlassian.net/browse/S3C-3768>
+Milestone 1 (DONE) - <https://scality.atlassian.net/browse/RING-35307>
 
-Milestone 2 (IN PROGRESS) - <https://scality.atlassian.net/browse/S3C-3938>
+Milestone 2 (DONE) - <https://scality.atlassian.net/browse/RING-35308>
 
-Milestone 3 (tickets TBD) - <https://scality.atlassian.net/browse/S3C-4027>
+Milestone 3 (DONE) - <https://scality.atlassian.net/browse/RING-35309>
+
+Milestone 4 (DONE) - <https://scality.atlassian.net/browse/RING-35953>
+
+Milestone 5 (IN PROGRESS) - <https://scality.atlassian.net/browse/RING-35197>
 
 ## Object Storage Interoperability Service
 
@@ -19,37 +23,37 @@ Legend
 * `o` - implemented with default stub
 * `*` - Mandatory APIs to integrate with OSE for essential functions, like basic S3 bucket/object CRUD operations
 
-| API  | Milestone 1 | Milestone 2 | Milestone 3 | Milestone 4 |
-|:-----|:------------|:------------|-------------|-------------|
-| headTenant * | . | . | . | x |
-| getTenant | . | . | . | . |
-| updateTenant * | . | . | . | x |
-| deleteTenant | . | . | . | . |
-| listTenants * | x | x | x | x |
-| createTenant * | x | x | x | x |
-| queryTenants * | x | x | x | x |
-| queryUsers * | . | x | x | x |
-| createUser * | . | x | x | x |
-| listUsers * | . | x | x | x |
-| getUserWithId * | . | x | x | x |
-| headUser | . | . | . | . |
-| updateUserStatus * | . | . | . | . |
-| deleteUser * | . | . | . | x |
-| getUserWithCanonicalID * | . | . | x | x |
-| queryCredentials * | . | . | x | x |
-| listCredentials * | . | x | x | x |
-| createCredential * | . | x | x | x |
-| getCredential * | . | . | x | x |
-| updateCredentialStatus | . | . | . | . |
-| deleteCredential | . | . | . | x |
-| getUsage | o | o | o | o |
-| getBucketList | . | . | . | . |
-| getBucketLoggingId | . | . | . | . |
-| getAnonymousUser | . | . | . | . |
-| getConsole | o | o | o | o |
-| getS3Capabilities * | o | x | x | x |
-| getInfo * | o | o | o | x |
-| refreshToken *  | o | o | o | o |
+| API                      | Milestone 1 | Milestone 2 | Milestone 3 | Milestone 4 | Milestone 4 |
+|:-------------------------|:------------|:------------|-------------|-------------|-------------|
+| headTenant *             | .           | .           | .           | x           | x           |
+| getTenant                | .           | .           | .           | .           | x           |
+| updateTenant *           | .           | .           | .           | x           | x           |
+| deleteTenant             | .           | .           | .           | .           | .           |
+| listTenants *            | x           | x           | x           | x           | x           |
+| createTenant *           | x           | x           | x           | x           | x           |
+| queryTenants *           | x           | x           | x           | x           | x           |
+| queryUsers *             | .           | x           | x           | x           | x           |
+| createUser *             | .           | x           | x           | x           | x           |
+| listUsers *              | .           | x           | x           | x           | x           |
+| getUserWithId *          | .           | x           | x           | x           | x           |
+| headUser                 | .           | .           | .           | .           | x           |
+| updateUserStatus *       | .           | .           | .           | x           | x           |
+| deleteUser *             | .           | .           | .           | x           | x           |
+| getUserWithCanonicalID * | .           | .           | x           | x           | x           |
+| queryCredentials *       | .           | .           | x           | x           | x           |
+| listCredentials *        | .           | x           | x           | x           | x           |
+| createCredential *       | .           | x           | x           | x           | x           |
+| getCredential *          | .           | .           | x           | x           | x           |
+| updateCredentialStatus   | .           | .           | .           | .           | x           |
+| deleteCredential         | .           | .           | .           | x           | x           |
+| getUsage                 | o           | o           | o           | o           | .           |
+| getBucketList            | .           | .           | .           | .           | o           |
+| getBucketLoggingId       | .           | .           | .           | .           | .           |
+| getAnonymousUser         | .           | .           | .           | .           | x           |
+| getConsole               | o           | o           | o           | x           | x           |
+| getS3Capabilities *      | o           | x           | x           | x           | x           |
+| getInfo *                | o           | o           | o           | x           | x           |
+| refreshToken *           | o           | o           | o           | x           | x           |
 
 ### Required APIs
 
