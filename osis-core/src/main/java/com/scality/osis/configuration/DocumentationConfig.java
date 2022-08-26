@@ -30,7 +30,7 @@ import java.util.List;
 public class DocumentationConfig {
     private static final String DOC_TITLE = "Object Storage Interoperability Services API for Scality platform";
     private static final String DOC_DESCRIPTION = "This is VMware Cloud Director Object Storage Interoperability Services API for Scality platform.";
-    private static final String DOC_VERSION = "1.2.0";
+    private static final String DOC_VERSION = "1.3.0-SNAPSHOT";
     private static final String PROJECT_BASE = "com.scality.osis";
 
     ApiInfo apiInfo() {
