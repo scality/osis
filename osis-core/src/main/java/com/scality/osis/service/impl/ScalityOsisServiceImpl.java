@@ -48,7 +48,6 @@ import static com.scality.osis.utils.ScalityConstants.*;
 @Primary
 public class ScalityOsisServiceImpl implements ScalityOsisService {
     private static final Logger logger = LoggerFactory.getLogger(ScalityOsisServiceImpl.class);
-    private static final String S3_CAPABILITIES_JSON = "s3capabilities.json";
 
     @Autowired
     private ScalityAppEnv appEnv;
@@ -471,13 +470,14 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     public OsisS3Capabilities getS3Capabilities() {
         logger.info("S3 capabilities request received");
         OsisS3Capabilities osisS3Capabilities = new OsisS3Capabilities();
+        String s3CapabilitiesFilePath = appEnv.getS3CapabilitiesFilePath();
         try {
             osisS3Capabilities = new ObjectMapper()
-                    .readValue(new ClassPathResource(S3_CAPABILITIES_JSON).getInputStream(),
+                    .readValue(new ClassPathResource(s3CapabilitiesFilePath).getInputStream(),
                             OsisS3Capabilities.class);
             logger.info("S3 capabilities response:{}", new Gson().toJson(osisS3Capabilities));
         } catch (IOException e) {
-            logger.info("Fail to load S3 capabilities from configuration file {}.", S3_CAPABILITIES_JSON);
+            logger.info("Fail to load S3 capabilities from configuration file {}.", s3CapabilitiesFilePath);
         }
         return osisS3Capabilities;
     }
