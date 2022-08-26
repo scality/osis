@@ -55,7 +55,7 @@ public final class ScalityTestUtils {
     public static final String TEST_S3_CAPABILITIES_FILE_PATH = "s3capabilities.json";
     public static final String PLATFORM_NAME = "Scality";
     public static final String PLATFORM_VERSION = "7.10";
-    public static final String API_VERSION = "1.2.0-SNAPSHOT";
+    public static final String API_VERSION = "1.3.0-SNAPSHOT";
     public static final long SAMPLE_DURATION_SECONDS = 120L;
     public static final String ACTIVE_STR = "Active";
     public static final String NA_STR = "N/A";
