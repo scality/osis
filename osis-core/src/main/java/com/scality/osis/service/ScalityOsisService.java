@@ -71,4 +71,6 @@ public interface ScalityOsisService {
     PageOfOsisBucketMeta getBucketList(String tenantId, long offset, long limit);
 
     OsisUsage getOsisUsage(Optional<String> tenantId, Optional<String> userId);
+
+    AnonymousUser getAnonymousUser();
 }

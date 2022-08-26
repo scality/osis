@@ -662,4 +662,15 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
         assertTrue(resUser.getActive());
     }
 
+    @Test
+    public void testGetAnonymousUser() {
+        // Setup
+
+        // Run the test
+        final AnonymousUser anonymousUser = scalityOsisServiceUnderTest.getAnonymousUser();
+
+        // Verify the results
+        assertEquals(anonymousUser.getId(), ANONYMOUS_USER_ID);
+        assertEquals(anonymousUser.getName(), ANONYMOUS_USER_NAME);
+    }
 }

@@ -737,9 +737,8 @@ public class ScalityOsisController {
     }
 
     @GetMapping(value = "/api/v1/anonymous-user", produces = "application/json")
-    @NotImplement(name = ScalityOsisConstants.GET_ANONYMOUS_USER_API_CODE)
-    public OsisUser getAnonymousUser() {
-        throw new NotImplementedException();
+    public AnonymousUser getAnonymousUser() {
+        return this.osisService.getAnonymousUser();
     }
 
     @PostMapping(value = "/api/admin-apis", produces = "application/json")
