@@ -620,7 +620,7 @@ public class ScalityOsisController {
     @ApiImplicitParams({
     })
     @PatchMapping(value = "/api/v1/tenants/{tenantId}", produces = "application/json", consumes = "application/json")
-    public OsisTenant updateTenantStatus(
+    public OsisTenant updateTenant(
             @ApiParam(value = "Tenant ID of the tenant to update status", required = true) @PathVariable("tenantId") String tenantId,
             @ApiParam(value = "Tenant status to update in the platform. Only property 'active' takes effect", required = true) @Valid @RequestBody OsisTenant osisTenant) {
         return osisService.updateTenant(tenantId, osisTenant);

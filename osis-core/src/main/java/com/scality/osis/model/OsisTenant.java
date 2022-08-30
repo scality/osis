@@ -85,7 +85,17 @@ public class OsisTenant {
     if (this.cdTenantIds == null) {
       this.cdTenantIds = new ArrayList<>();
     }
-    this.cdTenantIds.add(cdTenantId);
+    if (!this.cdTenantIds.contains(cdTenantId)) {
+      this.cdTenantIds.add(cdTenantId);
+    }
+    return this;
+  }
+
+  public OsisTenant removeCdTenantId(String cdTenantId) {
+    if (this.cdTenantIds == null) {
+      this.cdTenantIds = new ArrayList<>();
+    }
+    this.cdTenantIds.remove(cdTenantId);
     return this;
   }
 

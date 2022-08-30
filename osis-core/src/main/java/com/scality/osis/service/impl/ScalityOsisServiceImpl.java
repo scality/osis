@@ -540,22 +540,53 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     public OsisTenant updateTenant(String tenantId, OsisTenant osisTenant) {
         try {
             logger.info("Update Tenant request received:{}", new Gson().toJson(osisTenant));
+
+            if (!Objects.equals(tenantId, osisTenant.getTenantId())) {
+                // if tenantId(pathParam) doesn't equal to tenantId in osisTenant(bodyParam)
+                // it means we are going to unlink the cd_tenant_ids in osisTenant from the tenantId
+                // and link them to the tenantId in osisTenant
+
+                // get the osis tenant which is to be unlinked cd_tenand_id
+                OsisTenant toBeUnlinkedOsisTenant = getTenant(tenantId);
+                OsisTenant ToBeLinkedOsisTenant = getTenant(osisTenant.getTenantId());
+
+                for (String cdTenantId: osisTenant.getCdTenantIds()) {
+                    toBeUnlinkedOsisTenant.removeCdTenantId(cdTenantId);
+                    ToBeLinkedOsisTenant.addCdTenantId(cdTenantId);
+                }
+
+                UpdateAccountAttributesRequestDTO updateAccountAttributesRequest = ScalityModelConverter
+                        .toUpdateAccountAttributesRequestDTO(toBeUnlinkedOsisTenant);
+
+                logger.debug("[Vault]Update Account Attributes request:{}",
+                        new Gson().toJson(updateAccountAttributesRequest));
+
+                AccountData accountData = vaultAdmin
+                        .updateAccountAttributes(updateAccountAttributesRequest);
+
+                logger.debug("[Vault]Update Account Attributes response:{}", new Gson().toJson(accountData));
+
+                osisTenant = ToBeLinkedOsisTenant;
+            }
+
             UpdateAccountAttributesRequestDTO updateAccountAttributesRequest = ScalityModelConverter
                     .toUpdateAccountAttributesRequestDTO(osisTenant);
 
             logger.debug("[Vault]Update Account Attributes request:{}",
                     new Gson().toJson(updateAccountAttributesRequest));
 
-            CreateAccountResponseDTO accountResponse = vaultAdmin
+            AccountData accountData = vaultAdmin
                     .updateAccountAttributes(updateAccountAttributesRequest);
 
-            logger.debug("[Vault]Update Account Attributes response:{}", new Gson().toJson(accountResponse));
+            logger.debug("[Vault]Update Account Attributes response:{}", new Gson().toJson(accountData));
 
-            OsisTenant resOsisTenant = ScalityModelConverter.toOsisTenant(accountResponse);
+            OsisTenant resOsisTenant = ScalityModelConverter.toOsisTenant(accountData);
 
             logger.info("Update Tenant response:{}", new Gson().toJson(resOsisTenant));
 
             return resOsisTenant;
+
+
         } catch (VaultServiceException e) {
             // Update Tenant supports only 400:BAD_REQUEST error, change status code in the
             // VaultServiceException
