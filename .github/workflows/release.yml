@@ -19,14 +19,14 @@ jobs:
       REGISTRY_LOGIN: ${{ secrets.REGISTRY_LOGIN }}
       REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
 
-  release:
+  github-release:
     name: Creating GitHub Release
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs:
       - docker-build
     steps:
-      - name: Release
+      - name: Github Release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -35,3 +35,10 @@ jobs:
           tag_name: ${{ github.event.inputs.tag }}
           generate_release_notes: true
           target_commitish: ${{ github.sha }}
+
+  gradle_build_and_upload:
+    name: Gradle build and upload release
+    uses: ./.github/workflows/gradle-build-and-upload.yml
+    secrets: inherit
+    with:
+      release: true
