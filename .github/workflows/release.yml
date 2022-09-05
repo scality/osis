@@ -2,11 +2,11 @@
 name: release
 
 on:
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag to be released"
-        required: true
+  push:
+    branches-ignore:
+      - development/**
+      - main/**
+      - q/*/**
 
 jobs:
   docker-build:
@@ -14,7 +14,7 @@ jobs:
     uses: ./.github/workflows/docker-build.yml
     with:
       namespace: osis
-      tag: ${{ github.event.inputs.tag }}
+      tag: 0.0.3
     secrets:
       REGISTRY_LOGIN: ${{ secrets.REGISTRY_LOGIN }}
       REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
@@ -31,8 +31,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: Release ${{ github.event.inputs.tag }}
-          tag_name: ${{ github.event.inputs.tag }}
+          name: Release 0.0.3
+          tag_name: 0.0.3
           generate_release_notes: true
           target_commitish: ${{ github.sha }}
 
