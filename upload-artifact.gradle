@@ -1,5 +1,35 @@
 apply plugin: 'com.bmuschko.nexus'
 apply plugin: 'signing'
+
+modifyPom {
+    project {
+        name "com.scality:osis-scality"
+        description "com.scality:osis-scality"
+        url 'https://github.com/scality/osis'
+
+        scm {
+            connection 'scm:git:git://github.com/scality/osis.git'
+            developerConnection 'scm:git:ssh://github.com:scality/osis.git'
+            url 'https://github.com/scality/osis/tree/main'
+        }
+
+        licenses {
+            license {
+                name 'The Apache Software License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            }
+        }
+
+        developers {
+            developer {
+                id 'scality.com'
+                name 'scality.com'
+                email 'scality@scality.com'
+            }
+        }
+    }
+}
+
 nexus {
     sign = true
     repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'

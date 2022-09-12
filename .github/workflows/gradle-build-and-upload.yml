@@ -1,0 +1,53 @@
+name: gradle-build-and-upload
+
+on:
+  workflow_call:
+    inputs:
+      release:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  gradle_build_and_upload:
+    name: Gradle build and upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SIGNING_KEY: ${{ secrets.SIGNING_SECRET_KEY_RING_FILE }}
+      NEXUS_UNAME: ${{ secrets.NEXUS_USERNAME }}
+      NEXUS_PWD: ${{ secrets.NEXUS_PASSWORD }}
+      SIGNING_KEYID: ${{ secrets.SIGNING_KEY_ID }}
+      SIGNING_PWD: ${{ secrets.SIGNING_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: "corretto"
+          java-version: "8"
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 6.7.1
+
+      - name: Execute build with Gradle wrapper
+        run: ./gradlew build
+
+      - name: Get archive upload signing key
+        run: echo "$SIGNING_KEY" | base64 --decode > $GITHUB_WORKSPACE/secring.gpg
+
+      - name: Gradle Upload Archives to Snapshot Repository
+        if: ${{ !inputs.release }}
+        run: gradle uploadArchives -Psigning.secretKeyRingFile=$GITHUB_WORKSPACE/secring.gpg -PnexusUsername=$NEXUS_UNAME -PnexusPassword=$NEXUS_PWD -Psigning.keyId=$SIGNING_KEYID -Psigning.password=$SIGNING_PWD
+
+      - name: Gradle Upload Archives to Releases Repository
+        if: ${{ inputs.release }}
+        run: gradle uploadArchives -Prelease -Psigning.secretKeyRingFile=$GITHUB_WORKSPACE/secring.gpg -PnexusUsername=$NEXUS_UNAME -PnexusPassword=$NEXUS_PWD -Psigning.keyId=$SIGNING_KEYID -Psigning.password=$SIGNING_PWD
+
+      - name: Gradle Publish Release to Nexus
+        if: ${{ inputs.release }}
+        run: ./gradlew closeAndReleaseRepository -Psigning.secretKeyRingFile=$GITHUB_WORKSPACE/secring.gpg -PnexusUsername=$NEXUS_UNAME -PnexusPassword=$NEXUS_PWD -Psigning.keyId=$SIGNING_KEYID -Psigning.password=$SIGNING_PWD
