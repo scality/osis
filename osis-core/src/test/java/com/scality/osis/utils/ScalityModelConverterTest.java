@@ -35,6 +35,15 @@ public class ScalityModelConverterTest {
     }
 
     @Test
+    public void testToScalityListAccountsRequest() {
+        final ListAccountsRequestDTO listAccountsRequest = ScalityModelConverter
+                .toScalityListAccountsRequest(100);
+
+        assertEquals(100, listAccountsRequest.getMaxItems());
+        assertEquals(null, listAccountsRequest.getFilterKeyStartsWith());
+    }
+
+    @Test
     public void testToOsisCDTenantIdsTest() {
         final List<String> result = ScalityModelConverter.toOsisCDTenantIds(SAMPLE_CUSTOM_ATTRIBUTES);
         assertTrue(SAMPLE_CD_TENANT_IDS.size() == result.size() &&

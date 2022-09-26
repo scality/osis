@@ -135,16 +135,11 @@ public class VaultAdminImplTest extends BaseTest {
 
         final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
                 .maxItems(5)
-                .filterKeyStartsWith(CD_TENANT_ID_PREFIX)
                 .build();
 
         final ListAccountsResponseDTO response = vaultAdminImpl.listAccounts(listAccountsRequestDTO);
         assertNotEquals(0, response.getAccounts().size());
-        assertFalse(response.getAccounts().get(0).getCustomAttributes().isEmpty());
-        assertTrue(response.getAccounts().get(0)
-                .getCustomAttributes().keySet()
-                .stream().findFirst().get()
-                .startsWith(CD_TENANT_ID_PREFIX));
+        assertEquals(response.getAccounts().get(0).getCustomAttributes(), null);
     }
 
     @Test
@@ -152,7 +147,6 @@ public class VaultAdminImplTest extends BaseTest {
 
         final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
                 .maxItems(5)
-                .filterKeyStartsWith(CD_TENANT_ID_PREFIX)
                 .build();
 
         when(accountServicesClient.listAccounts(any(ListAccountsRequestDTO.class)))
@@ -178,7 +172,6 @@ public class VaultAdminImplTest extends BaseTest {
 
         final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
                 .maxItems(5)
-                .filterKeyStartsWith(CD_TENANT_ID_PREFIX)
                 .build();
 
         when(accountServicesClient.listAccounts(any(ListAccountsRequestDTO.class)))
@@ -282,16 +275,11 @@ public class VaultAdminImplTest extends BaseTest {
 
         final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
                 .maxItems(1000)
-                .filterKeyStartsWith(CD_TENANT_ID_PREFIX)
                 .build();
 
         final ListAccountsResponseDTO response = vaultAdminImpl.listAccounts(3000, listAccountsRequestDTO);
         assertEquals(1000, response.getAccounts().size());
-        assertFalse(response.getAccounts().get(0).getCustomAttributes().isEmpty());
-        assertTrue(response.getAccounts().get(0)
-                .getCustomAttributes().keySet()
-                .stream().findFirst().get()
-                .startsWith(CD_TENANT_ID_PREFIX));
+        assertEquals(response.getAccounts().get(0).getCustomAttributes(), null);
     }
 
     @Test
@@ -308,17 +296,12 @@ public class VaultAdminImplTest extends BaseTest {
 
         final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
                 .maxItems(1000)
-                .filterKeyStartsWith(CD_TENANT_ID_PREFIX)
                 .build();
 
         final ListAccountsResponseDTO response = vaultAdminImpl.listAccounts(1000, listAccountsRequestDTO);
         assertEquals(1000, response.getAccounts().size());
         assertEquals("M2000", response.getMarker());
-        assertFalse(response.getAccounts().get(0).getCustomAttributes().isEmpty());
-        assertTrue(response.getAccounts().get(0)
-                .getCustomAttributes().keySet()
-                .stream().findFirst().get()
-                .startsWith(CD_TENANT_ID_PREFIX));
+        assertEquals(response.getAccounts().get(0).getCustomAttributes(), null);
     }
 
     @Test
@@ -335,17 +318,12 @@ public class VaultAdminImplTest extends BaseTest {
 
         final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
                 .maxItems(1000)
-                .filterKeyStartsWith(CD_TENANT_ID_PREFIX)
                 .build();
 
         final ListAccountsResponseDTO response = vaultAdminImpl.listAccounts(3000, listAccountsRequestDTO);
         assertEquals(1000, response.getAccounts().size());
         assertEquals("M4000", response.getMarker());
-        assertFalse(response.getAccounts().get(0).getCustomAttributes().isEmpty());
-        assertTrue(response.getAccounts().get(0)
-                .getCustomAttributes().keySet()
-                .stream().findFirst().get()
-                .startsWith(CD_TENANT_ID_PREFIX));
+        assertEquals(response.getAccounts().get(0).getCustomAttributes(), null);
     }
 
     @Test
