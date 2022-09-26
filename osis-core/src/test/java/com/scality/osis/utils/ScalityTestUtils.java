@@ -11,7 +11,7 @@ import java.util.Map;
 public final class ScalityTestUtils {
 
     public static final String SAMPLE_TENANT_ID = "123123123123";
-    public static final String SAMPLE_ID = "bfc0d4a51e06481cbc917e9d96e52d81";
+    public static final String SAMPLE_ID = "f3bbe501-29b0-4891-8602-a4e2f95101f8";
     public static final String SAMPLE_CD_TENANT_ID = "5db7b952-66b9-4164-bfe2-7bab25ac9011";
     public static final String SAMPLE_TENANT_NAME = "tenant name";
     public static final List<String> SAMPLE_CD_TENANT_IDS = new ArrayList<>(
@@ -45,6 +45,7 @@ public final class ScalityTestUtils {
     public static final String TEST_USER_ID = "userId";
     public static final String TEST_CANONICAL_ID = "canonicalID";
     public static final String TEST_NAME = "name";
+    public static final String TEST_BUCKET_NAME = "bucket_name";
     public static final String TEST_POLICY_ARN = "policy-arn";
     public static final String TEST_ACCESS_KEY = "access_key";
     public static final String TEST_ACCESS_KEY_2 = "access_key_2";
@@ -53,6 +54,7 @@ public final class ScalityTestUtils {
     public static final String TEST_CONSOLE_URL = "https://example.console.ose.scality.com";
     public static final String TEST_S3_INTERFACE_URL = "https://localhost:8443";
     public static final String TEST_S3_CAPABILITIES_FILE_PATH = "s3capabilities.json";
+    public static final String TEST_S3_URL = "http://localhost:8000";
     public static final String PLATFORM_NAME = "Scality";
     public static final String PLATFORM_VERSION = "7.10";
     public static final String API_VERSION = "1.3.0-SNAPSHOT";
@@ -63,6 +65,8 @@ public final class ScalityTestUtils {
     public static final String TEST_CIPHER_SECRET_KEY = "dGhpc2lzYXJlYWxseWxvbmdhbmRzZXk=";
     public static final String TEST_INVALID_CIPHER_SECRET_KEY = "dGhpc2lzYXJlYWxseWxvbmdhbmRzZXk=hgJfad==";
     public static final String TEST_CIPHER_ID = "1";
+
+    public static final long TEST_BUCKET_TOTAL_NUMBER = 10000L;
 
     private ScalityTestUtils() {
 

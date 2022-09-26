@@ -18,12 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.scality.osis.utils.ScalityConstants.DEFAULT_ACCOUNT_AK_DURATION_SECONDS;
-import static com.scality.osis.utils.ScalityConstants.DEFAULT_ASYNC_EXECUTOR_CORE_POOL_SIZE;
-import static com.scality.osis.utils.ScalityConstants.DEFAULT_ASYNC_EXECUTOR_MAX_POOL_SIZE;
-import static com.scality.osis.utils.ScalityConstants.DEFAULT_ASYNC_EXECUTOR_QUEUE_CAPACITY;
-import static com.scality.osis.utils.ScalityConstants.DEFAULT_SPRING_CACHE_TYPE;
-import static com.scality.osis.utils.ScalityConstants.DEFAULT_VAULT_HEALTHCHECK_TIMEOUT;
+import static com.scality.osis.utils.ScalityConstants.*;
 
 @Component
 @Primary
@@ -185,6 +180,14 @@ public class ScalityAppEnv {
 
     // function migrated from VMware Ceph implementation AppEnv
     public String getS3Endpoint() {
-        return env.getProperty("osis.scality.vaultS3Interface.endpoint");
+        return env.getProperty("osis.scality.s3.endpoint");
+    }
+
+    public int getS3HealthCheckTimeout() {
+        String s3HealthCheckTimeout =  env.getProperty("osis.scality.s3.healthcheck.timeout");
+        if(StringUtils.isBlank(s3HealthCheckTimeout)) {
+            s3HealthCheckTimeout = DEFAULT_S3_HEALTHCHECK_TIMEOUT;
+        }
+        return Integer.parseInt(s3HealthCheckTimeout);
     }
 }

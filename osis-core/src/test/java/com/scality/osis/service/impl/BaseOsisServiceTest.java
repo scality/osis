@@ -3,17 +3,21 @@ package com.scality.osis.service.impl;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.identitymanagement.model.User;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.securitytoken.model.*;
 import com.scality.osis.ScalityAppEnv;
+import com.scality.osis.model.OsisUser;
 import com.scality.osis.redis.service.ScalityRedisRepository;
+import com.scality.osis.resource.ScalityOsisCapsManager;
+import com.scality.osis.s3.impl.S3Impl;
 import com.scality.osis.security.crypto.BaseCipher;
 import com.scality.osis.security.crypto.model.*;
 import com.scality.osis.security.utils.CipherFactory;
 import com.scality.osis.vaultadmin.impl.VaultAdminImpl;
 import com.scality.osis.vaultadmin.impl.cache.*;
 import com.scality.vaultclient.dto.*;
-import com.scality.osis.model.OsisUser;
-import com.scality.osis.resource.ScalityOsisCapsManager;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.*;
@@ -32,10 +36,14 @@ import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("PMD.ExcessiveImports")
 public class BaseOsisServiceTest {
     // vault admin mock object
     @Mock
     protected static VaultAdminImpl vaultAdminMock;
+
+    @Mock
+    protected static S3Impl s3Mock;
 
     protected static ScalityOsisServiceImpl scalityOsisServiceUnderTest;
 
@@ -51,6 +59,9 @@ public class BaseOsisServiceTest {
     protected AmazonIdentityManagement iamMock;
 
     @Mock
+    protected AmazonS3 s3ClientMock;
+
+    @Mock
     protected ScalityRedisRepository<SecretKeyRepoData> redisRepositoryMock;
 
     @Mock
@@ -63,7 +74,7 @@ public class BaseOsisServiceTest {
     protected void init() {
         MockitoAnnotations.initMocks(this);
         initMocks();
-        scalityOsisServiceUnderTest = new ScalityOsisServiceImpl(appEnvMock, vaultAdminMock, osisCapsManagerMock);
+        scalityOsisServiceUnderTest = new ScalityOsisServiceImpl(appEnvMock, vaultAdminMock, s3Mock, osisCapsManagerMock);
 
         asyncScalityOsisServiceUnderTest = new AsyncScalityOsisService();
         ReflectionTestUtils.setField(asyncScalityOsisServiceUnderTest, "vaultAdmin", vaultAdminMock);
@@ -84,11 +95,13 @@ public class BaseOsisServiceTest {
         when(appEnvMock.getPlatformVersion()).thenReturn(PLATFORM_VERSION);
         when(appEnvMock.getApiVersion()).thenReturn(API_VERSION);
         when(appEnvMock.getS3InterfaceEndpoint()).thenReturn(TEST_S3_INTERFACE_URL);
+        when(appEnvMock.getS3Endpoint()).thenReturn(TEST_S3_URL);
         when(appEnvMock.getAssumeRoleName()).thenReturn(SAMPLE_ASSUME_ROLE_NAME);
         when(appEnvMock.getSpringCacheType()).thenReturn(REDIS_SPRING_CACHE_TYPE);
         when(appEnvMock.getS3CapabilitiesFilePath()).thenReturn(TEST_S3_CAPABILITIES_FILE_PATH);
         when(osisCapsManagerMock.getNotImplements()).thenReturn(new ArrayList<>());
         when(vaultAdminMock.getIAMClient(any(Credentials.class), any())).thenReturn(iamMock);
+        when(s3Mock.getS3Client(any(Credentials.class), any())).thenReturn(s3ClientMock);
 
         initCreateTenantMocks();
         initUpdateTenantMocks();
@@ -109,6 +122,7 @@ public class BaseOsisServiceTest {
         initDeleteUserMocks();
         initListAccessKeysMocks();
         initUpdateAccessKeysMocks();
+        initGetBucketListMocks();
         initCaches();
         initBaseCipherMocks();
         initCipherFactoryMocks();
@@ -517,5 +531,27 @@ public class BaseOsisServiceTest {
 
         ReflectionTestUtils.setField(vaultAdminMock, "cacheFactory", cacheFactoryMock);
         vaultAdminMock.initCaches();
+    }
+
+    protected void initGetBucketListMocks() {
+        // initialize mock s3 list buckets response
+        when(s3ClientMock.listBuckets())
+                .thenAnswer((Answer<List<Bucket>>) invocation -> getBucketListMockResponse());
+    }
+
+    protected List<Bucket> getBucketListMockResponse() {
+        final List<Bucket> buckets = new ArrayList<>();
+
+        // create TEST_BUCKET_TOTAL_NUMBER buckets for getBucketList tests
+        for (int index = 0; index < TEST_BUCKET_TOTAL_NUMBER; index++) {
+            final Bucket bucket = new Bucket();
+            bucket.setName(TEST_BUCKET_NAME + (index));
+            bucket.setCreationDate(new Date());
+            bucket.setOwner(new Owner(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME));
+
+            buckets.add(bucket);
+        }
+
+        return buckets;
     }
 }

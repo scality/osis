@@ -8,6 +8,9 @@ package com.scality.osis.service.impl;
 
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.*;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.amazonaws.util.StringUtils;
@@ -19,6 +22,7 @@ import com.scality.osis.model.exception.NotFoundException;
 import com.scality.osis.model.exception.NotImplementedException;
 import com.scality.osis.redis.service.IRedisRepository;
 import com.scality.osis.resource.ScalityOsisCapsManager;
+import com.scality.osis.s3.S3;
 import com.scality.osis.security.crypto.model.SecretKeyRepoData;
 import com.scality.osis.security.utils.CipherFactory;
 import com.scality.osis.service.ScalityOsisService;
@@ -56,6 +60,9 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     private VaultAdmin vaultAdmin;
 
     @Autowired
+    private S3 s3;
+
+    @Autowired
     private ScalityOsisCapsManager scalityOsisCapsManager;
 
     @Autowired
@@ -80,12 +87,14 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
      *
      * @param appEnv                 the app env
      * @param vaultAdmin             the vault admin
+     * @param s3                     the s3 client
      * @param scalityOsisCapsManager the osis caps manager
      */
-    public ScalityOsisServiceImpl(ScalityAppEnv appEnv, VaultAdmin vaultAdmin,
+    public ScalityOsisServiceImpl(ScalityAppEnv appEnv, VaultAdmin vaultAdmin, S3 s3,
             ScalityOsisCapsManager scalityOsisCapsManager) {
         this.appEnv = appEnv;
         this.vaultAdmin = vaultAdmin;
+        this.s3 = s3;
         this.scalityOsisCapsManager = scalityOsisCapsManager;
     }
 
@@ -108,6 +117,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             logger.debug("[Vault]CreateAccount response:{}", new Gson().toJson(accountResponse));
 
             OsisTenant resOsisTenant = ScalityModelConverter.toOsisTenant(accountResponse);
+
             // call async service to setup the assume role for the new tenant
             asyncScalityOsisService.setupAssumeRole(resOsisTenant);
 
@@ -160,10 +170,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             } catch (VaultServiceException e) {
                 logger.error("Query Tenants error. Return empty list. Error details: ", e);
                 // For errors, List Tenants should return empty PageOfTenants
-                PageInfo pageInfo = new PageInfo();
-                pageInfo.setLimit(limit);
-                pageInfo.setOffset(offset);
-                pageInfo.setTotal(0L);
+                PageInfo pageInfo = new PageInfo(limit, offset);
 
                 PageOfTenants pageOfTenants = new PageOfTenants();
                 pageOfTenants.setItems(new ArrayList<>());
@@ -197,10 +204,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
         } catch (VaultServiceException e) {
             logger.error("List Tenants error. Return empty list. Error details: ", e);
             // For errors, List Tenants should return empty PageOfTenants
-            PageInfo pageInfo = new PageInfo();
-            pageInfo.setLimit(limit);
-            pageInfo.setOffset(offset);
-            pageInfo.setTotal(0L);
+            PageInfo pageInfo = new PageInfo(limit, offset);
 
             PageOfTenants pageOfTenants = new PageOfTenants();
             pageOfTenants.setItems(new ArrayList<>());
@@ -296,10 +300,12 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 String userId = kvMap.get(OSIS_USER_ID);
                 String cdUserId = kvMap.get(CD_USER_ID);
                 String cdTenantId = kvMap.get(CD_TENANT_ID);
-                String osisUserName = kvMap.get(DISPLAY_NAME);
+                String displayName = kvMap.get(DISPLAY_NAME);
                 String username = kvMap.get(USERNAME);
 
                 if (tenantId == null) {
+                    // check the format of received cd_tenant_id
+                    // 1. format UUID ex.0a0e9c1a-1c27-4908-8d1b-74f87325b47b, represent cd_tenant_id of a tenant
                     if (ScalityUtils.isValidUUID(cdTenantId)) {
                         String cdTenantIdFilter = CD_TENANT_ID_PREFIX + cdTenantId;
                         ListAccountsRequestDTO queryAccountsRequest = ScalityModelConverter
@@ -307,7 +313,33 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
                         tenantId = vaultAdmin.getAccountID(queryAccountsRequest);
                     } else {
+                        // 2. format string of 12 letters, ex. 971317116260, represent tenant_id of a tenant
                         tenantId = cdTenantId;
+                    }
+                }
+
+                // get the account by TenantId from vault and convert it to OsisTenant
+                GetAccountRequestDTO getAccountRequestDTO = new GetAccountRequestDTO();
+                getAccountRequestDTO.setAccountId(tenantId);
+                logger.debug("[Vault]GetAccount request:{}", new Gson().toJson(getAccountRequestDTO));
+                AccountData accountData = vaultAdmin.getAccount(getAccountRequestDTO);
+                logger.debug("[Vault]GetAccount response:{}", new Gson().toJson(accountData));
+                OsisTenant osisTenant = ScalityModelConverter.toOsisTenant(accountData);
+                logger.info("Query Users of tenant {}:", new Gson().toJson(osisTenant));
+
+                // check the format of received display_name
+                // 1. format UUID ex.9db66358-a7d2-4fd6-9688-f483e492bdbd, represents user_id of a tenant
+                if (ScalityUtils.isValidUUID(displayName)) {
+                    logger.debug("Query Users filter display_name represents cd_tenant_id");
+                    userId = userId != null ? userId : displayName;
+                } else {
+                    // 2. format tenant name ex. tenant1, represent name of a tenant
+                    if (!Objects.equals(osisTenant.getName(), displayName)) {
+                        // 3. format user name ex. user1, represent username of a user
+                        logger.debug("Query Users filter display_name represents username");
+                        username = username !=null ? username : displayName;
+                    } else {
+                        logger.debug("Query Users filter display_name represents tenant_name");
                     }
                 }
 
@@ -324,14 +356,12 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
                     ListUsersRequest listUsersRequest = ScalityModelConverter.toIAMListUsersRequest(offset, limit);
 
-                    if (osisUserName == null) {
-                        osisUserName = username;
+                    // Add path prefix with osis username to the listusers request if username exists
+                    if (username != null && !username.isEmpty()) {
+                        listUsersRequest.setPathPrefix("/" + username + "/");
                     }
-                    // Add path prefix with osis username to the listusers request
-                    listUsersRequest.setPathPrefix("/" + osisUserName + "/");
 
-                    logger.debug("[Vault] List Users Request with 'pathPrefix':{}",
-                            new Gson().toJson(listUsersRequest));
+                    logger.debug("[Vault] List Users Request:{}", new Gson().toJson(listUsersRequest));
 
                     ListUsersResult listUsersResult = iam.listUsers(listUsersRequest);
 
@@ -355,10 +385,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
                 logger.error("Query Users error. Return empty list. Error details: ", e);
                 // For errors, Query users should return empty PageOfUsers
-                PageInfo pageInfo = new PageInfo();
-                pageInfo.setLimit(limit);
-                pageInfo.setOffset(offset);
-                pageInfo.setTotal(0L);
+                PageInfo pageInfo = new PageInfo(limit, offset);
 
                 PageOfUsers pageOfUsers = new PageOfUsers();
                 pageOfUsers.setItems(new ArrayList<>());
@@ -368,10 +395,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
         } else {
             logger.error("QueryUsers requested with invalid filter. Returns empty set of users");
             // For errors, Query Users should return empty PageOfUsers
-            PageInfo pageInfo = new PageInfo();
-            pageInfo.setLimit(limit);
-            pageInfo.setOffset(offset);
-            pageInfo.setTotal(0L);
+            PageInfo pageInfo = new PageInfo(limit, offset);
 
             PageOfUsers pageOfUsers = new PageOfUsers();
             pageOfUsers.setItems(new ArrayList<>());
@@ -871,14 +895,14 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             final AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
 
-            GetUserRequest getUserRequest =  ScalityModelConverter.toIAMGetUserRequest(userId);
+            GetUserRequest getUserRequest = ScalityModelConverter.toIAMGetUserRequest(userId);
 
             logger.debug("[Vault] Get User Request:{}", new Gson().toJson(getUserRequest));
 
             GetUserResult getUserResult = iamClient.getUser(getUserRequest);
             logger.info("Head User response:: {}", getUserResult.getUser());
-            return getUserResult.getUser() !=null && getUserResult.getUser().getUserName().equals(userId);
-        } catch (Exception e){
+            return getUserResult.getUser() != null && getUserResult.getUser().getUserName().equals(userId);
+        } catch (Exception e) {
             logger.error("Head User error. Error details: ", e);
             throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
@@ -1051,10 +1075,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             logger.error("ListUsers error. Returning empty list. Error details: ", e);
             // For errors, List Users should return empty PageOfUsers
-            PageInfo pageInfo = new PageInfo();
-            pageInfo.setLimit(limit);
-            pageInfo.setOffset(offset);
-            pageInfo.setTotal(0L);
+            PageInfo pageInfo = new PageInfo(limit, offset);
 
             PageOfUsers pageOfUsers = new PageOfUsers();
             pageOfUsers.setItems(new ArrayList<>());
@@ -1124,7 +1145,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 .apiVersion(appEnv.getApiVersion())
                 .notImplemented(scalityOsisCapsManager.getNotImplements())
                 .logoUri(ScalityUtils.getLogoUri(domain))
-                .services(new InformationServices().iam(domain + IAM_PREFIX).s3(appEnv.getS3InterfaceEndpoint()))
+                .services(new InformationServices().iam(domain + IAM_PREFIX).s3(appEnv.getS3Endpoint()))
                 .status(Information.StatusEnum.NORMAL);
         logger.info("Get Information response: {}", new Gson().toJson(information));
         return information;
@@ -1137,7 +1158,46 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public PageOfOsisBucketMeta getBucketList(String tenantId, long offset, long limit) {
-        throw new NotImplementedException();
+        try {
+            logger.info("Get bucket list request received:: tenant ID:{}, offset:{}, limit:{}", tenantId, offset, limit);
+            Credentials tempCredentials = getCredentials(tenantId);
+            final AmazonS3 s3Client = this.s3.getS3Client(tempCredentials,
+                    appEnv.getRegionInfo().get(0));
+
+            //s3 listBucket has no pagination, so list all
+            List<Bucket> buckets = s3Client.listBuckets();
+
+            logger.debug("[S3] List all Buckets size:{}", buckets.size());
+
+            final PageOfUsers pageOfUsers = listUsers(tenantId, 0, 1);
+            final String userId = pageOfUsers.getItems().get(0).getUserId();
+
+            PageOfOsisBucketMeta pageOfOsisBucketMeta = ScalityModelConverter.toPageOfOsisBucketMeta(buckets, userId, offset, limit);
+
+            logger.info("List Buckets response:{}", new Gson().toJson(pageOfOsisBucketMeta));
+
+            return pageOfOsisBucketMeta;
+        } catch (Exception e) {
+
+            if (isAdminPolicyError(e)) {
+                try {
+                    generateAdminPolicy(tenantId);
+                    return getBucketList(tenantId, offset, limit);
+                } catch (Exception ex) {
+                    e = ex;
+                }
+            }
+
+            logger.error("GetBucketList error. Returning empty list. Error details: ", e);
+            // For errors, GetBucketList should return empty PageOfOsisBucketMeta
+            PageInfo pageInfo = new PageInfo(limit, offset);
+
+            PageOfOsisBucketMeta pageOfOsisBucketMeta = new PageOfOsisBucketMeta();
+            pageOfOsisBucketMeta.setItems(new ArrayList<>());
+            pageOfOsisBucketMeta.setPageInfo(pageInfo);
+            return pageOfOsisBucketMeta;
+        }
+
     }
 
     @Override
@@ -1276,8 +1336,10 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     }
 
     private boolean isAdminPolicyError(Exception e) {
-        return e instanceof AmazonIdentityManagementException &&
-                (HttpStatus.FORBIDDEN.value() == ((AmazonIdentityManagementException) e).getStatusCode());
+        return (e instanceof AmazonIdentityManagementException &&
+                (HttpStatus.FORBIDDEN.value() == ((AmazonIdentityManagementException) e).getStatusCode()))
+                ||
+                (e instanceof AmazonS3Exception && (HttpStatus.FORBIDDEN.value() == ((AmazonS3Exception) e).getStatusCode()));
     }
 
     private void storeSecretKey(String repoKey, String secretAccessKey) throws Exception {

@@ -488,4 +488,40 @@ public class ScalityAppEnvTest {
         // Verify the results
         assertThat(result).isEqualTo(500);
     }
+
+    @Test
+    public void testGetS3Endpoint() {
+        // Setup
+        when(mockEnv.getProperty("osis.scality.s3.endpoint")).thenReturn(TEST_RESULT);
+
+        // Run the test
+        final String result = appEnvUnderTest.getS3Endpoint();
+
+        // Verify the results
+        assertEquals(result, TEST_RESULT, "testGetS3Endpoint failed");
+    }
+
+    @Test
+    public void testGetS3EndpointEnvironmentReturnsNull() {
+        // Setup
+        when(mockEnv.getProperty("osis.scality.s3.endpoint")).thenReturn(null);
+
+        // Run the test
+        final String result = appEnvUnderTest.getS3Endpoint();
+
+        // Verify the results
+        assertNull(result, TEST_RESULT_NULL_ERR);
+    }
+
+    @Test
+    public void testGetS3HealthCheckTimeout() {
+        //Setup
+        when(mockEnv.getProperty("osis.scality.s3.healthcheck.timeout")).thenReturn("3000");
+
+        // Run the test
+        final Integer result = appEnvUnderTest.getS3HealthCheckTimeout();
+
+        // Verify the results
+        assertEquals(result, 3000, "testGetS3HealthCheckTimeout failed");
+    }
 }

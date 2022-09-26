@@ -321,6 +321,47 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
+    public void testQueryUsersWithCdTenantIdEqualsToTenantIdAndDisplayNameEqualsToUserId() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX
+                + SAMPLE_ID;
+        // cd_tenant_id==971317116260;display_name==f3bbe501-29b0-4891-8602-a4e2f95101f8
+
+        // Run the test
+        final PageOfUsers response = scalityOsisServiceUnderTest.queryUsers(offset, limit, filter);
+
+        // Verify the results
+        assertEquals(1, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(1, response.getItems().size());
+        assertEquals(SAMPLE_ID, response.getItems().get(0).getUserId());
+        assertTrue(response.getItems().get(0).getTenantId().contains(SAMPLE_TENANT_ID));
+    }
+
+    @Test
+    public void testQueryUsersWithCdTenantIdEqualsToTenantIdAndDisplayNameEqualsToTenantName() {
+        // Setup
+        final long offset = 0L;
+        final long limit = 1000L;
+        final String filter = CD_TENANT_ID_PREFIX + SAMPLE_TENANT_ID + FILTER_SEPARATOR + DISPLAY_NAME_PREFIX
+                + SAMPLE_TENANT_NAME;
+        // cd_tenant_id==971317116260;display_name==tenant_name
+
+        // Run the test
+        final PageOfUsers response = scalityOsisServiceUnderTest.queryUsers(offset, limit, filter);
+
+        // Verify the results
+        assertEquals(limit, response.getPageInfo().getTotal());
+        assertEquals(offset, response.getPageInfo().getOffset());
+        assertEquals(limit, response.getPageInfo().getLimit());
+        assertEquals(limit, response.getItems().size());
+        assertTrue(response.getItems().get(0).getTenantId().contains(SAMPLE_TENANT_ID));
+    }
+
+    @Test
     public void testDeleteUser() {
         // Setup
 

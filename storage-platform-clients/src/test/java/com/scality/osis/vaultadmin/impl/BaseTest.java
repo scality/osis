@@ -293,7 +293,7 @@ public class BaseTest {
       env = "." + env;
     }
     final Properties properties = new Properties();
-    properties.load(VaultAdminImplTest.class.getResourceAsStream("/vaultadmin.properties" + env));
+    properties.load(VaultAdminImplTest.class.getResourceAsStream("/storage-platform-clients.properties" + env));
 
     adminUserId = properties.getProperty("vault.adminId");
     adminAccessKey = properties.getProperty("vault.adminAccessKey");

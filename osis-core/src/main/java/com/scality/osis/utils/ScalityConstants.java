@@ -83,7 +83,8 @@ public final class ScalityConstants {
             "      {\n" +
             "         \"Effect\":\"Allow\",\n" +
             "         \"Action\":[\n" +
-            "            \"iam:*\"\n" +
+            "            \"iam:*\",\n" +
+            "            \"s3:*\"\n" +
             "         ],\n" +
             "         \"Resource\":\"*\"\n" +
             "      }\n" +
@@ -101,6 +102,7 @@ public final class ScalityConstants {
     public static final String DEFAULT_ASYNC_EXECUTOR_QUEUE_CAPACITY = "500";
 
     public static final String DEFAULT_VAULT_HEALTHCHECK_TIMEOUT = "3000";
+    public static final String DEFAULT_S3_HEALTHCHECK_TIMEOUT = "3000";
     public static final String HEALTH_CHECK_ENDPOINT = "/_/healthcheck";
 
     public static final String USER_POLICY_ARN_REGEX = "arn:aws:iam::$ACCOUNTID:policy/userPolicy@$ACCOUNTID";
