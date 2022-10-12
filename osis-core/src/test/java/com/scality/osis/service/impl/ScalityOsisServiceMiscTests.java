@@ -4,12 +4,16 @@ import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
-import com.scality.osis.model.*;
+import com.scality.osis.model.Information;
+import com.scality.osis.model.OsisS3Credential;
+import com.scality.osis.model.PageOfOsisBucketMeta;
+import com.scality.osis.model.ScalityOsisCaps;
 import com.scality.osis.model.exception.NotImplementedException;
 import com.scality.osis.s3.impl.S3ServiceException;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
 import org.junit.jupiter.api.Test;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
 
@@ -398,25 +402,28 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testSetupExistingButNotEqualAdminPolicy() throws Exception {
+    public void testSetupExistingAdminPolicy() throws Exception {
         when(iamMock.createPolicy(any(CreatePolicyRequest.class)))
-                .thenAnswer((Answer<CreatePolicyResult>) invocation -> {
-                    final AmazonIdentityManagementException error = new AmazonIdentityManagementException("EntityAlreadyExists");
-                    error.setStatusCode(HttpStatus.CONFLICT.value());
-                    throw error;
+                .thenAnswer(new Answer<CreatePolicyResult>() {
+                    private int count = 0;
+                    @Override
+                    public CreatePolicyResult answer(final InvocationOnMock invocation) {
+                        if (count == 0) {
+                            count++;
+                            final AmazonIdentityManagementException error = new AmazonIdentityManagementException("EntityAlreadyExists");
+                            error.setStatusCode(HttpStatus.CONFLICT.value());
+                            throw error;
+                        }
+                        return any(CreatePolicyResult.class);
+                    }
                 });
-        when(iamMock.getPolicyVersion(any(GetPolicyVersionRequest.class)))
-                .thenAnswer((Answer<GetPolicyVersionResult>) invocation ->
-                        new GetPolicyVersionResult().withPolicyVersion(new PolicyVersion().withDocument("")));
 
         asyncScalityOsisServiceUnderTest.setupAdminPolicy(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME,
                 SAMPLE_ASSUME_ROLE_NAME);
 
         // Verify if the following API calls were made successfully when setup
-        // existing admin policy but policy documents are not equal
-        verify(iamMock).getPolicy(any(GetPolicyRequest.class));
-        verify(iamMock).getPolicyVersion(any(GetPolicyVersionRequest.class));
-        verify(iamMock).createPolicyVersion(any(CreatePolicyVersionRequest.class));
+        // existing admin policy
+        verify(iamMock).detachRolePolicy(any(DetachRolePolicyRequest.class));
+        verify(iamMock).deletePolicy(any(DeletePolicyRequest.class));
     }
-
 }
