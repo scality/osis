@@ -10,21 +10,17 @@ import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.google.gson.Gson;
 import com.scality.osis.ScalityAppEnv;
+import com.scality.osis.model.OsisTenant;
 import com.scality.osis.utils.ScalityModelConverter;
 import com.scality.osis.vaultadmin.VaultAdmin;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
-import com.scality.osis.model.OsisTenant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import java.net.URLDecoder;
-import java.util.Objects;
-
-import static com.scality.osis.utils.ScalityConstants.DEFAULT_ADMIN_POLICY_DOCUMENT;
 
 @Component
 public class AsyncScalityOsisService {
@@ -156,36 +152,30 @@ public class AsyncScalityOsisService {
                 } catch (Exception e) {
                         if (e instanceof AmazonIdentityManagementException &&
                                 ((AmazonIdentityManagementException) e).getStatusCode() == HttpStatus.CONFLICT.value()){
-                                logger.debug("[Vault] Admin Policy already exists, checking if policy document changes");
+                                logger.debug("[Vault] Admin Policy already exists, detach role policy, delete it and create a new one");
 
-                                GetPolicyRequest getAdminPolicyRequest = ScalityModelConverter.toGetAdminPolicyRequest(tenantId);
-                                logger.debug("[Vault] Get Admin Policy Request:{}", new Gson().toJson(getAdminPolicyRequest));
+                                DetachRolePolicyRequest detachRolePolicyRequest = ScalityModelConverter.toDetachAdminPolicyRequest(
+                                        ScalityModelConverter.toAdminPolicyArn(tenantId),
+                                        assumeRoleName);
+                                logger.debug("[Vault] Detach Admin Policy Request:{}", new Gson().toJson(detachRolePolicyRequest));
 
-                                GetPolicyResult getAdminPolicyResult = iamClient.getPolicy(getAdminPolicyRequest);
-                                String defaultPolicyVersionId = getAdminPolicyResult.getPolicy().getDefaultVersionId();
-                                logger.debug("[Vault] Get Admin Policy Result:{}, defaultPolicyVersionId: {}",
-                                        new Gson().toJson(getAdminPolicyResult), defaultPolicyVersionId);
+                                DetachRolePolicyResult detachRolePolicyResult = iamClient.detachRolePolicy(detachRolePolicyRequest);
+                                logger.debug("[Vault] Detach Admin Policy response:{}", new Gson().toJson(detachRolePolicyResult));
 
-                                GetPolicyVersionRequest getAdminPolicyVersionRequest = ScalityModelConverter.toGetAdminPolicyVersionRequest(tenantId, defaultPolicyVersionId);
-                                logger.debug("[Vault] Get Admin Policy Default Version Request:{}", new Gson().toJson(getAdminPolicyVersionRequest));
+                                DeletePolicyRequest deletePolicyRequest = ScalityModelConverter.toDeleteAdminPolicyRequest(tenantId);
+                                logger.debug("[Vault] Delete Admin Policy Request:{}", new Gson().toJson(detachRolePolicyRequest));
 
-                                GetPolicyVersionResult getAdminPolicyVersionResult =  iamClient.getPolicyVersion(getAdminPolicyVersionRequest);
-                                logger.debug("[Vault] Get Admin Policy Default Version result:{}", new Gson().toJson(getAdminPolicyVersionResult));
+                                DeletePolicyResult deletePolicyResult = iamClient.deletePolicy(deletePolicyRequest);
+                                logger.debug("[Vault] Delete Admin Policy Response:{}", new Gson().toJson(deletePolicyResult));
 
-                                if (!Objects.equals(URLDecoder.decode(getAdminPolicyVersionResult.getPolicyVersion().getDocument()),
-                                        URLDecoder.decode(DEFAULT_ADMIN_POLICY_DOCUMENT))) {
-                                        logger.debug("Default Admin Policy Document changed, before: {}, current: {}",
-                                                getAdminPolicyVersionResult.getPolicyVersion().getDocument(),
-                                                DEFAULT_ADMIN_POLICY_DOCUMENT);
-                                        CreatePolicyVersionRequest createAdminPolicyVersionRequest = ScalityModelConverter.toCreateAdminPolicyVersionRequest(tenantId);
-                                        logger.debug("[Vault] Create new Admin Policy Version Request:{}", new Gson().toJson(createAdminPolicyVersionRequest));
-                                        CreatePolicyVersionResult createAdminPolicyVersionResult = iamClient.createPolicyVersion(createAdminPolicyVersionRequest);
-                                        logger.debug("[Vault] Create new Admin Policy Version Result:{}", new Gson().toJson(createAdminPolicyVersionResult));
-                                        return;
-                                }
+                                adminPolicyResult = iamClient.createPolicy(createAdminPolicyRequest);
+                                logger.debug("[Vault] Create Admin Policy response:{}", new Gson().toJson(adminPolicyResult));
+
+                        } else {
+                                logger.error("Cannot create admin policy for Tenant ID:{}. " +
+                                        "Exception details:{}", tenantId, e.getMessage());
                         }
-                        logger.error("Cannot create admin policy for Tenant ID:{}. " +
-                                "Exception details:{}", tenantId, e.getMessage());
+
                 }
                 /* Attach admin policy to `osis` role */
                 AttachRolePolicyRequest attachAdminPolicyRequest = ScalityModelConverter.toAttachAdminPolicyRequest(

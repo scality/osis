@@ -261,6 +261,20 @@ public final class ScalityModelConverter {
     }
 
     /**
+     * Creates DetachRolePolicyRequest dto for detaching admin policy to OSIS role
+     *
+     * @param policyArn the policy arn
+     * @param roleName  the OSIS role name
+     *
+     * @return the AttachRolePolicyRequest dto
+     */
+    public static DetachRolePolicyRequest toDetachAdminPolicyRequest(String policyArn, String roleName) {
+        return new DetachRolePolicyRequest()
+                .withPolicyArn(policyArn)
+                .withRoleName(roleName);
+    }
+
+    /**
      * Creates DeleteAccessKeyRequest dto
      *
      * @param accessKeyId the accesskeyId
@@ -365,12 +379,18 @@ public final class ScalityModelConverter {
                 .withDescription(toUserPolicyDescription(tenantId));
     }
 
+    public static DeletePolicyRequest toDeleteAdminPolicyRequest(String tenantId) {
+        return new DeletePolicyRequest()
+                .withPolicyArn(toAdminPolicyArn(tenantId));
+    }
+
     public static CreatePolicyVersionRequest toCreateAdminPolicyVersionRequest(String tenantId) {
         return new CreatePolicyVersionRequest()
                 .withPolicyArn(toAdminPolicyArn(tenantId))
                 .withPolicyDocument(DEFAULT_ADMIN_POLICY_DOCUMENT)
                 .withSetAsDefault(true);
     }
+
     public static AttachUserPolicyRequest toAttachUserPolicyRequest(String policyArn, String username) {
         return new AttachUserPolicyRequest()
                 .withPolicyArn(policyArn)
