@@ -49,6 +49,9 @@ import static java.util.Objects.requireNonNull;
  * extraction step, etc.
  */
 public class Hkdf {
+
+    private static final SecureRandom random = new SecureRandom();
+
     public enum Hash {
         SHA256("HmacSHA256", 32);
         // MD5 intentionally omitted
@@ -194,7 +197,6 @@ public class Hkdf {
      * @return randomly generated SecretKey to use for PRK extraction.
      */
     public SecretKey randomSalt() {
-        SecureRandom random = new SecureRandom();
         byte[] randBytes = new byte[hash.getByteLength()];
         random.nextBytes(randBytes);
         return new SecretKeySpec(randBytes, hash.getAlgorithm());

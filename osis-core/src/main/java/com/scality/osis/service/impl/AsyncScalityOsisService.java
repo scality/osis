@@ -10,17 +10,18 @@ import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.google.gson.Gson;
 import com.scality.osis.ScalityAppEnv;
+import com.scality.osis.model.OsisTenant;
 import com.scality.osis.utils.ScalityModelConverter;
 import com.scality.osis.vaultadmin.VaultAdmin;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
 import com.scality.vaultclient.dto.GenerateAccountAccessKeyResponse;
-import com.scality.osis.model.OsisTenant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+
 import java.net.URLDecoder;
 import java.util.Objects;
 

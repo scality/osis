@@ -122,13 +122,11 @@ public class ScalityOsisController {
      * Operation ID: deleteCredential&lt;br&gt; Delete the S3 credential of the
      * platform user. Parameters tenant_id and tenant_id are always in request; the
      * platform decides whehter to use them.
-     *
+     * Returned HTTP status codes : the S3 credential is deleted (status code 204) or The optional API is not implemented (status code 501)
      * @param tenantId  The ID of the tenant which the user belongs to (required)
      * @param userId    The ID of the user which the deleted S3 credential belongs
      *                  to (required)
      * @param accessKey The access key of the S3 credential to delete (required)
-     * @return The S3 credential is deleted (status code 204)
-     *         or The optional API is not implemented (status code 501)
      */
     @ApiOperation(value = "Delete the S3 credential of the platform user", nickname = "deleteCredential", notes = "Operation ID: deleteCredential<br> Delete the S3 credential of the platform user. Parameters tenant_id and tenant_id are always in request; the platform decides whehter to use them. ", authorizations = {
             @Authorization(value = "basicAuth")
@@ -149,12 +147,9 @@ public class ScalityOsisController {
     /**
      * DELETE /api/v1/tenants/{tenantId} : Delete a tenant in the platform
      * Operation ID: deleteTenant&lt;br&gt; Delete a tenant in the platform
-     *
+     * Returned HTTP status codes : The tenant is deleted (status code 204) or The optional API is not implemented (status code 501)
      * @param tenantId  Tenant ID of the tenant to delete (required)
-     * @param purgeData Purge data when the tenant is deleted (optional, default to
-     *                  false)
-     * @return The tenant is deleted (status code 204)
-     *         or The optional API is not implemented (status code 501)
+     * @param purgeData Purge data when the tenant is deleted (optional, default to false)
      */
     @ApiOperation(value = "Delete a tenant in the platform", nickname = "deleteTenant", notes = "Operation ID: deleteTenant<br> Delete a tenant in the platform ", authorizations = {
             @Authorization(value = "basicAuth")
@@ -177,13 +172,12 @@ public class ScalityOsisController {
      * DELETE /api/v1/tenants/{tenantId}/users/{userId} : Delete the user in the
      * platform tenant
      * Operation ID: deleteUser&lt;br&gt; Delete the user in the platform tenant
-     *
+     * Returned HTTP status codes : The user is deleted (status code 204)
      * @param tenantId  The ID of the tenant which the deleted user belongs to
      *                  (required)
      * @param userId    The ID of the user to delete (required)
      * @param purgeData Purge data when the user is deleted (optional, default to
      *                  false)
-     * @return The user is deleted (status code 204)
      */
     @ApiOperation(value = "Delete the user in the platform tenant", nickname = "deleteUser", notes = "Operation ID: deleteUser<br> Delete the user in the platform tenant ", authorizations = {
             @Authorization(value = "basicAuth")

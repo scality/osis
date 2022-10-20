@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class VaultAdminEnvTest {
+class VaultAdminEnvTest {
 
     @Mock
     private Environment envMock;
@@ -26,7 +26,7 @@ public class VaultAdminEnvTest {
     }
 
     @Test
-    public void testIsListAccountsCacheDisabled() {
+    void testIsListAccountsCacheDisabled() {
         // Setup
         when(envMock.getProperty(ENV_LIST_ACCOUNT_DISABLED)).thenReturn(Boolean.FALSE.toString());
 
@@ -35,7 +35,7 @@ public class VaultAdminEnvTest {
     }
 
     @Test
-    public void testGetListAccountsMaxCapacity() {
+    void testGetListAccountsMaxCapacity() {
         // Setup
         when(envMock.getProperty(ENV_LIST_ACCOUNT_MAX_CAPACITY)).thenReturn(DEFAULT_CACHE_MAX_CAPACITY + "");
 
@@ -44,7 +44,7 @@ public class VaultAdminEnvTest {
     }
 
     @Test
-    public void testGetListAccountsExpiration() {
+    void testGetListAccountsExpiration() {
         // Setup
         when(envMock.getProperty(ENV_LIST_ACCOUNT_CACHE_TTL)).thenReturn((int) DEFAULT_CACHE_TTL_IN_MS + "");
 
@@ -53,7 +53,7 @@ public class VaultAdminEnvTest {
     }
 
     @Test
-    public void testGetAssumeRoleCacheMaxCapacity() {
+    void testGetAssumeRoleCacheMaxCapacity() {
         // Setup
         when(envMock.getProperty(ENV_ASSUME_ROLE_MAX_CAPACITY)).thenReturn(DEFAULT_CACHE_MAX_CAPACITY + "");
 
@@ -62,7 +62,7 @@ public class VaultAdminEnvTest {
     }
 
     @Test
-    public void testGetAssumeRoleCacheExpiration() {
+    void testGetAssumeRoleCacheExpiration() {
         // Setup
         when(envMock.getProperty(ENV_ASSUME_ROLE_CACHE_TTL)).thenReturn((int) DEFAULT_CACHE_TTL_IN_MS + "");
 

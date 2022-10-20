@@ -12,20 +12,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ScalityUtilsTest {
+class ScalityUtilsTest {
 
     @Test
-    public void testIsValidUUID() {
+    void testIsValidUUID() {
         assertThat(ScalityUtils.isValidUUID(UUID.randomUUID().toString())).isTrue();
     }
 
     @Test
-    public void testIsInValidUUID() {
+    void testIsInValidUUID() {
         assertThat(ScalityUtils.isValidUUID("str")).isFalse();
     }
 
     @Test
-    public void testParseFilter() {
+    void testParseFilter() {
         // Setup
         final String filter = TENANT_ID_PREFIX + SAMPLE_TENANT_ID + FILTER_SEPARATOR + USER_ID_PREFIX + TEST_USER_ID ;
 
@@ -38,7 +38,7 @@ public class ScalityUtilsTest {
     }
 
     @Test
-    public void testParseEmptyFilter() {
+    void testParseEmptyFilter() {
         // Setup
 
         // Run the test

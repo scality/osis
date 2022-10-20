@@ -20,16 +20,16 @@ import java.util.*;
 import static org.mockito.Mockito.*;
 
 /** Created by saitharun on 2020/12/21. */
-public class BaseTest {
+class BaseTest {
   protected VaultAdminImpl vaultAdminImpl;
-  protected static AccountServicesClient accountServicesClient;
-  protected static SecurityTokenServicesClient stsClient;
-  protected static OkHttpClient okHttpClient;
-  protected static String adminUserId;
-  protected static String adminAccessKey;
-  protected static String adminSecretKey;
-  protected static String s3InterfaceEndpoint;
-  protected static String vaultAdminEndpoint;
+  protected AccountServicesClient accountServicesClient;
+  protected SecurityTokenServicesClient stsClient;
+  protected OkHttpClient okHttpClient;
+  protected String adminUserId;
+  protected String adminAccessKey;
+  protected String adminSecretKey;
+  protected String s3InterfaceEndpoint;
+  protected String vaultAdminEndpoint;
 
   protected static final String DEFAULT_TEST_ACCOUNT_ID = "001583654825";
 
