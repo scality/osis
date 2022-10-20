@@ -12,7 +12,7 @@ import java.util.Properties;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class S3ImplTest {
+class S3ImplTest {
 
     public S3Impl s3Impl;
     public String s3Endpoint;
@@ -36,14 +36,14 @@ public class S3ImplTest {
     }
 
     @Test
-    public void testS3ImplInvalidEndpoint() {
+    void testS3ImplInvalidEndpoint() {
         assertThrows(IllegalArgumentException.class,
                 () -> new S3Impl("invalid_s3_endpoint"),
                 "S3Impl constructor should throw IllegalArgumentException for null endpoint");
     }
 
     @Test
-    public void testGetS3Client() {
+    void testGetS3Client() {
         final Credentials credentials = new Credentials();
         credentials.setAccessKeyId(TEST_ACCESS_KEY);
         credentials.setSecretAccessKey(TEST_SECRET_KEY);
@@ -53,7 +53,7 @@ public class S3ImplTest {
     }
 
     @Test
-    public void testGetS3ClientWithSession() {
+    void testGetS3ClientWithSession() {
         final Credentials credentials = new Credentials();
         credentials.setAccessKeyId(TEST_ACCESS_KEY);
         credentials.setSecretAccessKey(TEST_SECRET_KEY);

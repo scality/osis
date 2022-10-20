@@ -26,10 +26,10 @@ import static com.scality.osis.utils.ScalityTestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
+class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
 
     @Test
-    public void testGetProviderConsoleUrl() {
+    void testGetProviderConsoleUrl() {
         // Setup
         final String consoleUrl = scalityOsisServiceUnderTest.getProviderConsoleUrl();
         // Run the test
@@ -40,7 +40,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetTenantConsoleUrl() {
+    void testGetTenantConsoleUrl() {
         // Setup
         final String consoleUrl = scalityOsisServiceUnderTest.getTenantConsoleUrl(TEST_TENANT_ID);
         // Run the test
@@ -51,7 +51,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetS3Capabilities() {
+    void testGetS3Capabilities() {
         // Setup
         // Run the test
         assertNotNull(scalityOsisServiceUnderTest.getS3Capabilities(), NULL_ERR);
@@ -60,7 +60,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetInformationWithBasicAuth() {
+    void testGetInformationWithBasicAuth() {
         // Setup
         final String domain = "https://localhost:8443";
 
@@ -82,7 +82,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetInformationWithBearerAuth() {
+    void testGetInformationWithBearerAuth() {
         // Setup
         final String domain = "https://localhost:8443";
         when(appEnvMock.isApiTokenEnabled()).thenReturn(true);
@@ -104,7 +104,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testUpdateOsisCaps() {
+    void testUpdateOsisCaps() {
         // Setup
         final ScalityOsisCaps osisCaps = new ScalityOsisCaps();
 
@@ -116,7 +116,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetBucketList() {
+    void testGetBucketList() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -132,7 +132,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetBucketListWithOffset() {
+    void testGetBucketListWithOffset() {
         // Setup
         final long offset = 2000L;
         final long limit = 1000L;
@@ -148,7 +148,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetBucketListErr() {
+    void testGetBucketListErr() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -168,7 +168,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetOsisUsage() {
+    void testGetOsisUsage() {
         // Setup
 
         // Run the test
@@ -179,7 +179,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetCredentials() {
+    void testGetCredentials() {
         // Setup
 
         // Run the test
@@ -191,7 +191,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetCredentialsWithNoRole() {
+    void testGetCredentialsWithNoRole() {
         // Setup
 
         when(vaultAdminMock.getTempAccountCredentials(any(AssumeRoleRequest.class)))
@@ -214,7 +214,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetCredentials400() {
+    void testGetCredentials400() {
         // Setup
         when(vaultAdminMock.getTempAccountCredentials(any(AssumeRoleRequest.class)))
                 .thenThrow(new VaultServiceException(HttpStatus.BAD_REQUEST, "Bad Request"));
@@ -226,7 +226,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testSetupAssumeRoleAsync() {
+    void testSetupAssumeRoleAsync() {
 
         asyncScalityOsisServiceUnderTest.setupAssumeRole(createSampleOsisTenantObj());
 
@@ -239,7 +239,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testSetupAssumeRole() {
+    void testSetupAssumeRole() {
 
         asyncScalityOsisServiceUnderTest.setupAssumeRole(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME);
 
@@ -252,7 +252,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testSetupAssumeRoleCreateRoleFail() {
+    void testSetupAssumeRoleCreateRoleFail() {
         when(iamMock.createRole(any(CreateRoleRequest.class)))
                 .thenAnswer((Answer<CreateRoleResult>) invocation -> {
                     throw new VaultServiceException(HttpStatus.NOT_FOUND, "MalformedPolicyDocument");
@@ -270,7 +270,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testSetupAssumeRoleCreatePolicyFail() {
+    void testSetupAssumeRoleCreatePolicyFail() {
         when(iamMock.createPolicy(any(CreatePolicyRequest.class)))
                 .thenAnswer((Answer<CreatePolicyResult>) invocation -> {
                     throw new VaultServiceException(HttpStatus.CONFLICT, "EntityAlreadyExists");
@@ -288,7 +288,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testSetupAssumeRoleAttachPolicyFail() {
+    void testSetupAssumeRoleAttachPolicyFail() {
         when(iamMock.attachRolePolicy(any(AttachRolePolicyRequest.class)))
                 .thenAnswer((Answer<AttachRolePolicyResult>) invocation -> {
                     throw new VaultServiceException(HttpStatus.NOT_FOUND, "NoSuchEntity");
@@ -306,7 +306,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetOrCreateUserPolicy1() {
+    void testGetOrCreateUserPolicy1() {
         // Setup
         // Run the test
         final Policy policy = scalityOsisServiceUnderTest.getOrCreateUserPolicy(iamMock, TEST_TENANT_ID);
@@ -317,7 +317,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetOrCreateUserPolicy2() {
+    void testGetOrCreateUserPolicy2() {
         // Setup
         // Modify get policy to return no entity found
         when(iamMock.getPolicy(any()))
@@ -334,7 +334,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testCreateOsisCredential() throws Exception {
+    void testCreateOsisCredential() throws Exception {
         // Setup
         // Modify get policy to return no entity found
 
@@ -353,7 +353,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testSetupAdminPolicy() throws Exception {
+    void testSetupAdminPolicy() throws Exception {
 
         asyncScalityOsisServiceUnderTest.setupAdminPolicy(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME,
                 SAMPLE_ASSUME_ROLE_NAME);
@@ -366,7 +366,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testSetupAdminPolicyCreatePolicyFail() throws Exception {
+    void testSetupAdminPolicyCreatePolicyFail() throws Exception {
         when(iamMock.createPolicy(any(CreatePolicyRequest.class)))
                 .thenAnswer((Answer<CreatePolicyResult>) invocation -> {
                     throw new VaultServiceException(HttpStatus.CONFLICT, "EntityAlreadyExists");
@@ -384,7 +384,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testSetupAdminPolicyAttachPolicyFail() {
+    void testSetupAdminPolicyAttachPolicyFail() {
         when(iamMock.attachRolePolicy(any(AttachRolePolicyRequest.class)))
                 .thenAnswer((Answer<AttachRolePolicyResult>) invocation -> {
                     throw new VaultServiceException(HttpStatus.NOT_FOUND, "NoSuchEntity");
@@ -402,7 +402,7 @@ public class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testSetupExistingAdminPolicy() throws Exception {
+    void testSetupExistingAdminPolicy() throws Exception {
         when(iamMock.createPolicy(any(CreatePolicyRequest.class)))
                 .thenAnswer(new Answer<CreatePolicyResult>() {
                     private int count = 0;

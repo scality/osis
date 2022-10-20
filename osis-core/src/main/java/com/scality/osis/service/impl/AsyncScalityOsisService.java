@@ -22,6 +22,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import java.net.URLDecoder;
+import java.util.Objects;
+
+import static com.scality.osis.utils.ScalityConstants.DEFAULT_ADMIN_POLICY_DOCUMENT;
+
 @Component
 public class AsyncScalityOsisService {
         private static final Logger logger = LoggerFactory.getLogger(AsyncScalityOsisService.class);

@@ -16,14 +16,14 @@ import java.util.function.Function;
  * A Generic Admin class with generic methods for all external service calls
  */
 public final class ExternalServiceFactory {
+
     /**
-     * Execute vault service.
-     *
-     * @param <T>      the Input dto type parameter
-     * @param <R>      the Output dto type parameter
-     * @param vaultMethod the vaultMethod that calls Vault service with T type input and Response<R> type output
-     * @param request       the request input dto
+     * Execute vault service
+     * @param vaultMethod the vaultMethod that calls Vault service
+     * @param request the request input dto
      * @return the r response dto
+     * @param <T> the Input dto type parameter
+     * @param <R> the Output dto type parameter
      */
     public static <T,R> R executeVaultService(Function<T, Response<R>> vaultMethod, T request) {
         try {

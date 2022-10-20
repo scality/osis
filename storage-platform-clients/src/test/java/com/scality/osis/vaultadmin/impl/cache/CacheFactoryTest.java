@@ -12,7 +12,7 @@ import static org.mockito.Mockito.when;
 import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.NAME_LIST_ACCOUNTS_CACHE;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class CacheFactoryTest {
+class CacheFactoryTest {
 
     private CacheFactory cacheFactoryUnderTest;
 
@@ -35,7 +35,7 @@ public class CacheFactoryTest {
     }
 
     @Test
-    public void testGetCache() {
+    void testGetCache() {
         // Setup
 
         // Run the test
@@ -46,7 +46,7 @@ public class CacheFactoryTest {
     }
 
     @Test
-    public void testGetCacheInvalidValue() {
+    void testGetCacheInvalidValue() {
         // Setup
 
         // Run the test

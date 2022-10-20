@@ -665,7 +665,7 @@ public final class ScalityModelConverter {
                 .tenantId(tenantId)
                 .cdTenantId(cdTenantId)
                 .username(username)
-                .creationDate(Instant.now())
+                .creationDate(Instant.now().toEpochMilli())
                 .immutable(Boolean.TRUE);
     }
 
@@ -681,7 +681,7 @@ public final class ScalityModelConverter {
                 .cdUserId(accessKeyMetadata.getUserName())
                 .tenantId(tenantId)
                 .cdTenantId(cdTenantId)
-                .creationDate(accessKeyMetadata.getCreateDate().toInstant())
+                .creationDate(accessKeyMetadata.getCreateDate().toInstant().toEpochMilli())
                 .immutable(Boolean.TRUE)
                 .secretKey(StringUtils.isEmpty(secretKey) ? ScalityConstants.NOT_AVAILABLE : secretKey);
 
@@ -753,7 +753,7 @@ public final class ScalityModelConverter {
                     .cdUserId(accessKeyMetadata.getUserName())
                     .tenantId(tenant.getTenantId())
                     .cdTenantId(tenant.getCdTenantIds().get(0))
-                    .creationDate(accessKeyMetadata.getCreateDate().toInstant())
+                    .creationDate(accessKeyMetadata.getCreateDate().toInstant().toEpochMilli())
                     .immutable(Boolean.TRUE);
             if (null != secretKeyMap.get(accessKeyMetadata.getAccessKeyId())) {
                 // If secret key is available, add credential object to the list
@@ -837,7 +837,7 @@ public final class ScalityModelConverter {
 
         return new OsisBucketMeta()
                 .name(bucket.getName())
-                .creationDate(bucket.getCreationDate().toInstant())
+                .creationDate(bucket.getCreationDate().toInstant().toEpochMilli())
                 .userId(userId);
     }
 

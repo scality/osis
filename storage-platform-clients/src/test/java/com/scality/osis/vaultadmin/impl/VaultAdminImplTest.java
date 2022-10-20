@@ -23,11 +23,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("ConstantConditions")
-public class VaultAdminImplTest extends BaseTest {
+class VaultAdminImplTest extends BaseTest {
     public static final String CACHE_FACTORY = "cacheFactory";
 
     @Test
-    public void createAccount() {
+    void createAccount() {
 
         //vault specific email address format for ose-scality
         final String emailAddress = UUID.randomUUID().toString() +"_"+ UUID.randomUUID().toString() + "@osis.account.com";
@@ -48,7 +48,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void createAccountErrorExistingEntity() {
+    void createAccountErrorExistingEntity() {
 
         //vault specific email address format for ose-scality
         final String emailAddress = UUID.randomUUID().toString() +"_"+ UUID.randomUUID().toString() + "@osis.account.com";
@@ -73,7 +73,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void createAccountIOException() {
+    void createAccountIOException() {
 
         //vault specific email address format for ose-scality
         final String emailAddress = UUID.randomUUID().toString() +"_"+ UUID.randomUUID().toString() + "@osis.account.com";
@@ -101,7 +101,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void createAccountErrServiceResponse() {
+    void createAccountErrServiceResponse() {
 
         //vault specific email address format for ose-scality
         final String emailAddress = UUID.randomUUID().toString() +"_"+ UUID.randomUUID().toString() + "@osis.account.com";
@@ -131,7 +131,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void listAccounts() {
+    void listAccounts() {
 
         final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
                 .maxItems(5)
@@ -143,7 +143,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void listAccounts400ServiceResponse() {
+    void listAccounts400ServiceResponse() {
 
         final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
                 .maxItems(5)
@@ -168,7 +168,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void listAccounts500ServiceResponse() {
+    void listAccounts500ServiceResponse() {
 
         final ListAccountsRequestDTO   listAccountsRequestDTO = ListAccountsRequestDTO.builder()
                 .maxItems(5)
@@ -193,7 +193,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void testGetAccountAccessKey() {
+    void testGetAccountAccessKey() {
 
         final GenerateAccountAccessKeyRequest generateAccountAccessKeyRequest = GenerateAccountAccessKeyRequest.builder()
                 .accountName(DEFAULT_TEST_ACCOUNT_ID)
@@ -212,14 +212,14 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void testVaultAdminImplInvalidEndpoint() {
+    void testVaultAdminImplInvalidEndpoint() {
         assertThrows(IllegalArgumentException.class,
                 () -> new VaultAdminImpl(accountServicesClient, stsClient, "dummy_vault_admin_endpoint", s3InterfaceEndpoint),
                 "VaultAdminImpl constructor should throw IllegalArgumentException for null endpoint");
     }
 
     @Test
-    public void testGetListAccountsMarkerCacheEmpty() {
+    void testGetListAccountsMarkerCacheEmpty() {
 
         final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
         when(cacheFactoryMock.getCache(NAME_LIST_ACCOUNTS_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
@@ -232,7 +232,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void testGetListAccountsMarkerWithExistingCache1() {
+    void testGetListAccountsMarkerWithExistingCache1() {
 
         final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
         final CacheImpl<Integer, String> cache = new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY);
@@ -249,7 +249,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void testGetListAccountsMarkerWithExistingCache2() {
+    void testGetListAccountsMarkerWithExistingCache2() {
 
         final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
         final CacheImpl<Integer, String> cache = new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY);
@@ -265,7 +265,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void testListAccountsOffsetEmptyCache() {
+    void testListAccountsOffsetEmptyCache() {
 
         final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
         when(cacheFactoryMock.getCache(NAME_LIST_ACCOUNTS_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
@@ -283,7 +283,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void testListAccountsOffsetWithCache1() {
+    void testListAccountsOffsetWithCache1() {
 
         final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
         final CacheImpl<Integer, String> cache = new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY);
@@ -305,7 +305,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void testListAccountsOffsetWithCache2() {
+    void testListAccountsOffsetWithCache2() {
 
         final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
         final CacheImpl<Integer, String> cache = new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY);
@@ -327,7 +327,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void testGetTempAccountCredentialsEmptyCache() {
+    void testGetTempAccountCredentialsEmptyCache() {
 
         final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
         when(cacheFactoryMock.getCache(NAME_ASSUME_ROLE_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
@@ -346,7 +346,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void testGetTempAccountCredentialsWithCache() {
+    void testGetTempAccountCredentialsWithCache() {
 
         final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
 
@@ -375,7 +375,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void assumeRoleBackbeat400ServiceResponse() {
+    void assumeRoleBackbeat400ServiceResponse() {
 
         final AssumeRoleRequest assumeRoleRequest = new AssumeRoleRequest()
                 .withRoleArn(TEST_ROLE_ARN)
@@ -400,7 +400,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void assumeRoleBackbeat500ServiceResponse() {
+    void assumeRoleBackbeat500ServiceResponse() {
 
         final AssumeRoleRequest assumeRoleRequest = new AssumeRoleRequest()
                 .withRoleArn(TEST_ROLE_ARN)
@@ -425,14 +425,14 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void testVaultAdminImplInvalidS3InterfaceEndpoint() {
+    void testVaultAdminImplInvalidS3InterfaceEndpoint() {
         assertThrows(IllegalArgumentException.class,
                 () -> new VaultAdminImpl(accountServicesClient, stsClient, vaultAdminEndpoint, "dummy_endpoint"),
                 "VaultAdminImpl constructor should throw IllegalArgumentException for null endpoint");
     }
 
     @Test
-    public void testGetIAMClient() {
+    void testGetIAMClient() {
         final Credentials credentials = new Credentials();
         credentials.setAccessKeyId(TEST_ACCESS_KEY);
         credentials.setSecretAccessKey(TEST_SECRET_KEY);
@@ -442,7 +442,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void testGetIAMClientWithSession() {
+    void testGetIAMClientWithSession() {
         final Credentials credentials = new Credentials();
         credentials.setAccessKeyId(TEST_ACCESS_KEY);
         credentials.setSecretAccessKey(TEST_SECRET_KEY);
@@ -453,7 +453,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void testGetAccountIDEmptyCache() {
+    void testGetAccountIDEmptyCache() {
 
         final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
         when(cacheFactoryMock.getCache(NAME_ACCOUNT_ID_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
@@ -471,7 +471,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void testGetAccountIDWithCache() {
+    void testGetAccountIDWithCache() {
 
         final String cdTenantIDFilter1 = CD_TENANT_ID_PREFIX + UUID.randomUUID();
         final String cdTenantIDFilter2 = CD_TENANT_ID_PREFIX + UUID.randomUUID();
@@ -496,7 +496,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void testGetAccountIDNotFound() {
+    void testGetAccountIDNotFound() {
 
         final CacheFactory cacheFactoryMock = Mockito.mock(CacheFactory.class);
         when(cacheFactoryMock.getCache(NAME_ACCOUNT_ID_CACHE)).thenReturn(new CacheImpl<>(DEFAULT_CACHE_MAX_CAPACITY));
@@ -524,7 +524,7 @@ public class VaultAdminImplTest extends BaseTest {
     }
 
     @Test
-    public void updateAccountAttributes() {
+    void updateAccountAttributes() {
 
         final String name = "tenant.name";
         final Map<String, String> customAttributestemp  = new HashMap<>() ;

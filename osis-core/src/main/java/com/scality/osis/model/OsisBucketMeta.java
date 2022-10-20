@@ -18,7 +18,7 @@ public class OsisBucketMeta {
 
   @Valid
   @NotNull
-  private Instant creationDate;
+  private Long creationDate;
 
   @NotNull
   private String userId;
@@ -28,7 +28,7 @@ public class OsisBucketMeta {
     return this;
   }
 
-  public OsisBucketMeta creationDate(Instant creationDate) {
+  public OsisBucketMeta creationDate(Long creationDate) {
     this.creationDate = creationDate;
     return this;
   }
@@ -56,11 +56,11 @@ public class OsisBucketMeta {
    * @return creationDate
   */
   @ApiModelProperty(required = true, value = "bucket creation date")
-  public Instant getCreationDate() {
+  public Long getCreationDate() {
     return creationDate;
   }
 
-  public void setCreationDate(Instant creationDate) {
+  public void setCreationDate(Long creationDate) {
     this.creationDate = creationDate;
   }
 

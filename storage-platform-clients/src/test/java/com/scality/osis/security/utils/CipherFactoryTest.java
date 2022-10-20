@@ -16,7 +16,7 @@ import static com.scality.osis.security.utils.SecurityConstants.NAME_AES_256_GCM
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class CipherFactoryTest {
+class CipherFactoryTest {
 
     @Mock
     private CryptoEnv cryptoEnvMock;
@@ -44,7 +44,7 @@ public class CipherFactoryTest {
     }
 
     @Test
-    public void testGetLatestSecretCipherKey() {
+    void testGetLatestSecretCipherKey() {
         // Setup
 
         // Run the test
@@ -55,7 +55,7 @@ public class CipherFactoryTest {
     }
 
     @Test
-    public void testGetSecretCipherKeyByID() {
+    void testGetSecretCipherKeyByID() {
         // Setup
 
         // Run the test
@@ -66,7 +66,7 @@ public class CipherFactoryTest {
     }
 
     @Test
-    public void testGetLatestCipherID() {
+    void testGetLatestCipherID() {
         // Setup
 
         // Run the test
@@ -77,7 +77,7 @@ public class CipherFactoryTest {
     }
 
     @Test
-    public void testGetLatestCipherName() {
+    void testGetLatestCipherName() {
         // Setup
 
         // Run the test
@@ -88,7 +88,7 @@ public class CipherFactoryTest {
     }
 
     @Test
-    public void testGetCipher() {
+    void testGetCipher() {
         // Setup
 
         // Run the test
@@ -99,7 +99,7 @@ public class CipherFactoryTest {
     }
 
     @Test
-    public void testGetCipherByID() {
+    void testGetCipherByID() {
         // Setup
 
         // Run the test
@@ -110,7 +110,7 @@ public class CipherFactoryTest {
     }
 
     @Test
-    public void testGetCipherByName() {
+    void testGetCipherByName() {
         // Setup
 
         // Run the test
