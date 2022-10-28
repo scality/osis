@@ -56,3 +56,5 @@ jobs:
           cache-to: type=gha,mode=max,scope=osis
           build-args: |
             NODE_ENV=${{ matrix.build.env }}
+            NEXUS_UNAME=${{ secrets.NEXUS_USERNAME }}
+            NEXUS_PWD=${{ secrets.NEXUS_PASSWORD }}
