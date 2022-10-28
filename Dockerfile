@@ -1,7 +1,7 @@
 FROM gradle:7.3.0-jdk17-alpine AS gradle-build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
-RUN gradle bootJar -PsonatypeUsername=scality.com -PsonatypePassword=Artesca12345!
+RUN gradle bootJar -PsonatypeUsername=${NEXUS_UNAME} -PsonatypePassword=${NEXUS_PWD}
 
 FROM amazoncorretto:17.0.0-alpine AS build-image
 EXPOSE 8443
