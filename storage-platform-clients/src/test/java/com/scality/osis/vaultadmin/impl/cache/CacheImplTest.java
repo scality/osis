@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class CacheImplTest {
+class CacheImplTest {
 
     private static CacheImpl<String, String> cacheImplUnderTest;
 
@@ -24,7 +24,7 @@ public class CacheImplTest {
 
     @Test
     @Order(1)
-    public void testPut() {
+    void testPut() {
         // Setup
         final String key = "Key1";
         final String value = "Value";
@@ -38,7 +38,7 @@ public class CacheImplTest {
 
     @Test
     @Order(2)
-    public void testGet() {
+    void testGet() {
         // Setup
         final String key = "Key1";
 
@@ -51,7 +51,7 @@ public class CacheImplTest {
 
     @Test
     @Order(3)
-    public void testPutWithQuickExpiry() throws InterruptedException {
+    void testPutWithQuickExpiry() throws InterruptedException {
         // Setup
         final String key = "Key3";
         final String value = "Value3";
@@ -68,7 +68,7 @@ public class CacheImplTest {
 
     @Test
     @Order(4)
-    public void testRemove() {
+    void testRemove() {
         // Setup
         final String key = "Key1";
 
@@ -81,7 +81,7 @@ public class CacheImplTest {
 
     @Test
     @Order(5)
-    public void testSize() {
+    void testSize() {
         // Setup
 
         // Run the test
@@ -95,7 +95,7 @@ public class CacheImplTest {
 
     @Test
     @Order(6)
-    public void testToString() {
+    void testToString() {
         // Setup
 
         // Run the test
@@ -107,7 +107,7 @@ public class CacheImplTest {
 
     @Test
     @Order(7)
-    public void testClear() {
+    void testClear() {
         // Setup
 
         // Run the test
@@ -118,7 +118,7 @@ public class CacheImplTest {
     }
 
     @Test
-    public void testRemove2() {
+    void testRemove2() {
         // Setup
         final String key = "KeyNull";
 
@@ -130,7 +130,7 @@ public class CacheImplTest {
     }
 
     @Test
-    public void testIllegalMaxCapacity() {
+    void testIllegalMaxCapacity() {
         // Setup
         // Run the test
         // Verify the results
@@ -140,7 +140,7 @@ public class CacheImplTest {
     }
 
     @Test
-    public void testIllegalExpirationTime() {
+    void testIllegalExpirationTime() {
         // Setup
         // Run the test
         // Verify the results
@@ -150,7 +150,7 @@ public class CacheImplTest {
     }
 
     @Test
-    public void testPutExistingKey() {
+    void testPutExistingKey() {
         // Setup
         final String key = "Key2";
         final String value = "Value2";
@@ -165,7 +165,7 @@ public class CacheImplTest {
 
     @Test
     @Order(7)
-    public void testPutMaxKeys() {
+    void testPutMaxKeys() {
         // Setup
 
         final int maxCapacity = 10;

@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class AES256GCMTest {
+class AES256GCMTest {
 
     private AES256GCM aes256GCMUnderTest;
 
@@ -27,7 +27,7 @@ public class AES256GCMTest {
     }
 
     @Test
-    public void testEncryptDecrypt() throws Exception {
+    void testEncryptDecrypt() throws Exception {
         //create new random key
         final String key = TEST_CIPHER_SECRET_KEY;
         
@@ -40,7 +40,7 @@ public class AES256GCMTest {
     }
 
     @Test
-    public void testEncryptThrowsException() {
+    void testEncryptThrowsException() {
         // Setup
         //create new random key of size 40
         final String key = TEST_INVALID_CIPHER_SECRET_KEY;
@@ -51,7 +51,7 @@ public class AES256GCMTest {
     }
 
     @Test
-    public void testDecryptInvalidAssociatedDataThrowsException() throws Exception {
+    void testDecryptInvalidAssociatedDataThrowsException() throws Exception {
         // Setup
         //create new random key
         final String key = TEST_CIPHER_SECRET_KEY;
@@ -63,7 +63,7 @@ public class AES256GCMTest {
     }
 
     @Test
-    public void testDecryptHKDF() throws Exception {
+    void testDecryptHKDF() throws Exception {
         // Setup
         //create EncryptedAdminCredentials from json file
         final Type listType = new TypeToken<List<EncryptedAdminCredentials>>() {}.getType();
@@ -77,7 +77,7 @@ public class AES256GCMTest {
     }
 
     @Test
-    public void testDecryptHKDFThrowsException() throws Exception {
+    void testDecryptHKDFThrowsException() throws Exception {
         // Setup
         //create EncryptedAdminCredentials from json file
         final Type listType = new TypeToken<List<EncryptedAdminCredentials>>() {}.getType();
@@ -89,7 +89,7 @@ public class AES256GCMTest {
     }
 
     @Test
-    public void testDecryptHKDFInvalidInfoThrowsException() throws Exception {
+    void testDecryptHKDFInvalidInfoThrowsException() throws Exception {
         // Setup
         //create EncryptedAdminCredentials from json file
         final Type listType = new TypeToken<List<EncryptedAdminCredentials>>() {}.getType();
@@ -101,7 +101,7 @@ public class AES256GCMTest {
     }
 
     @Test
-    public void testEncryptHKDF() throws Exception {
+    void testEncryptHKDF() throws Exception {
         // Setup
         //create EncryptedAdminCredentials from json file
         final Type listType = new TypeToken<List<EncryptedAdminCredentials>>() {}.getType();

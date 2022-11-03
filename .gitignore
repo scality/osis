@@ -1,0 +1,8 @@
+.idea/
+
+build/
+reports/
+.gradle/
+
+secring.gpg
+gradle.properties

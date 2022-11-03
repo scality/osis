@@ -22,7 +22,7 @@ public interface BaseCipher {
     SecretKeyRepoData encrypt(String plaintext, String secretKeyStr, String associatedData) throws Exception;
 
     /**
-     * Decrypts encrypted message (see {@link #encrypt(String, SecretKey, String)}).
+     * Decrypts encrypted message (see {@link #encrypt(String, String, String)}).
      *
      * @param encryptedKeyRepoData  a cipher object along with associated information
      * @param secretKeyStr      used to decrypt
