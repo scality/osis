@@ -6,10 +6,8 @@ import org.mockito.*;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 class ScalityRedisRepositoryTest {
 
@@ -21,7 +19,7 @@ class ScalityRedisRepositoryTest {
 
     @BeforeEach
     public void setUp() {
-        initMocks(this);
+        MockitoAnnotations.openMocks(this);
         ReflectionTestUtils.setField(scalityRedisRepositoryUnderTest, "hashOperations", mockHashOperations);
     }
 

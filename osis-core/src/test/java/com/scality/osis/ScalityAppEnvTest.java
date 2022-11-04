@@ -3,6 +3,7 @@ package com.scality.osis;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.core.env.Environment;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +13,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 class ScalityAppEnvTest {
     private static final String TEST_RESULT= "result";
@@ -26,7 +26,7 @@ class ScalityAppEnvTest {
 
     @BeforeEach
     public void setUp() {
-        initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test

@@ -41,8 +41,8 @@ public class VaultAdminEnv {
      * @return the integer
      */
     public Integer getListAccountsCacheMaxCapacity(){
-       return StringUtils.isEmpty(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_MAX_CAPACITY))
-                ? null : Integer.parseInt(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_MAX_CAPACITY));
+       return StringUtils.hasLength(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_MAX_CAPACITY))
+                ? Integer.parseInt(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_MAX_CAPACITY)) : null;
     }
 
     /**
@@ -51,8 +51,8 @@ public class VaultAdminEnv {
      * @return the integer
      */
     public Long getListAccountsCacheExpiration(){
-        return StringUtils.isEmpty(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_CACHE_TTL))
-                ? null : Long.parseLong(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_CACHE_TTL));
+        return StringUtils.hasLength(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_CACHE_TTL))
+                ? Long.parseLong(env.getProperty(CacheConstants.ENV_LIST_ACCOUNT_CACHE_TTL)) : null;
     }
 
     /**
@@ -61,8 +61,8 @@ public class VaultAdminEnv {
      * @return the integer
      */
     public Integer getAssumeRoleCacheMaxCapacity(){
-        return StringUtils.isEmpty(env.getProperty(CacheConstants.ENV_ASSUME_ROLE_MAX_CAPACITY))
-                ? null : Integer.parseInt(env.getProperty(CacheConstants.ENV_ASSUME_ROLE_MAX_CAPACITY));
+        return StringUtils.hasLength(env.getProperty(CacheConstants.ENV_ASSUME_ROLE_MAX_CAPACITY))
+                ? Integer.parseInt(env.getProperty(CacheConstants.ENV_ASSUME_ROLE_MAX_CAPACITY)) : null;
     }
 
     /**
@@ -71,8 +71,8 @@ public class VaultAdminEnv {
      * @return the integer
      */
     public Long getAssumeRoleCacheExpiration(){
-        return StringUtils.isEmpty(env.getProperty(CacheConstants.ENV_ASSUME_ROLE_CACHE_TTL))
-                ? null : Long.parseLong(env.getProperty(CacheConstants.ENV_ASSUME_ROLE_CACHE_TTL));
+        return StringUtils.hasLength(env.getProperty(CacheConstants.ENV_ASSUME_ROLE_CACHE_TTL))
+                ? Long.parseLong(env.getProperty(CacheConstants.ENV_ASSUME_ROLE_CACHE_TTL)) : null;
     }
 
     /**
@@ -90,8 +90,8 @@ public class VaultAdminEnv {
      * @return the integer
      */
     public Integer getAccountIDCacheMaxCapacity(){
-        return StringUtils.isEmpty(env.getProperty(CacheConstants.ENV_ACCOUNT_ID_MAX_CAPACITY))
-                ? null : Integer.parseInt(env.getProperty(CacheConstants.ENV_ACCOUNT_ID_MAX_CAPACITY));
+        return StringUtils.hasLength(env.getProperty(CacheConstants.ENV_ACCOUNT_ID_MAX_CAPACITY))
+                ? Integer.parseInt(env.getProperty(CacheConstants.ENV_ACCOUNT_ID_MAX_CAPACITY)) : null;
     }
 
     /**
@@ -100,8 +100,8 @@ public class VaultAdminEnv {
      * @return the integer
      */
     public Long getAccountIDCacheExpiration(){
-        return StringUtils.isEmpty(env.getProperty(CacheConstants.ENV_ACCOUNT_ID_CACHE_TTL))
-                ? null : Long.parseLong(env.getProperty(CacheConstants.ENV_ACCOUNT_ID_CACHE_TTL));
+        return StringUtils.hasLength(env.getProperty(CacheConstants.ENV_ACCOUNT_ID_CACHE_TTL))
+                ? Long.parseLong(env.getProperty(CacheConstants.ENV_ACCOUNT_ID_CACHE_TTL)) : null;
     }
 
 }

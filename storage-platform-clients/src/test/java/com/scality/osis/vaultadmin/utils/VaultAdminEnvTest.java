@@ -4,13 +4,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.core.env.Environment;
 
 import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 class VaultAdminEnvTest {
 
@@ -22,7 +22,7 @@ class VaultAdminEnvTest {
 
     @BeforeEach
     public void setup(){
-        initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
