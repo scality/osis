@@ -51,7 +51,7 @@ public final class AES256GCM implements BaseCipher {
         SecretKey secretKey = new SecretKeySpec(secretKeyStr.getBytes(StandardCharsets.UTF_8), "AES");
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, parameterSpec);
 
-        if (!StringUtils.hasLength(associatedData)) {
+        if (StringUtils.hasLength(associatedData)) {
             cipher.updateAAD(associatedData.getBytes(StandardCharsets.UTF_8));
         }
 
@@ -87,7 +87,7 @@ public final class AES256GCM implements BaseCipher {
         SecretKey secretKey = new SecretKeySpec(secretKeyStr.getBytes(StandardCharsets.UTF_8), "AES");
         cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmNonce);
 
-        if (!StringUtils.hasLength(associatedData)) {
+        if (StringUtils.hasLength(associatedData)) {
             cipher.updateAAD(associatedData.getBytes(StandardCharsets.UTF_8));
         }
 
