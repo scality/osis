@@ -23,6 +23,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_ADMIN_POLICY_DOCUMENT;
@@ -173,8 +174,8 @@ public class AsyncScalityOsisService {
                                 GetPolicyVersionResult getAdminPolicyVersionResult =  iamClient.getPolicyVersion(getAdminPolicyVersionRequest);
                                 logger.debug("[Vault] Get Admin Policy Default Version result:{}", new Gson().toJson(getAdminPolicyVersionResult));
 
-                                if (!Objects.equals(URLDecoder.decode(getAdminPolicyVersionResult.getPolicyVersion().getDocument()),
-                                        URLDecoder.decode(DEFAULT_ADMIN_POLICY_DOCUMENT))) {
+                                if (!Objects.equals(URLDecoder.decode(getAdminPolicyVersionResult.getPolicyVersion().getDocument(), StandardCharsets.UTF_8),
+                                        URLDecoder.decode(DEFAULT_ADMIN_POLICY_DOCUMENT, StandardCharsets.UTF_8))) {
                                         logger.debug("Default Admin Policy Document changed, before: {}, current: {}",
                                                 getAdminPolicyVersionResult.getPolicyVersion().getDocument(),
                                                 DEFAULT_ADMIN_POLICY_DOCUMENT);
