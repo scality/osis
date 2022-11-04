@@ -75,7 +75,7 @@ class BaseOsisServiceTest {
 
     @BeforeEach
     protected void init() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         initMocks();
         scalityOsisServiceUnderTest = new ScalityOsisServiceImpl(appEnvMock, vaultAdminMock, s3Mock, osisCapsManagerMock);
 
