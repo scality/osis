@@ -1,8 +1,8 @@
 buildscript {
     ext {
-        osisVersion = '1.4.3'
+        osisVersion = '1.4.4'
         vaultclientVersion = '0.7.3'
-        springBootVersion = '2.4.0'
+        springBootVersion = '2.5.0'
     }
 }
 
@@ -24,6 +24,10 @@ dependencies {
 
 bootJar {
     mainClass = 'com.scality.osis.Application'
+}
+
+jar {
+    classifier = ''
 }
 
 // to upload the bootJar instead of jar
@@ -49,6 +53,7 @@ allprojects {
     apply from: "$rootDir/upload-artifact.gradle"
 
     dependencies {
+        // vaultclient
         implementation "com.scality:vaultclient:$vaultclientVersion"
 
         // Spring boot
@@ -58,25 +63,16 @@ allprojects {
         implementation "org.springframework.boot:spring-boot-starter-security:$springBootVersion"
         implementation "org.springframework.boot:spring-boot-starter-data-redis:$springBootVersion"
         implementation "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
-        testImplementation"org.springframework.boot:spring-boot-starter-test:$springBootVersion"
+        testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
+
         implementation 'io.springfox:springfox-swagger2:3.0.0'
         implementation 'io.springfox:springfox-swagger-ui:3.0.0'
-        implementation 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
-        implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.4'
-        implementation 'org.openapitools:jackson-databind-nullable:0.2.4'
         implementation 'javax.validation:validation-api:2.0.1.Final'
-        implementation 'org.hsqldb:hsqldb:2.7.1'
-        implementation 'org.postgresql:postgresql:42.5.0'
-        implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.4'
-        implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.4'
         implementation 'org.apache.commons:commons-lang3:3.12.0'
         implementation 'io.jsonwebtoken:jjwt:0.9.1'
-        implementation 'org.springframework.plugin:spring-plugin-core:2.0.0.RELEASE'
         implementation 'com.amazonaws:aws-java-sdk-s3:1.12.328'
         implementation 'com.amazonaws:aws-java-sdk-sts:1.12.328'
         implementation 'com.amazonaws:aws-java-sdk-iam:1.12.328'
-        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
-
     }
 
     repositories {
