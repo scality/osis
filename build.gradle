@@ -1,8 +1,8 @@
 buildscript {
     ext {
-        osisVersion = '1.4.1'
+        osisVersion = '1.4.2'
         vaultclientVersion = '0.7.3'
-        springBootVersion = '2.2.5.RELEASE'
+        springBootVersion = '2.3.0.RELEASE'
     }
 }
 
@@ -79,6 +79,7 @@ allprojects {
         implementation 'com.amazonaws:aws-java-sdk-sts:1.12.328'
         implementation 'com.amazonaws:aws-java-sdk-iam:1.12.328'
         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
+
     }
 
     repositories {
