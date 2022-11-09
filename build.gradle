@@ -1,8 +1,8 @@
 buildscript {
     ext {
-        osisVersion = '1.4.2'
+        osisVersion = '1.4.3'
         vaultclientVersion = '0.7.3'
-        springBootVersion = '2.3.0.RELEASE'
+        springBootVersion = '2.4.0'
     }
 }
 
@@ -23,7 +23,7 @@ dependencies {
 }
 
 bootJar {
-    mainClassName = 'com.scality.osis.Application'
+    mainClass = 'com.scality.osis.Application'
 }
 
 // to upload the bootJar instead of jar
@@ -58,10 +58,7 @@ allprojects {
         implementation "org.springframework.boot:spring-boot-starter-security:$springBootVersion"
         implementation "org.springframework.boot:spring-boot-starter-data-redis:$springBootVersion"
         implementation "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
-        testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") {
-            exclude group: 'org.junit.vintage'
-        }
-
+        testImplementation"org.springframework.boot:spring-boot-starter-test:$springBootVersion"
         implementation 'io.springfox:springfox-swagger2:3.0.0'
         implementation 'io.springfox:springfox-swagger-ui:3.0.0'
         implementation 'javax.xml.bind:jaxb-api:2.4.0-b180830.0359'
