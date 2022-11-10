@@ -25,7 +25,7 @@ public class OsisS3Credential {
   private Boolean active;
 
   @Valid
-  private Long creationDate;
+  private String creationDate;
 
   private Boolean immutable;
 
@@ -93,7 +93,7 @@ public class OsisS3Credential {
     this.active = active;
   }
 
-  public OsisS3Credential creationDate(Long creationDate) {
+  public OsisS3Credential creationDate(String creationDate) {
     this.creationDate = creationDate;
     return this;
   }
@@ -103,11 +103,11 @@ public class OsisS3Credential {
    * @return creationDate
   */
   @ApiModelProperty(value = "S3 credential creation date")
-  public Long getCreationDate() {
+  public String getCreationDate() {
     return creationDate;
   }
 
-  public void setCreationDate(Long creationDate) {
+  public void setCreationDate(String creationDate) {
     this.creationDate = creationDate;
   }
 
