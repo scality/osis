@@ -303,22 +303,61 @@ Get S3 capabilities of the platform
 
 ### getInformation
 Get the information of the REST Services, including platform name, OSIS version and etc (Static Details)
-1. First Version, Make all information configuration except the usage part
-1. Next Gen, Implement the usage tenant level part with UTAPIv2 (write -java utapi-client)
 
 ### updateOsisCaps (?)
 
 ### getBucketList
 Get the bucket list of the platform tenant
 * S3:`listBucket` API
-### getOsisUsage 
-Get the platform usage of global (without query parameter), tenant (with tenant_id) or user (only with user_id).
-1. We don’t know yet what needs to be done here
-1. For next generation,
-    1. Utapi Service level -> global platform
-    1. Utapi Account level -> tenant level
-    1. Utapi User level -> user level
 
+### getOsisUsage
+Get the platform usage of global level (without query parameter), tenant level (only with tenant_id) or user  level (with tenant_id and user_id).
+
+Platform usage has the 5 metrics: bucket count, object count, total_bytes, available_bytes, used_bytes at the level of global, tenant and user respectively.
+
+- bucket_count 
+  - global: get all accounts from VAULT which are associated with VCD tenants, 
+  and call OSIS getBucketList API of each tenant respectively to get the bucket count 
+  - tenant: call OSIS getBucketList API of the provided tenant_id to get the bucket count 
+  - user: call OSIS getBucketList API of the provided tenant_id to get all buckets then filter by bucket owner equal to provided user_id
+
+- object_count 
+  - global: get all accounts from VAULT which are associated with VCD tenants, 
+  call UTAPI ListMetrics API with all tenant_ids to get `numberOfObjects` field. 
+  (Split into multiple requests if the number of accounts is big, the threshold value can be 50-100) 
+  - tenant: call UTAPI ListMetrics API with tenant_id to get `numberOfObjects` field 
+  - user: call UTAPI ListMetrics API with user_id to get `numberOfObjects` field
+
+- total_bytes 
+  - tenant: call VAULT getAccount API to get quota of the tenant, total_bytes will be the quota of the current tenant if quota exists, otherwise, it will be -1
+  - global and user: -1
+
+- used_bytes 
+  - global: call UTAPI ListMetrics with all tenant_ids to get `storageUtilized` filed. (Split into multiple requests if the number of accounts is big, the threshold value can be 50-100)
+  - tenant: call UTAPI ListMetrics with tenant_id to get `storageUtilized` field 
+  - user: call UTAPI ListMetrics with user_id to get `storageUtilized` field
+
+- available_bytes 
+  - tenant: can be calculated by total_bytes and used_bytes if total_bytes exists, otherwise, will be -1 as well. 
+  - global and user: -1
+
+#### add UTAPI endpoint and UTAPI client
+Like how we integrated Vault/Cloudserver with OSIS, add UTAPI host and port in `application.properties` file, create a UtapiClient class and add a listMetrics function to call Utapi listMetrics requests. 
+
+
+#### with Utapi not enabled or not reachable
+We will have a config field `osis.scality.utapi.enabled` in `application.properties` which can automatically read from S3C or Zenko cluster about if UTAPI is enabled, we can as well configure it manually.
+
+If UTAPI is enabled, it will be added to the deep heath check for OSIS. As UTAPI is not critical in the data path, we will only have it in `/_/healthcheck/deep`
+If UTAPI is unhealthy/unavailable, `-1` will be returned for all metrics.
+
+#### update OSIS admin policy
+Currently, the policy that is assigned to OSIS users has full permissions to do all IAM and S3 requests, we will need to add `utapi:ListMetrics` permission to give OSIS users access to ListMetrics calls.
+
+Also, the ListMetrics calls are sent with OSIS user’s accessKey/secretKey/sessionToken.
+
+#### Consideration
+UTAPI enabled in S3C or Zenko cluster may enable expiration, it disposes of old metrics on a rolling schedule. This won't affect the use case in OSIS as the metrics we need are accumulated not periodical, we just need its most recent metrics.
 
 ## S3 Operations Example Activity Diagram
 ![S3 Object operations](Design_Files/OSE-OSIS-Object-operations.png)
