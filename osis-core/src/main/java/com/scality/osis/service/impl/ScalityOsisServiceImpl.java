@@ -53,16 +53,9 @@ import static com.scality.osis.utils.ScalityConstants.*;
 public class ScalityOsisServiceImpl implements ScalityOsisService {
     private static final Logger logger = LoggerFactory.getLogger(ScalityOsisServiceImpl.class);
 
-    @Autowired
     private ScalityAppEnv appEnv;
-
-    @Autowired
     private VaultAdmin vaultAdmin;
-
-    @Autowired
     private S3 s3;
-
-    @Autowired
     private ScalityOsisCapsManager scalityOsisCapsManager;
 
     @Autowired
@@ -75,12 +68,6 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     private CipherFactory cipherFactory;
 
     private final Map<String, SecretKeyRepoData> springLocalCache = new ConcurrentHashMap<>();
-
-    /**
-     * Instantiates a new Scality osis service.
-     */
-    public ScalityOsisServiceImpl() {
-    }
 
     /**
      * Instantiates a new Scality osis service.
