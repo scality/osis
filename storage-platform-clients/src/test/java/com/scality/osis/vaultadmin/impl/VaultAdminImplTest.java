@@ -531,16 +531,16 @@ public class VaultAdminImplTest extends BaseTest {
         customAttributestemp.put("cd_tenant_id==" + UUID.randomUUID(), "");
 
         final UpdateAccountAttributesRequestDTO updateAccountAttributesRequestDTO = UpdateAccountAttributesRequestDTO.builder()
-                .name(name)
+                .accountName(name)
                 .customAttributes(customAttributestemp)
                 .build();
 
-        final CreateAccountResponseDTO response = vaultAdminImpl.updateAccountAttributes(updateAccountAttributesRequestDTO);
-        assertEquals(name, response.getAccount().getData().getName());
-        assertNotNull(response.getAccount().getData().getArn());
-        assertNotNull(response.getAccount().getData().getCreateDate());
-        assertNotNull(response.getAccount().getData().getId());
-        assertNotNull(response.getAccount().getData().getCanonicalId());
-        assertNotNull(response.getAccount().getData().getCustomAttributes());
+        final AccountData response = vaultAdminImpl.updateAccountAttributes(updateAccountAttributesRequestDTO);
+        assertEquals(name, response.getName());
+        assertNotNull(response.getArn());
+        assertNotNull(response.getCreateDate());
+        assertNotNull(response.getId());
+        assertNotNull(response.getCanonicalId());
+        assertNotNull(response.getCustomAttributes());
     }
 }

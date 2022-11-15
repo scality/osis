@@ -376,7 +376,7 @@ public class VaultAdminImpl implements VaultAdmin{
    * @return The updated account as a create account response object.
    */
   @Override
-  public CreateAccountResponseDTO updateAccountAttributes(UpdateAccountAttributesRequestDTO updateAccountAttributesRequestDTO) {
+  public AccountData updateAccountAttributes(UpdateAccountAttributesRequestDTO updateAccountAttributesRequestDTO) {
     return ExternalServiceFactory.executeVaultService(vaultAccountClient::updateAccountAttributes, updateAccountAttributesRequestDTO);
   }
 

@@ -570,7 +570,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             logger.debug("[Vault]Update Account Attributes request:{}",
                     new Gson().toJson(updateAccountAttributesRequest));
 
-            CreateAccountResponseDTO accountResponse = vaultAdmin
+            AccountData accountResponse = vaultAdmin
                     .updateAccountAttributes(updateAccountAttributesRequest);
 
             logger.debug("[Vault]Update Account Attributes response:{}", new Gson().toJson(accountResponse));

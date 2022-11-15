@@ -195,19 +195,14 @@ public class BaseOsisServiceTest {
     protected void initUpdateTenantMocks() {
         // initialize mock create account response
         when(vaultAdminMock.updateAccountAttributes(any(UpdateAccountAttributesRequestDTO.class)))
-                .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
+                .thenAnswer((Answer<AccountData>) invocation -> {
                     final UpdateAccountAttributesRequestDTO request = invocation.getArgument(0);
                     final AccountData data = new AccountData();
                     data.setEmailAddress(SAMPLE_SCALITY_ACCOUNT_EMAIL);
                     data.setName(request.getAccountName());
                     data.setId(SAMPLE_ID);
                     data.setCustomAttributes(request.getCustomAttributes());
-                    final Account account = new Account();
-                    account.setData(data);
-                    final CreateAccountResponseDTO response = new CreateAccountResponseDTO();
-                    response.setAccount(account);
-
-                    return response;
+                    return data;
                 });
     }
 

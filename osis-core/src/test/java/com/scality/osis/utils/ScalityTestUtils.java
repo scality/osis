@@ -57,7 +57,7 @@ public final class ScalityTestUtils {
     public static final String TEST_S3_URL = "http://localhost:8000";
     public static final String PLATFORM_NAME = "Scality";
     public static final String PLATFORM_VERSION = "7.10";
-    public static final String API_VERSION = "1.4.1-SNAPSHOT";
+    public static final String API_VERSION = "1.4.3-SNAPSHOT";
     public static final long SAMPLE_DURATION_SECONDS = 120L;
     public static final String ACTIVE_STR = "Active";
     public static final String NA_STR = "N/A";

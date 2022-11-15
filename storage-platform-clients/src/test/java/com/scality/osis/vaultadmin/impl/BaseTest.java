@@ -244,29 +244,24 @@ public class BaseTest {
   private void initUpdateAccountAttributesMocks() {
     //initialize mock update account attributes response
     when(accountServicesClient.updateAccountAttributes(any(UpdateAccountAttributesRequestDTO.class)))
-            .thenAnswer(new Answer<Response<CreateAccountResponseDTO>>() {
+            .thenAnswer(new Answer<Response<AccountData>>() {
               @Override
-              public Response<CreateAccountResponseDTO> answer(final InvocationOnMock invocation) {
+              public Response<AccountData> answer(final InvocationOnMock invocation) {
                 final UpdateAccountAttributesRequestDTO request = invocation.getArgument(0);
 
                 final AccountData data = new AccountData();
                 data.setEmailAddress(DEFAULT_TEST_EMAIL_ADDR);
-                data.setName(request.getName());
+                data.setName(request.getAccountName());
                 data.setId(DEFAULT_TEST_ACCOUNT_ID);
                 data.setCanonicalId(DEFAULT_TEST_CANONICAL_ID);
                 data.setCustomAttributes(request.getCustomAttributes());
-                data.setArn(DEFAULT_TEST_ARN_STR + request.getName() +"/\"");
+                data.setArn(DEFAULT_TEST_ARN_STR + request.getAccountName() +"/\"");
                 data.setCreateDate(new Date());
-
-                final Account account = new Account();
-                account.setData(data);
-                final CreateAccountResponseDTO response = new CreateAccountResponseDTO();
-                response.setAccount(account);
 
                 final HttpResponse httpResponse = new HttpResponse(null, null);
                 httpResponse.setStatusCode(201);
                 httpResponse.setStatusText("Created");
-                return new Response<>(response,httpResponse);
+                return new Response<>(data, httpResponse);
               }
             });
   }

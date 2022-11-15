@@ -113,7 +113,7 @@ public interface VaultAdmin {
    * @param updateAccountAttributesRequestDTO the update account attributes request dto
    * @return The updated account as a create account response object.
    */
-  CreateAccountResponseDTO updateAccountAttributes(UpdateAccountAttributesRequestDTO updateAccountAttributesRequestDTO);
+  AccountData updateAccountAttributes(UpdateAccountAttributesRequestDTO updateAccountAttributesRequestDTO);
 
   /**
    * Get User by accessKey
