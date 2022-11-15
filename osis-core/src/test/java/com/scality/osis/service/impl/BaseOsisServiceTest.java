@@ -199,7 +199,7 @@ public class BaseOsisServiceTest {
                     final UpdateAccountAttributesRequestDTO request = invocation.getArgument(0);
                     final AccountData data = new AccountData();
                     data.setEmailAddress(SAMPLE_SCALITY_ACCOUNT_EMAIL);
-                    data.setName(request.getName());
+                    data.setName(request.getAccountName());
                     data.setId(SAMPLE_ID);
                     data.setCustomAttributes(request.getCustomAttributes());
                     final Account account = new Account();

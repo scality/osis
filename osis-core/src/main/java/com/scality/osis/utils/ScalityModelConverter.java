@@ -74,7 +74,7 @@ public final class ScalityModelConverter {
         }
         UpdateAccountAttributesRequestDTO updateAccountAttributesRequestDTO = new UpdateAccountAttributesRequestDTO();
 
-        updateAccountAttributesRequestDTO.setName(osisTenant.getName());
+        updateAccountAttributesRequestDTO.setAccountName(osisTenant.getName());
 
         updateAccountAttributesRequestDTO.setCustomAttributes(toScalityCustomAttributes(osisTenant.getCdTenantIds()));
 
