@@ -132,7 +132,7 @@ configure(allprojects) {
         compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
         compile 'io.jsonwebtoken:jjwt:0.9.1'
         implementation 'org.springframework.plugin:spring-plugin-core:1.2.0.RELEASE'
-        implementation 'com.scality:vaultclient:0.5.2-SNAPSHOT'
+        implementation 'com.scality:vaultclient:0.5.3-SNAPSHOT'
         implementation 'com.amazonaws:aws-java-sdk-s3:1.11.914'
         implementation 'com.amazonaws:aws-java-sdk-sts:1.11.914'
         implementation 'com.amazonaws:aws-java-sdk-iam:1.11.914'
