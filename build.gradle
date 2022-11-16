@@ -101,7 +101,7 @@ sourceSets {
 }
 
 configure(allprojects) {
-    version = '1.4.3'
+    version = '1.4.4'
     if (!project.hasProperty('release')) {
         project.setVersion(project.getVersion() + '-SNAPSHOT')
     }
