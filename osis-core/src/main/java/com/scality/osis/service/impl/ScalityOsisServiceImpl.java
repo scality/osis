@@ -563,7 +563,15 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     @Override
     public OsisTenant updateTenant(String tenantId, OsisTenant osisTenant) {
         try {
-            logger.info("Update Tenant request received:{}", new Gson().toJson(osisTenant));
+            logger.info("Update Tenant request received, tenantId:{}, osisTenant:{}", tenantId, new Gson().toJson(osisTenant));
+
+            //check tenantId and osisTenant consistency
+            OsisTenant osisTenantOfTenantId = getTenant(tenantId);
+            if (!Objects.equals(osisTenant.getName(), osisTenantOfTenantId.getName()) ||
+            !Objects.equals(osisTenant.getTenantId(), osisTenantOfTenantId.getTenantId())) {
+                throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Body param osisTenant doesn't match tenantId provided in path param");
+            }
+
             UpdateAccountAttributesRequestDTO updateAccountAttributesRequest = ScalityModelConverter
                     .toUpdateAccountAttributesRequestDTO(osisTenant);
 
