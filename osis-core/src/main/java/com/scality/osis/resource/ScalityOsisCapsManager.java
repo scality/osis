@@ -6,36 +6,40 @@
 
 package com.scality.osis.resource;
 
-import com.scality.osis.model.ScalityOsisCaps;
 import com.scality.osis.annotation.NotImplement;
+import com.scality.osis.configuration.DocumentationConfig;
+import com.scality.osis.model.ScalityOsisCaps;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
 public class ScalityOsisCapsManager implements InitializingBean {
 
-    @Autowired
     private ApplicationContext applicationContext;
+    private final ScalityOsisCaps osisCaps;
 
-    private ScalityOsisCaps osisCaps = new ScalityOsisCaps();
+    public ScalityOsisCapsManager(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+        this.osisCaps = new ScalityOsisCaps();
+    }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        Map<String, Object> rcBeans = getBeans(RestController.class);
-        for (Object bean : rcBeans.values()) {
-            for (Method method : bean.getClass().getDeclaredMethods()) {
+        Set<Class> classes = getAnnotatedClasses(RestController.class);
+        for (Class clazz : classes) {
+            for (Method method : clazz.getDeclaredMethods()) {
                 if (method.isAnnotationPresent(NotImplement.class)) {
                     NotImplement a = method.getAnnotation(NotImplement.class);
                     if (this.osisCaps.getOptionalApis().containsKey(a.name())) {
@@ -47,18 +51,26 @@ public class ScalityOsisCapsManager implements InitializingBean {
     }
 
     public List<String> getNotImplements() {
-        return this.osisCaps.getOptionalApis().entrySet().stream().filter(not(Map.Entry::getValue))
+        return this.osisCaps.getOptionalApis().entrySet().stream()
+                .filter(entry -> entry.getValue().equals(Boolean.FALSE))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
     }
 
-    private Map<String, Object> getBeans(Class<? extends Annotation>... annotationTypes) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        Arrays.stream(annotationTypes).forEach(at -> result.putAll(applicationContext.getBeansWithAnnotation(at)));
-        return result;
-    }
+    private Set<Class> getAnnotatedClasses(Class<? extends Annotation>... annotationTypes) {
 
-    private <T> Predicate<T> not(Predicate<T> t) {
-        return t.negate();
+        ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(false);
+        Arrays.stream(annotationTypes).forEach(at -> {
+            provider.addIncludeFilter(new AnnotationTypeFilter(at));
+        });
+        return provider.findCandidateComponents(DocumentationConfig.PROJECT_BASE).stream()
+                .map(bean -> {
+                    try {
+                        return Class.forName(bean.getBeanClassName());
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toSet());
     }
 }

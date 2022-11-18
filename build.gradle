@@ -1,8 +1,8 @@
 buildscript {
     ext {
-        osisVersion = '1.4.4'
+        osisVersion = '1.4.5'
         vaultclientVersion = '0.7.3'
-        springBootVersion = '2.5.0'
+        springBootVersion = '2.6.0'
     }
 }
 
