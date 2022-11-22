@@ -886,6 +886,10 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     public boolean headTenant(String tenantId) {
         try {
             logger.info("Head Tenant request received:: tenant ID:{}", tenantId);
+            if (ScalityUtils.isValidUUID(tenantId)) {
+                logger.info("Head Tenant response:: null");
+                return false;
+            }
             AccountData accountData = vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId));
             logger.info("Head Tenant response:: {}", accountData);
             return accountData != null && accountData.getId().equals(tenantId);
