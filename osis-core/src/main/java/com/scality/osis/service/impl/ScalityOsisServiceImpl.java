@@ -1181,10 +1181,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             logger.debug("[S3] List all Buckets size:{}", buckets.size());
 
-            final PageOfUsers pageOfUsers = listUsers(tenantId, 0, 1);
-            final String userId = pageOfUsers.getItems().get(0).getUserId();
-
-            PageOfOsisBucketMeta pageOfOsisBucketMeta = ScalityModelConverter.toPageOfOsisBucketMeta(buckets, userId, offset, limit);
+            PageOfOsisBucketMeta pageOfOsisBucketMeta = ScalityModelConverter.toPageOfOsisBucketMeta(buckets, tenantId, offset, limit);
 
             logger.info("List Buckets response:{}", new Gson().toJson(pageOfOsisBucketMeta));
 
