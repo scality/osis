@@ -22,6 +22,8 @@ public class OsisTenant {
 //  @NotNull
   private String tenantId;
 
+  private String canonicalId;
+
   private List<String> cdTenantIds;
 
 
@@ -74,6 +76,24 @@ public class OsisTenant {
 
   public void setTenantId(String tenantId) {
     this.tenantId = tenantId;
+  }
+
+  public OsisTenant canonicalId(String canonicalId) {
+    this.canonicalId = canonicalId;
+    return this;
+  }
+
+  /**
+   * tenant canonicalId
+   * @return canonicalId
+   */
+  @ApiModelProperty(required = true, value = "tenant canonicalId")
+  public String getCanonicalId() {
+    return canonicalId;
+  }
+
+  public void setCanonicalId(String canonicalId) {
+    this.canonicalId = canonicalId;
   }
 
   public OsisTenant cdTenantIds(List<String> cdTenantIds) {
