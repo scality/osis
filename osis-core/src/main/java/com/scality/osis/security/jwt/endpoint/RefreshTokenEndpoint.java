@@ -12,6 +12,7 @@ import com.scality.osis.security.jwt.JwtTokenFactory;
 import com.scality.osis.security.jwt.model.*;
 import com.scality.osis.security.jwt.model.exception.InvalidJwtTokenException;
 import com.scality.osis.security.jwt.verifier.JwtTokenVerifier;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
@@ -19,8 +20,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 
 import static com.scality.osis.security.jwt.AuthConstants.ROLE_ADMIN;

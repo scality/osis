@@ -6,12 +6,14 @@
 
 package com.scality.osis.resource;
 
-import com.scality.osis.service.ScalityOsisService;
 import com.scality.osis.annotation.NotImplement;
 import com.scality.osis.model.*;
-import com.scality.osis.model.exception.*;
+import com.scality.osis.model.exception.BadRequestException;
+import com.scality.osis.model.exception.NotImplementedException;
+import com.scality.osis.service.ScalityOsisService;
 import com.scality.osis.validation.Update;
 import io.swagger.annotations.*;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +21,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.Optional;
