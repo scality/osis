@@ -1155,6 +1155,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 .platformName(appEnv.getPlatformName())
                 .platformVersion(appEnv.getPlatformVersion())
                 .apiVersion(appEnv.getApiVersion())
+                .iam(appEnv.isIamEnabled())
                 .notImplemented(scalityOsisCapsManager.getNotImplements())
                 .logoUri(ScalityUtils.getLogoUri(domain))
                 .services(new InformationServices().iam(domain + IAM_PREFIX).s3(appEnv.getS3Endpoint()))

@@ -27,6 +27,9 @@ public class Information {
   @NotNull
   private String apiVersion;
 
+  @NotNull
+  private Boolean iam;
+
   /**
    * Gets or Sets status
    */
@@ -170,6 +173,25 @@ public class Information {
   public void setApiVersion(String apiVersion) {
     this.apiVersion = apiVersion;
   }
+
+  public Information iam(Boolean iam) {
+    this.iam = iam;
+    return this;
+  }
+
+  /**
+   * iam enabled
+   * @return iam
+   */
+  @ApiModelProperty(example = "ceph", required = true, value = "iam enabled")
+  public Boolean getIam() {
+    return iam;
+  }
+
+  public void setIam(Boolean iam) {
+    this.iam = iam;
+  }
+
 
   public Information status(StatusEnum status) {
     this.status = status;

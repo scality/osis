@@ -90,6 +90,8 @@ public class ScalityAppEnv {
         return env.getProperty("osis.api.version");
     }
 
+    public Boolean isIamEnabled() { return Boolean.parseBoolean(env.getProperty("osis.scality.iam.enabled")); }
+
     public boolean isApiTokenEnabled() {
         return Boolean.parseBoolean(env.getProperty("security.jwt.enabled"));
     }
