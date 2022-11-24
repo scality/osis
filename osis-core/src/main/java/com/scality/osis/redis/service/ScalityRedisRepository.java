@@ -6,13 +6,12 @@
 package com.scality.osis.redis.service;
 
 import com.scality.osis.utils.ScalityModelConverter;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
-
-import javax.annotation.PostConstruct;
 
 import static com.scality.osis.utils.ScalityConstants.DEFAULT_REDIS_HASH_KEY;
 

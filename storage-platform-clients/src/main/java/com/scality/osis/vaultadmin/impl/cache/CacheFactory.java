@@ -7,10 +7,9 @@ package com.scality.osis.vaultadmin.impl.cache;
 
 import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.osis.vaultadmin.utils.VaultAdminEnv;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.*;
 
