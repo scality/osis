@@ -94,10 +94,10 @@ public class OsisJwtWebSecurityConfigurerAdapter {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .authorizeRequests(authorizeRequests ->
-                        authorizeRequests
-                                .antMatchers(permitAllEndpoints.toArray(String[]::new)).permitAll()
-                                .antMatchers(API_ROOT_URL).authenticated() // Protected API End-points
+                .authorizeHttpRequests(authorizeHttpRequests ->
+                        authorizeHttpRequests
+                                .requestMatchers(permitAllEndpoints.toArray(String[]::new)).permitAll()
+                                .requestMatchers(API_ROOT_URL).authenticated() // Protected API End-points
                 )
                 .addFilterBefore(buildLoginProcessingFilter(AUTHENTICATION_URL),
                         UsernamePasswordAuthenticationFilter.class)
