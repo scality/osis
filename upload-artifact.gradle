@@ -1,37 +1,57 @@
-apply plugin: 'com.bmuschko.nexus'
+apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
-modifyPom {
-    project {
-        name "com.scality:osis-scality"
-        description "com.scality:osis-scality"
-        url 'https://github.com/scality/osis'
+publishing {
+    publications {
+        sonatype(MavenPublication) {
+            from components.java
 
-        scm {
-            connection 'scm:git:git://github.com/scality/osis.git'
-            developerConnection 'scm:git:ssh://github.com:scality/osis.git'
-            url 'https://github.com/scality/osis/tree/main'
-        }
-
-        licenses {
-            license {
-                name 'The Apache Software License, Version 2.0'
-                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-            }
-        }
-
-        developers {
-            developer {
-                id 'scality.com'
-                name 'scality.com'
-                email 'scality@scality.com'
+            pom.name = 'com.scality:' + project.name
+            pom.description = 'com.scality:' + project.name
+            pom.url = 'https://github.com/scality/osis'
+            pom {
+                licenses {
+                    license {
+                        name = 'The Apache Software License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'scality.com'
+                        name = 'scality.com'
+                        email = 'scality@scality.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/scality/osis.git'
+                    developerConnection = 'scm:git:ssh://github.com:scality/osis.git'
+                    url = 'https://github.com/scality/osis/tree/main'
+                }
             }
         }
     }
+
+    repositories {
+        maven {
+            name = 'nexusSnapshots'
+            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+            credentials {
+                username sonatypeUsername
+                password sonatypePassword
+            }
+        }
+        mavenLocal()
+    }
 }
 
-nexus {
-    sign = true
-    repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-    snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
+// sign artifact (.asc files)
+signing {
+    sign publishing.publications.sonatype
+}
+
+// publish source and javadoc
+java {
+    withSourcesJar()
+    withJavadocJar()
 }

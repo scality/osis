@@ -1,7 +1,6 @@
 dependencies {
-    compile project(':storage-platform-clients')
+    api project(':storage-platform-clients')
 }
-test {
-    useJUnitPlatform()
-}
-group = 'com.scality'
+
+
+

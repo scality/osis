@@ -3,6 +3,7 @@ package com.scality.osis;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.core.env.Environment;
 import org.junit.jupiter.api.Test;
 
@@ -12,9 +13,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
-public class ScalityAppEnvTest {
+class ScalityAppEnvTest {
     private static final String TEST_RESULT= "result";
     private static final String TEST_RESULT_NULL_ERR= "result should be null";
 
@@ -26,11 +26,11 @@ public class ScalityAppEnvTest {
 
     @BeforeEach
     public void setUp() {
-        initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void testGetVaultEndpoint() {
+    void testGetVaultEndpoint() {
         // Setup
         when(mockEnv.getProperty("osis.scality.vault.endpoint")).thenReturn(TEST_RESULT);
 
@@ -42,7 +42,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetVaultEndpointEnvironmentReturnsNull() {
+    void testGetVaultEndpointEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.vault.endpoint")).thenReturn(null);
 
@@ -54,7 +54,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetVaultAccessKey() {
+    void testGetVaultAccessKey() {
         // Setup
         when(mockEnv.getProperty("osis.scality.vault.access-key")).thenReturn(TEST_RESULT);
 
@@ -66,7 +66,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetVaultAccessKeyEnvironmentReturnsNull() {
+    void testGetVaultAccessKeyEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.vault.access-key")).thenReturn(null);
 
@@ -78,7 +78,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetVaultSecretKey() {
+    void testGetVaultSecretKey() {
         // Setup
         when(mockEnv.getProperty("osis.scality.vault.secret-key")).thenReturn(TEST_RESULT);
 
@@ -90,7 +90,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetVaultSecretKeyEnvironmentReturnsNull() {
+    void testGetVaultSecretKeyEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.vault.secret-key")).thenReturn(null);
 
@@ -102,7 +102,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetS3InterfaceEndpoint() {
+    void testGetS3InterfaceEndpoint() {
         // Setup
         when(mockEnv.getProperty("osis.scality.vaultS3Interface.endpoint")).thenReturn(TEST_RESULT);
 
@@ -114,7 +114,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetS3InterfaceEndpointEnvironmentReturnsNull() {
+    void testGetS3InterfaceEndpointEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.vaultS3Interface.endpoint")).thenReturn(null);
 
@@ -126,7 +126,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetConsoleEndpoint() {
+    void testGetConsoleEndpoint() {
         // Setup
         when(mockEnv.getProperty("osis.scality.console.endpoint")).thenReturn(TEST_RESULT);
 
@@ -138,7 +138,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetConsoleEndpointEnvironmentReturnsNull() {
+    void testGetConsoleEndpointEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.console.endpoint")).thenReturn(null);
 
@@ -150,7 +150,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetStorageInfo() {
+    void testGetStorageInfo() {
         // Setup
         when(mockEnv.getProperty("osis.scality.storage-classes")).thenReturn(TEST_RESULT);
 
@@ -162,7 +162,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetStorageInfoEnvironmentReturnsNull() {
+    void testGetStorageInfoEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.storage-classes")).thenReturn(null);
 
@@ -174,7 +174,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetRegionInfo() {
+    void testGetRegionInfo() {
         // Setup
         when(mockEnv.getProperty("osis.scality.region")).thenReturn("region1,region2");
 
@@ -186,7 +186,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetRegionInfoEnvironmentReturnsNull() {
+    void testGetRegionInfoEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.region")).thenReturn(null);
 
@@ -198,7 +198,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetPlatformName() {
+    void testGetPlatformName() {
         // Setup
         when(mockEnv.getProperty("osis.scality.name")).thenReturn("scality");
 
@@ -210,7 +210,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetPlatformNameEnvironmentReturnsNull() {
+    void testGetPlatformNameEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.name")).thenReturn(null);
 
@@ -222,7 +222,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetPlatformVersion() {
+    void testGetPlatformVersion() {
         // Setup
         when(mockEnv.getProperty("osis.scality.version")).thenReturn("v1");
 
@@ -234,7 +234,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetPlatformVersionEnvironmentReturnsNull() {
+    void testGetPlatformVersionEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.version")).thenReturn(null);
 
@@ -246,7 +246,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetApiVersion() {
+    void testGetApiVersion() {
         // Setup
         when(mockEnv.getProperty("osis.api.version")).thenReturn("v1");
 
@@ -258,7 +258,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetApiVersionEnvironmentReturnsNull() {
+    void testGetApiVersionEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.api.version")).thenReturn(null);
 
@@ -270,7 +270,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testIsApiTokenEnabled() {
+    void testIsApiTokenEnabled() {
         // Setup
         when(mockEnv.getProperty("security.jwt.enabled")).thenReturn("true");
 
@@ -282,7 +282,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testIsApiTokenEnabledEnvironmentReturnsNull() {
+    void testIsApiTokenEnabledEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("security.jwt.enabled")).thenReturn(null);
 
@@ -294,7 +294,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetTokenIssuer() {
+    void testGetTokenIssuer() {
         // Setup
         when(mockEnv.getProperty("security.jwt.token-issuer")).thenReturn(TEST_RESULT);
 
@@ -306,7 +306,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetTokenIssuerEnvironmentReturnsNull() {
+    void testGetTokenIssuerEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("security.jwt.token-issuer")).thenReturn(null);
 
@@ -318,7 +318,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetAccessTokenExpirationTime() {
+    void testGetAccessTokenExpirationTime() {
         // Setup
         when(mockEnv.getProperty("security.jwt.access-token-expiration-time")).thenReturn("1000");
 
@@ -330,7 +330,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetAccessTokenExpirationTimeEnvironmentReturnsNull() {
+    void testGetAccessTokenExpirationTimeEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("security.jwt.access-token-expiration-time")).thenReturn(null);
 
@@ -340,7 +340,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetTokenSigningKey() {
+    void testGetTokenSigningKey() {
         // Setup
         when(mockEnv.getProperty("security.jwt.token-signing-key")).thenReturn(TEST_RESULT);
 
@@ -352,7 +352,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetTokenSigningKeyEnvironmentReturnsNull() {
+    void testGetTokenSigningKeyEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("security.jwt.token-signing-key")).thenReturn(null);
 
@@ -364,7 +364,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetRefreshTokenExpirationTime() {
+    void testGetRefreshTokenExpirationTime() {
         // Setup
         when(mockEnv.getProperty("security.jwt.refresh_token_expiration_time")).thenReturn("1000");
 
@@ -376,7 +376,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetRefreshTokenExpirationTimeEnvironmentReturnsNull() {
+    void testGetRefreshTokenExpirationTimeEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("security.jwt.refresh_token_expiration_time")).thenReturn(null);
 
@@ -386,7 +386,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetAssumeRoleName() {
+    void testGetAssumeRoleName() {
         // Setup
         when(mockEnv.getProperty("osis.scality.vault.role.name")).thenReturn("osis");
 
@@ -398,7 +398,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetAccountAKDurationSeconds() {
+    void testGetAccountAKDurationSeconds() {
         // Setup
         when(mockEnv.getProperty("osis.scality.vault.account.accessKey.durationSeconds")).thenReturn("120");
 
@@ -410,7 +410,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetAccountAKDurationSecondsEnvironmentReturnsNull() {
+    void testGetAccountAKDurationSecondsEnvironmentReturnsNull() {
         // Setup
 
         // Run the test
@@ -421,7 +421,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetAsyncExecutorCorePoolSize() {
+    void testGetAsyncExecutorCorePoolSize() {
         // Setup
         when(mockEnv.getProperty("osis.scality.async.corePoolSize")).thenReturn("10");
 
@@ -433,7 +433,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetAsyncExecutorCorePoolSizeEnvironmentReturnsNull() {
+    void testGetAsyncExecutorCorePoolSizeEnvironmentReturnsNull() {
         // Setup
 
         // Run the test
@@ -444,7 +444,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetAsyncExecutorMaxPoolSize() {
+    void testGetAsyncExecutorMaxPoolSize() {
         // Setup
         when(mockEnv.getProperty("osis.scality.async.maxPoolSize")).thenReturn("10");
 
@@ -456,7 +456,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetAsyncExecutorMaxPoolSizeEnvironmentReturnsNull() {
+    void testGetAsyncExecutorMaxPoolSizeEnvironmentReturnsNull() {
         // Setup
 
         // Run the test
@@ -467,7 +467,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetAsyncExecutorQueueCapacity() {
+    void testGetAsyncExecutorQueueCapacity() {
         // Setup
         when(mockEnv.getProperty("osis.scality.async.queueCapacity")).thenReturn("500");
 
@@ -479,7 +479,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetAsyncExecutorQueueCapacityEnvironmentReturnsNull() {
+    void testGetAsyncExecutorQueueCapacityEnvironmentReturnsNull() {
         // Setup
 
         // Run the test
@@ -490,7 +490,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetS3Endpoint() {
+    void testGetS3Endpoint() {
         // Setup
         when(mockEnv.getProperty("osis.scality.s3.endpoint")).thenReturn(TEST_RESULT);
 
@@ -502,7 +502,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetS3EndpointEnvironmentReturnsNull() {
+    void testGetS3EndpointEnvironmentReturnsNull() {
         // Setup
         when(mockEnv.getProperty("osis.scality.s3.endpoint")).thenReturn(null);
 
@@ -514,7 +514,7 @@ public class ScalityAppEnvTest {
     }
 
     @Test
-    public void testGetS3HealthCheckTimeout() {
+    void testGetS3HealthCheckTimeout() {
         //Setup
         when(mockEnv.getProperty("osis.scality.s3.healthcheck.timeout")).thenReturn("3000");
 

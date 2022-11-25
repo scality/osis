@@ -6,7 +6,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class ScalityRestConfigTest {
+class ScalityRestConfigTest {
 
     private ScalityRestConfig scalityRestConfigUnderTest;
 
@@ -16,7 +16,7 @@ public class ScalityRestConfigTest {
     }
 
     @Test
-    public void testSimpleClientHttpRequestFactory() {
+    void testSimpleClientHttpRequestFactory() {
         // Setup
 
         // Run the test

@@ -17,10 +17,10 @@ import static com.scality.osis.utils.ScalityTestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
+class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
 
     @Test
-    public void testCreateTenant() {
+    void testCreateTenant() {
 
         // Call Scality Osis service to create a tenant
         final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.createTenant(createSampleOsisTenantObj());
@@ -34,7 +34,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testCreateTenantInactive() {
+    void testCreateTenantInactive() {
         final OsisTenant osisTenantReq = createSampleOsisTenantObj();
         osisTenantReq.active(false);
 
@@ -45,7 +45,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testCreateTenant409() throws Exception {
+    void testCreateTenant409() throws Exception {
 
         when(vaultAdminMock.createAccount(any(CreateAccountRequestDTO.class)))
                 .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
@@ -59,7 +59,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testCreateTenant400() {
+    void testCreateTenant400() {
 
         when(vaultAdminMock.createAccount(any(CreateAccountRequestDTO.class)))
                 .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
@@ -73,7 +73,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testListTenants() {
+    void testListTenants() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -90,7 +90,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testListTenantsOffset() {
+    void testListTenantsOffset() {
         // Setup
         final long offset = 2000L;
         final long limit = 1000L;
@@ -107,7 +107,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testListTenantsErr() {
+    void testListTenantsErr() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -128,7 +128,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryTenants() {
+    void testQueryTenants() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -147,7 +147,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryTenantsWithNonUUID() {
+    void testQueryTenantsWithNonUUID() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -166,7 +166,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryTenantsOffset() {
+    void testQueryTenantsOffset() {
         // Setup
         final long offset = 2000L;
         final long limit = 1000L;
@@ -184,7 +184,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryTenantsNoFilter() {
+    void testQueryTenantsNoFilter() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -203,7 +203,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryTenantsErr() {
+    void testQueryTenantsErr() {
         // Setup
         final long offset = 3000L;
         final long limit = 1000L;
@@ -226,7 +226,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testDeleteTenant() {
+    void testDeleteTenant() {
         // Setup
 
         // Run the test
@@ -237,7 +237,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testUpdateTenant() {
+    void testUpdateTenant() {
 
         // Call Scality Osis service to update a tenant
         final OsisTenant osisTenantRes = scalityOsisServiceUnderTest.updateTenant(SAMPLE_ID,
@@ -252,7 +252,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testUpdateTenantEmptyCDTenantIDs() {
+    void testUpdateTenantEmptyCDTenantIDs() {
         final OsisTenant osisTenantReq = createSampleOsisTenantObj();
         osisTenantReq.setCdTenantIds(new ArrayList<>());
 
@@ -266,7 +266,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testUpdateTenantInactive() {
+    void testUpdateTenantInactive() {
         final OsisTenant osisTenantReq = createSampleOsisTenantObj();
         osisTenantReq.active(false);
 
@@ -277,7 +277,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testUpdateTenant400() {
+    void testUpdateTenant400() {
 
         when(vaultAdminMock.updateAccountAttributes(any()))
                 .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
@@ -291,7 +291,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetTenant() {
+    void testGetTenant() {
         // Setup
 
         // Run the test
@@ -303,7 +303,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetTenantNotExists() {
+    void testGetTenantNotExists() {
 
         when(vaultAdminMock.getAccount(any(GetAccountRequestDTO.class)))
                 .thenAnswer((Answer<AccountData>) invocation -> {
@@ -316,7 +316,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testHeadTenant() {
+    void testHeadTenant() {
         // Setup
         when(vaultAdminMock.getAccount(null)).thenReturn(null);
 
@@ -327,7 +327,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testHeadTenantNotExists() {
+    void testHeadTenantNotExists() {
         // Setup
         when(vaultAdminMock.getAccount(null)).thenReturn(null);
 
@@ -338,7 +338,7 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testHeadTenantErr() {
+    void testHeadTenantErr() {
         // Setup
         when(vaultAdminMock.getAccount(any(GetAccountRequestDTO.class)))
                 .thenThrow(new VaultServiceException(HttpStatus.NOT_FOUND, "The Entity doesn't exist"));

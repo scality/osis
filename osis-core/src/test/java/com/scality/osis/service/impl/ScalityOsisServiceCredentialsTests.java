@@ -19,10 +19,10 @@ import static com.scality.osis.utils.ScalityTestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
+class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
 
     @Test
-    public void testCreateS3Credential() {
+    void testCreateS3Credential() {
         // Setup
 
         // Run the test
@@ -39,7 +39,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testCreateS3CredentialErr() {
+    void testCreateS3CredentialErr() {
         // Setup
         when(iamMock.createAccessKey(any(CreateAccessKeyRequest.class)))
                 .thenThrow(
@@ -55,7 +55,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testCreateS3CredentialNoAdminPolicy() throws Exception {
+    void testCreateS3CredentialNoAdminPolicy() throws Exception {
         // Setup
         when(iamMock.createAccessKey(any(CreateAccessKeyRequest.class)))
                 .thenAnswer((Answer<CreateAccessKeyResult>) invocation -> {
@@ -81,7 +81,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryS3Credentials() {
+    void testQueryS3Credentials() {
         // Setup
         final String filter = TENANT_ID_PREFIX + TEST_TENANT_ID + FILTER_SEPARATOR + USER_ID_PREFIX + TEST_USER_ID;
         final long offset = 0L;
@@ -103,7 +103,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryS3CredentialsAccessKeyFilter() {
+    void testQueryS3CredentialsAccessKeyFilter() {
         // Setup
         final String filter = TENANT_ID_PREFIX + TEST_TENANT_ID
                 + FILTER_SEPARATOR
@@ -135,7 +135,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryS3CredentialsInvalidFilter() {
+    void testQueryS3CredentialsInvalidFilter() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -152,7 +152,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testDeleteS3Credential() {
+    void testDeleteS3Credential() {
         // Setup
 
         // Run the test
@@ -164,7 +164,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testDeleteS3CredentialWithNoKeyOnRedis() {
+    void testDeleteS3CredentialWithNoKeyOnRedis() {
         // Setup
         when(redisRepositoryMock.hasKey(any())).thenReturn(Boolean.FALSE);
 
@@ -177,7 +177,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testDeleteS3CredentialWithoutTenantIdAndUserId() {
+    void testDeleteS3CredentialWithoutTenantIdAndUserId() {
         // set up
         when(vaultAdminMock.getUserByAccessKey(any(GetUserByAccessKeyRequestDTO.class)))
                 .thenAnswer((Answer<GetUserByAccessKeyResponseDTO>) innovation -> {
@@ -198,7 +198,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testDeleteS3CredentialEmptyAccessKey() {
+    void testDeleteS3CredentialEmptyAccessKey() {
         // Setup
 
         // Run the test
@@ -210,7 +210,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testDeleteS3CredentialNoAdminPolicy() {
+    void testDeleteS3CredentialNoAdminPolicy() {
         // Setup
         when(iamMock.deleteAccessKey(any(DeleteAccessKeyRequest.class)))
                 .thenAnswer((Answer<DeleteAccessKeyResult>) invocation -> {
@@ -230,7 +230,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetS3CredentialActive() {
+    void testGetS3CredentialActive() {
         // Setup
 
         // Run the test
@@ -248,7 +248,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetS3CredentialInactive() {
+    void testGetS3CredentialInactive() {
         // Setup
         when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
                 .thenAnswer((Answer<ListAccessKeysResult>) this::listInactiveAccessKeysMockResponse);
@@ -268,7 +268,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetS3CredentialWithOnlyAccessKeyActive() {
+    void testGetS3CredentialWithOnlyAccessKeyActive() {
         // Setup
         when(vaultAdminMock.getUserByAccessKey(any(GetUserByAccessKeyRequestDTO.class)))
                 .thenAnswer((Answer<GetUserByAccessKeyResponseDTO>) innovation -> {
@@ -292,7 +292,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetS3CredentialWithOnlyAccessKeyInactive() {
+    void testGetS3CredentialWithOnlyAccessKeyInactive() {
         // Setup
         when(vaultAdminMock.getUserByAccessKey(any(GetUserByAccessKeyRequestDTO.class)))
                 .thenAnswer((Answer<GetUserByAccessKeyResponseDTO>) innovation -> {
@@ -319,7 +319,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetS3CredentialNoAdminPolicy() {
+    void testGetS3CredentialNoAdminPolicy() {
         // Setup
         when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
                 .thenAnswer((Answer<ListAccessKeysResult>) invocation -> {
@@ -345,7 +345,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetS3CredentialWithOnlyAccessKeyNoAdminPolicy() {
+    void testGetS3CredentialWithOnlyAccessKeyNoAdminPolicy() {
         // Setup
         when(vaultAdminMock.getUserByAccessKey(any(GetUserByAccessKeyRequestDTO.class)))
                 .thenAnswer((Answer<GetUserByAccessKeyResponseDTO>) innovation -> {
@@ -378,7 +378,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetS3CredentialWithNoKeyOnRedis() {
+    void testGetS3CredentialWithNoKeyOnRedis() {
         // Setup
         when(redisRepositoryMock.hasKey(any())).thenReturn(Boolean.FALSE);
 
@@ -397,7 +397,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetS3CredentialNotFound() {
+    void testGetS3CredentialNotFound() {
         // Setup
 
         // Run the test
@@ -408,7 +408,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetS3CredentialWithOnlyAccessKeyNotFound() {
+    void testGetS3CredentialWithOnlyAccessKeyNotFound() {
         // Setup
         when(vaultAdminMock.getUserByAccessKey(any(GetUserByAccessKeyRequestDTO.class)))
                 .thenAnswer((Answer<GetUserByAccessKeyResponseDTO>) innovation -> {
@@ -428,7 +428,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetS3CredentialWithNullTenantIdAndUserId() {
+    void testGetS3CredentialWithNullTenantIdAndUserId() {
         // Setup
         when(vaultAdminMock.getUserByAccessKey(any(GetUserByAccessKeyRequestDTO.class)))
                 .thenAnswer((Answer<GetUserByAccessKeyResponseDTO>) innovation -> {
@@ -452,7 +452,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testListS3Credentials() {
+    void testListS3Credentials() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -473,7 +473,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testListS3CredentialsWithNoKeyOnRedis() {
+    void testListS3CredentialsWithNoKeyOnRedis() {
         // Setup
         when(redisRepositoryMock.hasKey(any())).thenReturn(Boolean.FALSE);
 
@@ -527,7 +527,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testListS3CredentialsErr() {
+    void testListS3CredentialsErr() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -550,7 +550,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testListS3CredentialsNoAdminPolicy() throws Exception {
+    void testListS3CredentialsNoAdminPolicy() throws Exception {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -580,7 +580,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testUpdateCredentialDeactivate() {
+    void testUpdateCredentialDeactivate() {
         // Setup
         final OsisS3Credential osisS3Credential = new OsisS3Credential();
         osisS3Credential.setUserId(TEST_USER_ID);
@@ -600,7 +600,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testUpdateCredentialActivate() {
+    void testUpdateCredentialActivate() {
         // Setup
         final OsisS3Credential osisS3Credential = new OsisS3Credential();
         osisS3Credential.setUserId(TEST_USER_ID);
@@ -617,7 +617,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testUpdateCredentialDeactivateNoAdminPolicy() throws Exception {
+    void testUpdateCredentialDeactivateNoAdminPolicy() throws Exception {
         // Setup
         final OsisS3Credential osisS3Credential = new OsisS3Credential();
         osisS3Credential.setUserId(TEST_USER_ID);
@@ -648,7 +648,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testUpdateCredentialActivateNoAdminPolicy() throws Exception {
+    void testUpdateCredentialActivateNoAdminPolicy() throws Exception {
         // Setup
         final OsisS3Credential osisS3Credential = new OsisS3Credential();
         osisS3Credential.setUserId(TEST_USER_ID);
@@ -677,7 +677,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testUpdateCredentialDeactivateWithoutTenantIdAndUserId() {
+    void testUpdateCredentialDeactivateWithoutTenantIdAndUserId() {
         // Setup
         final OsisS3Credential osisS3Credential = new OsisS3Credential();
         osisS3Credential.setActive(false);
@@ -705,7 +705,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testUpdateCredentialActivateWithoutTenantIdAndUserId() {
+    void testUpdateCredentialActivateWithoutTenantIdAndUserId() {
         // Setup
         final OsisS3Credential osisS3Credential = new OsisS3Credential();
         osisS3Credential.setActive(true);
@@ -730,7 +730,7 @@ public class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testUpdateCredential400() {
+    void testUpdateCredential400() {
         // Setup
         when(iamMock.updateAccessKey(any(UpdateAccessKeyRequest.class)))
                 .thenAnswer((Answer<UpdateAccessKeyResult>) invocation -> {

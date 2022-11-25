@@ -37,23 +37,26 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @SuppressWarnings("PMD.ExcessiveImports")
-public class BaseOsisServiceTest {
+class BaseOsisServiceTest {
+
+    private static final SecureRandom RANDOM = new SecureRandom();
+
     // vault admin mock object
     @Mock
-    protected static VaultAdminImpl vaultAdminMock;
+    protected VaultAdminImpl vaultAdminMock;
 
     @Mock
-    protected static S3Impl s3Mock;
+    protected S3Impl s3Mock;
 
-    protected static ScalityOsisServiceImpl scalityOsisServiceUnderTest;
+    protected ScalityOsisServiceImpl scalityOsisServiceUnderTest;
 
-    protected static AsyncScalityOsisService asyncScalityOsisServiceUnderTest;
-
-    @Mock
-    protected static ScalityAppEnv appEnvMock;
+    protected AsyncScalityOsisService asyncScalityOsisServiceUnderTest;
 
     @Mock
-    protected static ScalityOsisCapsManager osisCapsManagerMock;
+    protected ScalityAppEnv appEnvMock;
+
+    @Mock
+    protected ScalityOsisCapsManager osisCapsManagerMock;
 
     @Mock
     protected AmazonIdentityManagement iamMock;
@@ -72,7 +75,7 @@ public class BaseOsisServiceTest {
 
     @BeforeEach
     protected void init() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         initMocks();
         scalityOsisServiceUnderTest = new ScalityOsisServiceImpl(appEnvMock, vaultAdminMock, s3Mock, osisCapsManagerMock);
 
@@ -159,7 +162,7 @@ public class BaseOsisServiceTest {
         secretKeyRepoData.setKeyID("1");
 
         final byte[] encryptedBytes = new byte[DEFAULT_AES_GCM_TAG_LENGTH];
-        new SecureRandom().nextBytes(encryptedBytes);
+        RANDOM.nextBytes(encryptedBytes);
         secretKeyRepoData.setEncryptedBytes(encryptedBytes);
 
         final CipherInformation cipherInfo = new CipherInformation();

@@ -6,12 +6,10 @@ import org.mockito.*;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
-public class ScalityRedisRepositoryTest {
+class ScalityRedisRepositoryTest {
 
     @Mock
     private HashOperations<String, String, String> mockHashOperations;
@@ -21,12 +19,12 @@ public class ScalityRedisRepositoryTest {
 
     @BeforeEach
     public void setUp() {
-        initMocks(this);
+        MockitoAnnotations.openMocks(this);
         ReflectionTestUtils.setField(scalityRedisRepositoryUnderTest, "hashOperations", mockHashOperations);
     }
 
     @Test
-    public void testSave() {
+    void testSave() {
         // Setup
 
         // Run the test
@@ -37,7 +35,7 @@ public class ScalityRedisRepositoryTest {
     }
 
     @Test
-    public void testGet() {
+    void testGet() {
         // Setup
         when(mockHashOperations.get(any(), any())).thenReturn("value");
 
@@ -49,7 +47,7 @@ public class ScalityRedisRepositoryTest {
     }
 
     @Test
-    public void testDelete() {
+    void testDelete() {
         // Setup
 
         // Run the test
@@ -60,7 +58,7 @@ public class ScalityRedisRepositoryTest {
     }
 
     @Test
-    public void testHasKey() {
+    void testHasKey() {
         // Setup
 
         // Run the test

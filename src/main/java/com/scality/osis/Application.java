@@ -8,15 +8,16 @@ package com.scality.osis;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
  * @author ges
  */
-@ComponentScan(basePackages = {"com.scality.osis"})
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+        DataSourceAutoConfiguration.class
+})
 @EnableSwagger2
 @EnableAsync
 public class Application {

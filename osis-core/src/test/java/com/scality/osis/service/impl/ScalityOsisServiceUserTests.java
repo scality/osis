@@ -15,10 +15,10 @@ import static com.scality.osis.utils.ScalityTestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
+class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
 
     @Test
-    public void testCreateUser() {
+    void testCreateUser() {
         // Setup
         final OsisUser osisUser = new OsisUser();
         osisUser.setUserId(TEST_USER_ID);
@@ -57,7 +57,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testCreateUser400() {
+    void testCreateUser400() {
         // Setup
         when(iamMock.createUser(any(CreateUserRequest.class)))
                 .thenAnswer((Answer<CreateUserResult>) invocation -> {
@@ -72,7 +72,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testCreateUserNoAdminPolicy() throws Exception {
+    void testCreateUserNoAdminPolicy() throws Exception {
         // Setup
         final OsisUser osisUser = new OsisUser();
         osisUser.setUserId(TEST_USER_ID);
@@ -120,7 +120,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryUsers() {
+    void testQueryUsers() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -143,7 +143,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryUsersFilterDifferentOrder() {
+    void testQueryUsersFilterDifferentOrder() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -165,7 +165,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryUsersFilterWithTenantID() {
+    void testQueryUsersFilterWithTenantID() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -188,7 +188,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryUsersFilterWithUsername() {
+    void testQueryUsersFilterWithUsername() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -210,7 +210,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryUsersFilterWithUserid() {
+    void testQueryUsersFilterWithUserid() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -232,7 +232,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryUsersFilterWithCdUserid() {
+    void testQueryUsersFilterWithCdUserid() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -254,7 +254,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryUsersWithNonUUID() {
+    void testQueryUsersWithNonUUID() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -275,7 +275,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryUsersInvalidCdTenantID() {
+    void testQueryUsersInvalidCdTenantID() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -297,7 +297,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryUsersInvalidDisplayName() {
+    void testQueryUsersInvalidDisplayName() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -321,7 +321,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryUsersWithCdTenantIdEqualsToTenantIdAndDisplayNameEqualsToUserId() {
+    void testQueryUsersWithCdTenantIdEqualsToTenantIdAndDisplayNameEqualsToUserId() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -342,7 +342,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testQueryUsersWithCdTenantIdEqualsToTenantIdAndDisplayNameEqualsToTenantName() {
+    void testQueryUsersWithCdTenantIdEqualsToTenantIdAndDisplayNameEqualsToTenantName() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -362,7 +362,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testDeleteUser() {
+    void testDeleteUser() {
         // Setup
 
         // Run the test
@@ -374,7 +374,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testDeleteUserIfDetachPolicyFailed() {
+    void testDeleteUserIfDetachPolicyFailed() {
         // Setup
         when(iamMock.detachUserPolicy(any(DetachUserPolicyRequest.class)))
                 .thenThrow(ServiceFailureException.class);
@@ -390,7 +390,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetUserWithCanonicalID() {
+    void testGetUserWithCanonicalID() {
         // Setup
 
         // Run the test
@@ -410,7 +410,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetUserWithCanonicalIDErr() {
+    void testGetUserWithCanonicalIDErr() {
         // Setup
         when(vaultAdminMock.getAccount(any()))
                 .thenAnswer((Answer<AccountData>) invocation -> {
@@ -423,7 +423,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetUserWithCanonicalIDInactive() {
+    void testGetUserWithCanonicalIDInactive() {
         // Setup
         when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
                 .thenAnswer((Answer<ListAccessKeysResult>) invocation -> {
@@ -447,7 +447,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetUserWithUserID() {
+    void testGetUserWithUserID() {
         // Setup
 
         // Run the test
@@ -466,7 +466,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetUserWithUserIDErr() {
+    void testGetUserWithUserIDErr() {
         // Setup
         when(iamMock.getUser(any(GetUserRequest.class)))
                 .thenAnswer((Answer<GetUserResult>) invocation -> {
@@ -480,7 +480,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetUserWithUserIDNoUser() {
+    void testGetUserWithUserIDNoUser() {
         // Setup
         when(iamMock.getUser(any(GetUserRequest.class)))
                 .thenAnswer((Answer<GetUserResult>) invocation -> {
@@ -496,7 +496,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetUserWithUserIDNoAdminPolicy() throws Exception {
+    void testGetUserWithUserIDNoAdminPolicy() throws Exception {
         // Setup
         when(iamMock.getUser(any(GetUserRequest.class)))
                 .thenAnswer((Answer<GetUserResult>) invocation -> {
@@ -523,7 +523,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetUserInActive() {
+    void testGetUserInActive() {
         // Setup
         when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
                 .thenAnswer((Answer<ListAccessKeysResult>) invocation -> {
@@ -547,12 +547,12 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testHeadUser() {
+    void testHeadUser() {
         assertTrue(scalityOsisServiceUnderTest.headUser(TEST_TENANT_ID, TEST_USER_ID));
     }
 
     @Test
-    public void testListUsers() {
+    void testListUsers() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -568,7 +568,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testListUsersWithOffset() {
+    void testListUsersWithOffset() {
         // Setup
         final long offset = 2000L;
         final long limit = 1000L;
@@ -584,7 +584,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testListUsersErr() {
+    void testListUsersErr() {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -606,7 +606,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testListUsersNoAdminPolicy() throws Exception {
+    void testListUsersNoAdminPolicy() throws Exception {
         // Setup
         final long offset = 0L;
         final long limit = 1000L;
@@ -632,7 +632,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testListUsersInActive() {
+    void testListUsersInActive() {
         // Setup
         when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
                 .thenAnswer((Answer<ListAccessKeysResult>) invocation -> {
@@ -664,7 +664,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testUpdateUserInactive() {
+    void testUpdateUserInactive() {
         // Setup
         final OsisUser osisUser = new OsisUser();
         osisUser.setUserId(TEST_USER_ID);
@@ -684,7 +684,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testUpdateUserActive() {
+    void testUpdateUserActive() {
         // Setup
         final OsisUser osisUser = new OsisUser();
         osisUser.setUserId(TEST_USER_ID);
@@ -704,7 +704,7 @@ public class ScalityOsisServiceUserTests extends BaseOsisServiceTest {
     }
 
     @Test
-    public void testGetAnonymousUser() {
+    void testGetAnonymousUser() {
         // Setup
 
         // Run the test

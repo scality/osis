@@ -30,8 +30,8 @@ import java.util.List;
 public class DocumentationConfig {
     private static final String DOC_TITLE = "Object Storage Interoperability Services API for Scality platform";
     private static final String DOC_DESCRIPTION = "This is VMware Cloud Director Object Storage Interoperability Services API for Scality platform.";
-    private static final String DOC_VERSION = "1.5.0-SNAPSHOT";
-    private static final String PROJECT_BASE = "com.scality.osis";
+    private static final String DOC_VERSION = "2.0.0";
+    public static final String PROJECT_BASE = "com.scality.osis";
 
     ApiInfo apiInfo() {
         return new ApiInfoBuilder()
@@ -45,7 +45,7 @@ public class DocumentationConfig {
     public LinkDiscoverers discoverers() {
         List<LinkDiscoverer> plugins = new ArrayList<>();
         plugins.add(new CollectionJsonLinkDiscoverer());
-        return new LinkDiscoverers(SimplePluginRegistry.create(plugins));
+        return new LinkDiscoverers(SimplePluginRegistry.of(plugins));
 
     }
 

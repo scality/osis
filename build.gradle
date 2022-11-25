@@ -1,44 +1,50 @@
 buildscript {
     ext {
-        springBootVersion = '2.2.5.RELEASE'
-    }
-    repositories {
-        mavenCentral()
-        maven {
-            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
-        }
-    }
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
-        classpath 'org.owasp:dependency-check-gradle:7.1.1'
-        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.21.1"
+        osisVersion = '2.0.0'
+        vaultclientVersion = '1.0.0-SNAPSHOT'
+        springBootVersion = '2.7.5'
     }
 }
 
 plugins {
     id 'java'
-    id 'maven-publish'
+    id 'java-library'
     id 'pmd'
-    id "com.github.spotbugs" version "4.6.0"
-    id 'com.github.ksoichiro.console.reporter' version '0.6.2'
-    id 'io.codearte.nexus-staging' version '0.21.1'
+    id 'org.springframework.boot' version "${springBootVersion}"
+    id 'io.spring.dependency-management' version '1.1.0'
+    id 'com.github.spotbugs' version '5.0.12'
+    id 'com.github.ksoichiro.console.reporter' version '0.6.3' // jacoco report (code coverage)
+    id 'io.github.gradle-nexus.publish-plugin' version '1.1.0' // gradle nexus publish-plugin
+    id 'org.owasp.dependencycheck' version '7.1.1'
 }
 
-group = 'com.scality'
-description = 'osis.scality'
-sourceCompatibility = '1.8'
-
-
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-    compile project('osis-app')
+    implementation project('osis-app')
+}
+
+bootJar {
+    mainClass = 'com.scality.osis.Application'
+}
+
+jar {
+    classifier = ''
+}
+
+// to upload the bootJar instead of jar
+configurations {
+    [apiElements, runtimeElements].each {
+        it.outgoing.artifacts.removeIf { it.buildDependencies.getDependencies(null).contains(jar) }
+        it.outgoing.artifact(bootJar)
+    }
 }
 
 allprojects {
-    apply plugin: 'java'
+    group = 'com.scality'
+    sourceCompatibility = JavaVersion.VERSION_17
+
+    apply plugin: 'java-library'
     apply plugin: 'maven-publish'
+    apply plugin: 'signing'
     apply plugin: 'org.owasp.dependencycheck'
 
     apply from: "$rootDir/spotbugs.gradle"
@@ -46,136 +52,59 @@ allprojects {
     apply from: "$rootDir/jacoco.gradle"
     apply from: "$rootDir/upload-artifact.gradle"
 
-
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        jcenter()
-        maven {
-            url = 'https://repo.maven.apache.org/maven2'
-        }
-        maven {
-            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
-        }
-    }
-}
-
-repositories {
-    mavenCentral()
-}
-
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-apply plugin: 'java'
-apply plugin: 'idea'
-
-bootJar {
-    mainClassName = 'com.scality.osis.Application'
-    enabled = true
-}
-
-jar {
-    manifest {
-        attributes 'Main-Class': 'com.scality.osis.Application'
-    }
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-}
-
-subprojects {
-    apply plugin: 'io.spring.dependency-management'
-    apply plugin: 'java'
-    apply plugin: 'idea'
-
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-
-    tasks.withType(Javadoc).all { enabled = false }
-}
-
-sourceSets {
-    main {
-        resources {
-            srcDirs = ["$projectDir/src/main/resources"]
-        }
-    }
-}
-
-configure(allprojects) {
-    version = '1.5.0'
-    if (!project.hasProperty('release')) {
-        project.setVersion(project.getVersion() + '-SNAPSHOT')
-    }
-
-    ext {
-        springBootVersion = '2.2.5.RELEASE'
-    }
     dependencies {
-        compile "org.springframework.boot:spring-boot-starter-webflux:$springBootVersion"
-        compile "org.springframework.boot:spring-boot-starter-hateoas:$springBootVersion"
-        compile "org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion"
-        compile "org.springframework.boot:spring-boot-starter-security:$springBootVersion"
-        compile "org.springframework.boot:spring-boot-starter-data-redis:$springBootVersion"
-        compile "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
-        testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion") {
-            exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-        }
-        compile 'io.springfox:springfox-swagger2:2.8.0'
-        compile 'io.springfox:springfox-swagger-ui:2.8.0'
-        compile 'javax.xml.bind:jaxb-api:2.2.11'
-        compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.5'
-        compile 'org.openapitools:jackson-databind-nullable:0.1.0'
-        compile 'javax.validation:validation-api:2.0.1.Final'
-        compile 'org.hsqldb:hsqldb:2.3.2'
-        compile 'org.postgresql:postgresql:42.2.25'
-        compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.11.0'
-        compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: '2.11.0'
-        compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
-        compile 'io.jsonwebtoken:jjwt:0.9.1'
-        implementation 'org.springframework.plugin:spring-plugin-core:1.2.0.RELEASE'
-        implementation 'com.scality:vaultclient:0.5.0'
-        implementation 'com.amazonaws:aws-java-sdk-s3:1.11.914'
-        implementation 'com.amazonaws:aws-java-sdk-sts:1.11.914'
-        implementation 'com.amazonaws:aws-java-sdk-iam:1.11.914'
-        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
-    }
-}
+        // vaultclient
+        implementation "com.scality:vaultclient:$vaultclientVersion"
 
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
+        // Spring boot
+        implementation "org.springframework.boot:spring-boot-starter-webflux:$springBootVersion"
+        implementation "org.springframework.boot:spring-boot-starter-hateoas:$springBootVersion"
+        implementation "org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion"
+        implementation "org.springframework.boot:spring-boot-starter-security:$springBootVersion"
+        implementation "org.springframework.boot:spring-boot-starter-data-redis:$springBootVersion"
+        implementation "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
+        testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
 
-test {
-    useJUnitPlatform()
-}
-
-jar {
-    enabled = true
-}
-
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId 'com.scality'
-            artifactId 'osis'
-
-            from components.java
-
-        }
+        implementation 'io.springfox:springfox-swagger2:3.0.0'
+        implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+        implementation 'javax.validation:validation-api:2.0.1.Final'
+        implementation 'org.apache.commons:commons-lang3:3.12.0'
+        implementation 'io.jsonwebtoken:jjwt:0.9.1'
+        implementation 'com.amazonaws:aws-java-sdk-s3:1.12.328'
+        implementation 'com.amazonaws:aws-java-sdk-sts:1.12.328'
+        implementation 'com.amazonaws:aws-java-sdk-iam:1.12.328'
     }
 
     repositories {
         mavenLocal()
         mavenCentral()
-        jcenter()
-        maven {
-            url = 'https://repo.maven.apache.org/maven2'
-        }
         maven {
             url = 'https://oss.sonatype.org/content/repositories/snapshots/'
+        }
+    }
+
+    configurations {
+        version = "${osisVersion}"
+        if (!project.hasProperty('release')) {
+            project.setVersion(project.getVersion() + '-SNAPSHOT')
+        }
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+}
+
+// task used by the gradle nexus publish-plugin
+nexusPublishing {
+    repositories {
+        sonatype {
+            username = sonatypeUsername
+            password = sonatypePassword
         }
     }
 }
