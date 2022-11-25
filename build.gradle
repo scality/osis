@@ -2,7 +2,7 @@ buildscript {
     ext {
         osisVersion = '2.0.1'
         vaultclientVersion = '1.0.0-SNAPSHOT'
-        springBootVersion = '3.0.0-RC2'
+        springBootVersion = '3.0.0'
     }
 }
 
@@ -79,7 +79,6 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-        maven { url 'https://repo.spring.io/milestone' }
     }
 
     configurations {
