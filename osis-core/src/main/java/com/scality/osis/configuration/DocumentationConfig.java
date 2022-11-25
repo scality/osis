@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
-@EnableSwagger2
 @Primary
 public class DocumentationConfig {
     private static final String DOC_TITLE = "Object Storage Interoperability Services API for Scality platform";
