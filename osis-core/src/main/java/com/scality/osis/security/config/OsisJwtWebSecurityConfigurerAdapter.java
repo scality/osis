@@ -15,6 +15,7 @@ import com.scality.osis.security.jwt.login.LoginAuthenticationProvider;
 import com.scality.osis.security.jwt.login.LoginProcessingFilter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -30,6 +31,7 @@ import java.util.List;
 import static com.scality.osis.security.jwt.AuthConstants.API_INFO;
 
 @EnableWebSecurity
+@Configuration
 @ConditionalOnProperty(value = "security.jwt.enabled", havingValue = "true", matchIfMissing = true)
 public class OsisJwtWebSecurityConfigurerAdapter {
 

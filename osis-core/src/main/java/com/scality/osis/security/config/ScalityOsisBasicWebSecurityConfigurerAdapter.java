@@ -10,6 +10,7 @@ import com.scality.osis.security.basic.ScalityBasicAuthentication;
 import com.scality.osis.security.platform.PlatformUserDetailsService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -25,6 +26,7 @@ import static com.scality.osis.utils.ScalityConstants.HEALTH_CHECK_ENDPOINT;
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 
 @EnableWebSecurity
+@Configuration
 @ConditionalOnProperty(value = "security.jwt.enabled",
         havingValue = "false",
         matchIfMissing = false)
