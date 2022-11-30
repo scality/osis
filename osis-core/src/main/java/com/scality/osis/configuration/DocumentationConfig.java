@@ -1,7 +1,7 @@
 /**
- *Copyright 2020 VMware, Inc.
- *Copyright 2021 Scality, Inc.
- *SPDX-License-Identifier: Apache License 2.0
+ * Copyright 2020 VMware, Inc.
+ * Copyright 2021 Scality, Inc.
+ * SPDX-License-Identifier: Apache License 2.0
  */
 
 package com.scality.osis.configuration;
@@ -19,7 +19,6 @@ import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,10 +33,10 @@ public class DocumentationConfig {
 
     ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-            .title(DOC_TITLE)
-            .description(DOC_DESCRIPTION)
-            .version(DOC_VERSION)
-            .build();
+                .title(DOC_TITLE)
+                .description(DOC_DESCRIPTION)
+                .version(DOC_VERSION)
+                .build();
     }
 
     @Bean
@@ -49,7 +48,7 @@ public class DocumentationConfig {
     }
 
     @Bean
-    public Docket customImplementation(){
+    public Docket customImplementation() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
                 .enable(true)
