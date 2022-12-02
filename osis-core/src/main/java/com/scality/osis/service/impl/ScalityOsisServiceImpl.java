@@ -888,14 +888,14 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             logger.info("Head Tenant request received:: tenant ID:{}", tenantId);
             if (ScalityUtils.isValidUUID(tenantId)) {
                 logger.info("Head Tenant response:: null");
-                return false;
+                throw new NotFoundException("The tenant doesn't exist for the given tenant ID");
             }
             AccountData accountData = vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId));
             logger.info("Head Tenant response:: {}", accountData);
             return accountData != null && accountData.getId().equals(tenantId);
         } catch (Exception e) {
             logger.error("Head Tenant error. Error details: ", e);
-            return false;
+            throw new NotFoundException("The tenant doesn't exist for the given tenant ID");
         }
     }
 
