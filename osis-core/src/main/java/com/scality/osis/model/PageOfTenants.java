@@ -1,18 +1,18 @@
 /**
- *Copyright 2020 VMware, Inc.
- *Copyright 2022 Scality, Inc.
- *SPDX-License-Identifier: Apache License 2.0
+ * Copyright 2020 VMware, Inc.
+ * Copyright 2022 Scality, Inc.
+ * SPDX-License-Identifier: Apache License 2.0
  */
-
 package com.scality.osis.model;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PageOfTenants implements Page<OsisTenant> {
+
     @Valid
     private List<OsisTenant> items = null;
 
@@ -37,7 +37,7 @@ public class PageOfTenants implements Page<OsisTenant> {
      * @return items
      */
     @Override
-    @ApiModelProperty(value = "")
+    @Schema(description = "")
     public List<OsisTenant> getItems() {
         return items;
     }
@@ -58,7 +58,7 @@ public class PageOfTenants implements Page<OsisTenant> {
      *
      * @return pageInfo
      */
-    @ApiModelProperty(value = "")
+    @Schema(description = "")
     public PageInfo getPageInfo() {
         return pageInfo;
     }

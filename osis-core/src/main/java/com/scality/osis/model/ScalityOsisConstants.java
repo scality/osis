@@ -8,10 +8,9 @@ package com.scality.osis.model;
 import java.util.Arrays;
 import java.util.List;
 
-
 public final class ScalityOsisConstants {
-    private ScalityOsisConstants() {
 
+    private ScalityOsisConstants() {
     }
 
     public static final String DELETE_TENANT_API_CODE = "deleteTenant";
