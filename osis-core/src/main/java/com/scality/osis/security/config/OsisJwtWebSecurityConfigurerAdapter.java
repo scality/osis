@@ -83,7 +83,7 @@ public class OsisJwtWebSecurityConfigurerAdapter {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        List<String> permitAllEndpoints = List.of(AUTHENTICATION_URL, REFRESH_TOKEN_URL, API_INFO);
+        List<String> permitAllEndpoints = List.of(AUTHENTICATION_URL, REFRESH_TOKEN_URL, API_INFO, "/v3/api-docs/**", "/swagger*/**");
         var authenticationManager = http.getSharedObject(AuthenticationManager.class);
 
         return http.csrf().disable()

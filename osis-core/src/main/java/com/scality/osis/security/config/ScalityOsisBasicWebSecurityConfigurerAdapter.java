@@ -57,6 +57,7 @@ public class ScalityOsisBasicWebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(API_INFO).permitAll()
                 .antMatchers(HEALTH_CHECK_ENDPOINT).permitAll()
+                .antMatchers("/v3/api-docs/**", "/swagger*/**").permitAll() // swagger and openapi authorized
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
