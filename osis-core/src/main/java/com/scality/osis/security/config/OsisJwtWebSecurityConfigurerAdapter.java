@@ -44,34 +44,32 @@ public class OsisJwtWebSecurityConfigurerAdapter {
     private LoginAuthenticationProvider loginAuthenticationProvider;
     private JwtAuthenticationProvider jwtAuthenticationProvider;
     private JwtTokenExtractor tokenExtractor;
-    private AuthenticationManager authenticationManager;
     private ObjectMapper objectMapper;
 
     public OsisJwtWebSecurityConfigurerAdapter(RestAuthenticationEntryPoint authenticationEntryPoint, AuthenticationSuccessHandler successHandler,
                                                AuthenticationFailureHandler failureHandler, LoginAuthenticationProvider loginAuthenticationProvider,
                                                JwtAuthenticationProvider jwtAuthenticationProvider,
-                                               JwtTokenExtractor tokenExtractor, AuthenticationManager authenticationManager, ObjectMapper objectMapper) {
+                                               JwtTokenExtractor tokenExtractor, ObjectMapper objectMapper) {
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.successHandler = successHandler;
         this.failureHandler = failureHandler;
         this.loginAuthenticationProvider = loginAuthenticationProvider;
         this.jwtAuthenticationProvider = jwtAuthenticationProvider;
         this.tokenExtractor = tokenExtractor;
-        this.authenticationManager = authenticationManager;
         this.objectMapper = objectMapper;
     }
 
-    protected LoginProcessingFilter buildLoginProcessingFilter(String loginEntryPoint) {
+    protected LoginProcessingFilter buildLoginProcessingFilter(String loginEntryPoint, AuthenticationManager authenticationManager) {
         LoginProcessingFilter filter = new LoginProcessingFilter(loginEntryPoint, successHandler, failureHandler, objectMapper);
-        filter.setAuthenticationManager(this.authenticationManager);
+        filter.setAuthenticationManager(authenticationManager);
         return filter;
     }
 
     protected JwtTokenAuthenticationProcessingFilter buildJwtTokenAuthenticationProcessingFilter(
-            List<String> pathsToSkip, String pattern) {
+            List<String> pathsToSkip, String pattern, AuthenticationManager authenticationManager) {
         SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(pathsToSkip, pattern);
         JwtTokenAuthenticationProcessingFilter filter = new JwtTokenAuthenticationProcessingFilter(failureHandler, tokenExtractor, matcher);
-        filter.setAuthenticationManager(this.authenticationManager);
+        filter.setAuthenticationManager(authenticationManager);
         return filter;
     }
 
@@ -86,6 +84,7 @@ public class OsisJwtWebSecurityConfigurerAdapter {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         List<String> permitAllEndpoints = List.of(AUTHENTICATION_URL, REFRESH_TOKEN_URL, API_INFO);
+        var authenticationManager = http.getSharedObject(AuthenticationManager.class);
 
         return http.csrf().disable()
                 .exceptionHandling()
@@ -99,10 +98,10 @@ public class OsisJwtWebSecurityConfigurerAdapter {
                                 .antMatchers(permitAllEndpoints.toArray(String[]::new)).permitAll()
                                 .antMatchers(API_ROOT_URL).authenticated() // Protected API End-points
                 )
-                .addFilterBefore(buildLoginProcessingFilter(AUTHENTICATION_URL),
+                .addFilterBefore(buildLoginProcessingFilter(AUTHENTICATION_URL, authenticationManager),
                         UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(permitAllEndpoints,
-                        API_ROOT_URL), UsernamePasswordAuthenticationFilter.class)
+                        API_ROOT_URL, authenticationManager), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }
