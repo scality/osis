@@ -65,7 +65,8 @@ allprojects {
         implementation "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
         testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
 
-        implementation 'org.springdoc:springdoc-openapi-ui:1.6.13'
+        implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.0' // OpenAPI 3.0 and Swagger 3
+        implementation 'org.springdoc:springdoc-openapi-starter-common:2.0.0' // OpenAPI 3.0 and Swagger 3
         implementation 'javax.validation:validation-api:2.0.1.Final'
         implementation 'org.apache.commons:commons-lang3:3.12.0'
         implementation 'io.jsonwebtoken:jjwt:0.9.1'
