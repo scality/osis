@@ -53,17 +53,19 @@ public class ScalityOsisBasicWebSecurityConfigurerAdapter {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         return http.cors()
                 .and()
                 .csrf().disable()
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                        .requestMatchers(API_INFO, HEALTH_CHECK_ENDPOINT).permitAll()
+                        .requestMatchers(API_INFO, HEALTH_CHECK_ENDPOINT, "/v3/api-docs/**", "/swagger*/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .httpBasic().authenticationEntryPoint(authentication)
-                .and().build();
+                .and()
+                .build();
     }
 
     @Bean

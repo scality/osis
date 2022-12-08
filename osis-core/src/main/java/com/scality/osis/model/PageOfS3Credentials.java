@@ -1,18 +1,18 @@
 /**
- *Copyright 2020 VMware, Inc.
- *Copyright 2022 Scality, Inc.
- *SPDX-License-Identifier: Apache License 2.0
+ * Copyright 2020 VMware, Inc.
+ * Copyright 2022 Scality, Inc.
+ * SPDX-License-Identifier: Apache License 2.0
  */
-
 package com.scality.osis.model;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PageOfS3Credentials implements Page<OsisS3Credential> {
+
     @Valid
     private List<OsisS3Credential> items = null;
 
@@ -36,7 +36,7 @@ public class PageOfS3Credentials implements Page<OsisS3Credential> {
      *
      * @return items
      */
-    @ApiModelProperty(value = "")
+    @Schema(description = "")
     public List<OsisS3Credential> getItems() {
         return items;
     }
@@ -55,7 +55,7 @@ public class PageOfS3Credentials implements Page<OsisS3Credential> {
      *
      * @return pageInfo
      */
-    @ApiModelProperty(value = "")
+    @Schema(description = "")
     public PageInfo getPageInfo() {
         return pageInfo;
     }
@@ -64,4 +64,3 @@ public class PageOfS3Credentials implements Page<OsisS3Credential> {
         this.pageInfo = pageInfo;
     }
 }
-

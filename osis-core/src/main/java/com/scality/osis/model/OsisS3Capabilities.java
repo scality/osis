@@ -3,19 +3,17 @@
  * Copyright 2022 Scality, Inc.
  * SPDX-License-Identifier: Apache License 2.0
  */
-
 package com.scality.osis.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.*;
 
 public class OsisS3Capabilities {
 
     private Map<String, OsisS3CapabilitiesExclusions> exclusions = new HashMap<>();
-
 
     public OsisS3Capabilities exclusions(Map<String, OsisS3CapabilitiesExclusions> exclusions) {
 
@@ -107,7 +105,7 @@ public class OsisS3Capabilities {
          *
          * @return byParams
          **/
-        @ApiModelProperty(value = "")
+        @Schema(description = "")
         @JsonProperty(JSON_PROPERTY_BY_PARAMS)
         @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
 
@@ -115,11 +113,9 @@ public class OsisS3Capabilities {
             return byParams;
         }
 
-
         public void setByParams(List<String> byParams) {
             this.byParams = byParams;
         }
-
 
         public OsisS3CapabilitiesExclusions byHeader(List<String> byHeader) {
 
@@ -140,18 +136,16 @@ public class OsisS3Capabilities {
          *
          * @return byHeader
          **/
-        @ApiModelProperty(value = "")
+        @Schema(description = "")
         @JsonProperty(JSON_PROPERTY_BY_HEADER)
         @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
         public List<String> getByHeaders() {
             return byHeaders;
         }
 
-
         public void setByHeaders(List<String> byHeaders) {
             this.byHeaders = byHeaders;
         }
-
 
         public OsisS3CapabilitiesExclusions byPayload(List<String> byPayload) {
 
@@ -172,19 +166,16 @@ public class OsisS3Capabilities {
          *
          * @return byPayload
          **/
-        @ApiModelProperty(value = "")
+        @Schema(description = "")
         @JsonProperty(JSON_PROPERTY_BY_PAYLOAD)
         @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
-
         public List<String> getByPayload() {
             return byPayload;
         }
 
-
         public void setByPayload(List<String> byPayload) {
             this.byPayload = byPayload;
         }
-
 
         @Override
         public boolean equals(Object o) {
@@ -204,7 +195,6 @@ public class OsisS3Capabilities {
         public int hashCode() {
             return Objects.hash(byParams, byHeaders, byPayload);
         }
-
 
         @Override
         public String toString() {
@@ -230,4 +220,3 @@ public class OsisS3Capabilities {
 
     }
 }
-

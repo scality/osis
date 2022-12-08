@@ -6,55 +6,28 @@
 
 package com.scality.osis.configuration;
 
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.hateoas.client.LinkDiscoverer;
-import org.springframework.hateoas.client.LinkDiscoverers;
-import org.springframework.hateoas.mediatype.collectionjson.CollectionJsonLinkDiscoverer;
-import org.springframework.plugin.core.SimplePluginRegistry;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Configuration
-@Primary
 public class DocumentationConfig {
+
     private static final String DOC_TITLE = "Object Storage Interoperability Services API for Scality platform";
     private static final String DOC_DESCRIPTION = "This is VMware Cloud Director Object Storage Interoperability Services API for Scality platform.";
-    private static final String DOC_VERSION = "1.4.0-SNAPSHOT";
+    private static final String DOC_VERSION = "2.1.0";
     public static final String PROJECT_BASE = "com.scality.osis";
 
-    ApiInfo apiInfo() {
-        return new ApiInfoBuilder()
-                .title(DOC_TITLE)
-                .description(DOC_DESCRIPTION)
-                .version(DOC_VERSION)
-                .build();
-    }
-
     @Bean
-    public LinkDiscoverers discoverers() {
-        List<LinkDiscoverer> plugins = new ArrayList<>();
-        plugins.add(new CollectionJsonLinkDiscoverer());
-        return new LinkDiscoverers(SimplePluginRegistry.of(plugins));
+    public OpenAPI openAPI() {
 
+        return new OpenAPI()
+                .info(new Info()
+                        .title(DOC_TITLE)
+                        .version(DOC_VERSION)
+                        .description(DOC_DESCRIPTION)
+                );
     }
 
-    @Bean
-    public Docket customImplementation() {
-        return new Docket(DocumentationType.SWAGGER_2)
-                .apiInfo(apiInfo())
-                .enable(true)
-                .select()
-                .apis(RequestHandlerSelectors.basePackage(PROJECT_BASE))
-                .paths(PathSelectors.any())
-                .build();
-    }
 }
