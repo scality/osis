@@ -106,3 +106,32 @@ nexusPublishing {
         }
     }
 }
+
+
+task appVersion {
+    doLast {
+        println "Set version number in the interface 'AppVersion.java'"
+        ant.replaceregexp(file: 'osis-core/src/main/java/com/scality/osis/AppVersion.java', match: '".*"', replace: '"' + "${osisVersion}" + '"')
+
+        File file = file('osis-core/src/main/java/com/scality/osis/AppVersion.java')
+        def lines = file.readLines()
+        lines.each { String line ->
+            println line
+        }
+    }
+}
+
+// This task is in charge to set version and build date in the interface App of osis-core in order to avoid duplicated constants
+task app {
+    doLast {
+        println "Set version number and build date in the interface 'App.java'"
+        ant.replaceregexp(file: 'osis-core/src/main/java/com/scality/osis/App.java', match: 'VERSION\\s*=\\s*".*"', replace: 'VERSION = "' + "${osisVersion}" + '"')
+        ant.replaceregexp(file: 'osis-core/src/main/java/com/scality/osis/App.java', match: 'DATE\\s*=\\s*\\d*[l,L]', replace: 'DATE = ' + new Date().getTime() + 'L')
+        File file = file('osis-core/src/main/java/com/scality/osis/App.java')
+        def lines = file.readLines()
+        lines.each { String line ->
+            println line
+        }
+    }
+}
+compileJava.dependsOn app
