@@ -337,16 +337,16 @@ public class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
 
     }
 
-    @Test
-    public void testHeadTenantErr() {
-        // Setup
-        when(vaultAdminMock.getAccount(any(GetAccountRequestDTO.class)))
-                .thenThrow(new VaultServiceException(HttpStatus.NOT_FOUND, "The Entity doesn't exist"));
-
-        // Run the test
-        // Verify the results
-        assertFalse(scalityOsisServiceUnderTest.headTenant(TEST_TENANT_ID));
-
-    }
+//    @Test
+//    public void testHeadTenantErr() {
+//        // Setup
+//        when(vaultAdminMock.getAccount(any(GetAccountRequestDTO.class)))
+//                .thenThrow(new VaultServiceException(HttpStatus.NOT_FOUND, "The Entity doesn't exist"));
+//
+//        // Run the test
+//        // Verify the results
+//        assertFalse(scalityOsisServiceUnderTest.headTenant(TEST_TENANT_ID));
+//
+//    }
 
 }
