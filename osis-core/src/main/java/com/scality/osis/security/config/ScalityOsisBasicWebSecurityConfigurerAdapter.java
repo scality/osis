@@ -21,7 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import static com.scality.osis.security.jwt.AuthConstants.API_INFO;
+import static com.scality.osis.security.jwt.AuthConstants.*;
 import static com.scality.osis.utils.ScalityConstants.HEALTH_CHECK_ENDPOINT;
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 
@@ -58,7 +58,7 @@ public class ScalityOsisBasicWebSecurityConfigurerAdapter {
                 .and()
                 .csrf().disable()
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-                        .requestMatchers(API_INFO, HEALTH_CHECK_ENDPOINT, "/v3/api-docs/**", "/swagger*/**").permitAll()
+                        .requestMatchers(API_INFO, HEALTH_CHECK_ENDPOINT, OPEN_API, SWAGGER).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
