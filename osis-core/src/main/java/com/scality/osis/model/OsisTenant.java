@@ -42,7 +42,7 @@ public class OsisTenant {
      *
      * @return name
      */
-    @Schema(description = "tenant name", required = true, example = "ACME")
+    @Schema(description = "tenant name", requiredMode= Schema.RequiredMode.REQUIRED, example = "ACME")
     public String getName() {
         return name;
     }
@@ -66,7 +66,7 @@ public class OsisTenant {
      *
      * @return tenantId
      */
-    @Schema(description = "tenant id", required = true, example = "d290f1ee-6c54-4b01-90e6-d701748f0851")
+    @Schema(description = "tenant id", requiredMode= Schema.RequiredMode.REQUIRED, example = "d290f1ee-6c54-4b01-90e6-d701748f0851")
     public String getTenantId() {
         return tenantId;
     }
@@ -93,7 +93,7 @@ public class OsisTenant {
      *
      * @return cdTenantIds
      */
-    @Schema(description = "Cloud Director tenant id", required = true, example = "8daca9a9-5b11-4f63-9c52-953a2ef77739")
+    @Schema(description = "Cloud Director tenant id", requiredMode= Schema.RequiredMode.REQUIRED, example = "8daca9a9-5b11-4f63-9c52-953a2ef77739")
     public List<String> getCdTenantIds() {
         return cdTenantIds;
     }

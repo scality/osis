@@ -45,7 +45,7 @@ public class PageInfo {
      *
      * @return limit
      */
-    @Schema(description = "maxium number of the items in each page", required = true)
+    @Schema(description = "maxium number of the items in each page", requiredMode= Schema.RequiredMode.REQUIRED)
     public Long getLimit() {
         return limit;
     }
@@ -64,7 +64,7 @@ public class PageInfo {
      *
      * @return offset
      */
-    @Schema(description = "offset of the current page in the whole set of items", required = true)
+    @Schema(description = "offset of the current page in the whole set of items", requiredMode= Schema.RequiredMode.REQUIRED)
     public Long getOffset() {
         return offset;
     }
@@ -83,7 +83,7 @@ public class PageInfo {
      *
      * @return total
      */
-    @Schema(description = "total number of the items", required = true)
+    @Schema(description = "total number of the items", requiredMode= Schema.RequiredMode.REQUIRED)
     public Long getTotal() {
         return total;
     }

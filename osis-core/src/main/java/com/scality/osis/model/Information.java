@@ -127,7 +127,7 @@ public class Information {
      *
      * @return platformName
      */
-    @Schema(description = "Name of the storage platform", required = true, example = "ceph")
+    @Schema(description = "Name of the storage platform", requiredMode= Schema.RequiredMode.REQUIRED, example = "ceph")
     public String getPlatformName() {
         return platformName;
     }
@@ -146,7 +146,7 @@ public class Information {
      *
      * @return platformName
      */
-    @Schema(description = "Version of the storage platform", required = true, example = "15.2.3")
+    @Schema(description = "Version of the storage platform", requiredMode= Schema.RequiredMode.REQUIRED, example = "15.2.3")
     public String getPlatformVersion() {
         return platformVersion;
     }
@@ -165,7 +165,7 @@ public class Information {
      *
      * @return apiVersion
      */
-    @Schema(description = "OSIS version the REST services complying with", required = true, example = "1.0")
+    @Schema(description = "OSIS version the REST services complying with", requiredMode= Schema.RequiredMode.REQUIRED, example = "1.0")
     public String getApiVersion() {
         return apiVersion;
     }
@@ -184,7 +184,7 @@ public class Information {
      *
      * @return status
      */
-    @Schema(description = "Platform status", required = true)
+    @Schema(description = "Platform status", requiredMode= Schema.RequiredMode.REQUIRED)
     public StatusEnum getStatus() {
         return status;
     }
@@ -208,7 +208,7 @@ public class Information {
      *
      * @return notImplemented
      */
-    @ArraySchema(schema = @Schema(description = "List of OSIS endpoints which are not implemented", required = true, example = """
+    @ArraySchema(schema = @Schema(description = "List of OSIS endpoints which are not implemented", requiredMode= Schema.RequiredMode.REQUIRED, example = """
             ["getUsage","getConsole"] """))
     public List<String> getNotImplemented() {
         return notImplemented;
