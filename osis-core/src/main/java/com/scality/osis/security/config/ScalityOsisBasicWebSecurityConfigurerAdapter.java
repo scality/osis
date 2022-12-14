@@ -20,7 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import static com.scality.osis.security.jwt.AuthConstants.API_INFO;
+import static com.scality.osis.security.jwt.AuthConstants.*;
 import static com.scality.osis.utils.ScalityConstants.HEALTH_CHECK_ENDPOINT;
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 
@@ -57,7 +57,7 @@ public class ScalityOsisBasicWebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers(API_INFO).permitAll()
                 .antMatchers(HEALTH_CHECK_ENDPOINT).permitAll()
-                .antMatchers("/v3/api-docs/**", "/swagger*/**").permitAll() // swagger and openapi authorized
+                .antMatchers(OPEN_API, SWAGGER).permitAll() // swagger and openapi authorized
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
