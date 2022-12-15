@@ -28,7 +28,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import java.util.List;
 
-import static com.scality.osis.security.jwt.AuthConstants.API_INFO;
+import static com.scality.osis.security.jwt.AuthConstants.*;
 
 @EnableWebSecurity
 @Configuration
@@ -85,7 +85,7 @@ public class OsisJwtWebSecurityConfigurerAdapter {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        List<String> permitAllEndpoints = List.of(AUTHENTICATION_URL, REFRESH_TOKEN_URL, API_INFO, "/v3/api-docs/**", "/swagger*/**");
+        List<String> permitAllEndpoints = List.of(AUTHENTICATION_URL, REFRESH_TOKEN_URL, API_INFO, OPEN_API, SWAGGER);
         var authenticationManager = http.getSharedObject(AuthenticationManager.class);
 
         return http.csrf().disable()

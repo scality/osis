@@ -87,7 +87,7 @@ public class OsisUser {
      *
      * @return userId
      */
-    @Schema(description = "user id", required = true, example = "rachelw")
+    @Schema(description = "user id", requiredMode= Schema.RequiredMode.REQUIRED, example = "rachelw")
     public String getUserId() {
         return userId;
     }
@@ -106,7 +106,7 @@ public class OsisUser {
      *
      * @return canonicalUserId
      */
-    @Schema(description = "canonical user id", required = true, example = "68fb0f20-4a0c-4036-a584-cc3ee421093f")
+    @Schema(description = "canonical user id", requiredMode= Schema.RequiredMode.REQUIRED, example = "68fb0f20-4a0c-4036-a584-cc3ee421093f")
     public String getCanonicalUserId() {
         return canonicalUserId;
     }
@@ -125,7 +125,7 @@ public class OsisUser {
      *
      * @return tenantId
      */
-    @Schema(description = "id of the tenant which the user belongs to", required = true, example = "bb8287a9-874e-46d2-abbd-58278e1ac046")
+    @Schema(description = "id of the tenant which the user belongs to", requiredMode= Schema.RequiredMode.REQUIRED, example = "bb8287a9-874e-46d2-abbd-58278e1ac046")
     public String getTenantId() {
         return tenantId;
     }
@@ -144,7 +144,7 @@ public class OsisUser {
      *
      * @return active
      */
-    @Schema(description = "user status", required = true)
+    @Schema(description = "user status", requiredMode= Schema.RequiredMode.REQUIRED)
     public Boolean getActive() {
         return active;
     }
@@ -163,7 +163,7 @@ public class OsisUser {
      *
      * @return cdUserId
      */
-    @Schema(description = "Cloud Director user id", required = true, example = "rachelw")
+    @Schema(description = "Cloud Director user id", requiredMode= Schema.RequiredMode.REQUIRED, example = "rachelw")
     public String getCdUserId() {
         return cdUserId;
     }
@@ -182,7 +182,7 @@ public class OsisUser {
      *
      * @return cdTenantId
      */
-    @Schema(description = "id of Cloud Director tenant which the user belongs to", required = true, example = "40b97e3c-c3b1-4251-b7de-e9637324683f")
+    @Schema(description = "id of Cloud Director tenant which the user belongs to", requiredMode= Schema.RequiredMode.REQUIRED, example = "40b97e3c-c3b1-4251-b7de-e9637324683f")
     public String getCdTenantId() {
         return cdTenantId;
     }

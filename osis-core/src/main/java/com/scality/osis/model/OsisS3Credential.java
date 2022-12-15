@@ -46,7 +46,7 @@ public class OsisS3Credential {
      *
      * @return accessKey
      */
-    @Schema(description = "S3 access key", required = true, example = "00e4a3d674aada749f04")
+    @Schema(description = "S3 access key", requiredMode= Schema.RequiredMode.REQUIRED, example = "00e4a3d674aada749f04")
     public String getAccessKey() {
         return accessKey;
     }
@@ -65,7 +65,7 @@ public class OsisS3Credential {
      *
      * @return secretKey
      */
-    @Schema(description = "S3 secret key", required = true, example = "yz8PIwNjmm2zlHX8m7st6BSKh8PCe7bqAaRGkF5K")
+    @Schema(description = "S3 secret key", requiredMode= Schema.RequiredMode.REQUIRED, example = "yz8PIwNjmm2zlHX8m7st6BSKh8PCe7bqAaRGkF5K")
     public String getSecretKey() {
         return secretKey;
     }
@@ -84,7 +84,7 @@ public class OsisS3Credential {
      *
      * @return active
      */
-    @Schema(description = "S3 credential status", required = true, example = "true")
+    @Schema(description = "S3 credential status", requiredMode= Schema.RequiredMode.REQUIRED, example = "true")
     public Boolean getActive() {
         return active;
     }

@@ -29,7 +29,7 @@ public class OsisError {
         return this;
     }
 
-    @Schema(description = "", required = true, example = "E_BAD_REQUEST")
+    @Schema(description = "", requiredMode= Schema.RequiredMode.REQUIRED, example = "E_BAD_REQUEST")
     public String getCode() {
         return code;
     }

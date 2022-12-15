@@ -44,7 +44,7 @@ public class OsisUsage {
      *
      * @return bucketCount
      */
-    @Schema(description = "bucket count of tenant or user", required = true, example = "532")
+    @Schema(description = "bucket count of tenant or user", requiredMode= Schema.RequiredMode.REQUIRED, example = "532")
     public Long getBucketCount() {
         return bucketCount;
     }
@@ -63,7 +63,7 @@ public class OsisUsage {
      *
      * @return objectCount
      */
-    @Schema(description = "object count of tenant or user", required = true, example = "298635")
+    @Schema(description = "object count of tenant or user", requiredMode= Schema.RequiredMode.REQUIRED, example = "298635")
     public Long getObjectCount() {
         return objectCount;
     }
@@ -82,7 +82,7 @@ public class OsisUsage {
      *
      * @return totalBytes
      */
-    @Schema(description = "total storage bytes of tenant or user", required = true, example = "80948230763")
+    @Schema(description = "total storage bytes of tenant or user", requiredMode= Schema.RequiredMode.REQUIRED, example = "80948230763")
     public Long getTotalBytes() {
         return totalBytes;
     }
@@ -101,7 +101,7 @@ public class OsisUsage {
      *
      * @return avaialbleBytes
      */
-    @Schema(description = "available storage bytes of tenant or user", required = true, example = "48193854929")
+    @Schema(description = "available storage bytes of tenant or user", requiredMode= Schema.RequiredMode.REQUIRED, example = "48193854929")
     public Long getAvailableBytes() {
         return availableBytes;
     }
@@ -120,7 +120,7 @@ public class OsisUsage {
      *
      * @return usedBytes
      */
-    @Schema(description = "used storage bytes of tenant or user", required = true, example = "32754375834")
+    @Schema(description = "used storage bytes of tenant or user", requiredMode= Schema.RequiredMode.REQUIRED, example = "32754375834")
     public Long getUsedBytes() {
         return usedBytes;
     }

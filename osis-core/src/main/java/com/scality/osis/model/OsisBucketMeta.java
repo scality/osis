@@ -42,7 +42,7 @@ public class OsisBucketMeta {
      *
      * @return name
      */
-    @Schema(description = "bucket name", required = true)
+    @Schema(description = "bucket name", requiredMode= Schema.RequiredMode.REQUIRED)
     public String getName() {
         return name;
     }
@@ -56,7 +56,7 @@ public class OsisBucketMeta {
      *
      * @return creationDate
      */
-    @Schema(description = "bucket creation date", required = true)
+    @Schema(description = "bucket creation date", requiredMode= Schema.RequiredMode.REQUIRED)
     public String getCreationDate() {
         return creationDate;
     }
@@ -70,7 +70,7 @@ public class OsisBucketMeta {
      *
      * @return userId
      */
-    @Schema(description = "user id of bucket owner", required = true)
+    @Schema(description = "user id of bucket owner", requiredMode= Schema.RequiredMode.REQUIRED)
     public String getUserId() {
         return userId;
     }
