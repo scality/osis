@@ -17,7 +17,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +29,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.Optional;
 
-@Tag(name = "Users and tenants", description = "Users and tenants management")
+//@Tag(name = "Users and tenants", description = "Users and tenants management")
 @RestController
 public class ScalityOsisController {
 
@@ -54,7 +53,8 @@ public class ScalityOsisController {
     @Operation(summary = "Create S3 credential for the platform user", description = "Operation ID: createCredential<br> Create S3 credential for the platform user",
             responses = {@ApiResponse(responseCode = "201", description = "S3 credential is created for the user",
                     content = @Content(schema = @Schema(implementation = OsisS3Credential.class))),
-                    @ApiResponse(responseCode = "400", description = "Bad Request")})
+                    @ApiResponse(responseCode = "400", description = "Bad Request")},
+            tags = {"tenant", "user", "credentials"})
     @PostMapping(value = "/api/v1/tenants/{tenantId}/users/{userId}/s3credentials", produces = "application/json")
     public OsisS3Credential createCredential(
             @Parameter(description = "The ID of the tenant which the user belongs to", required = true) @PathVariable("tenantId") String tenantId,
@@ -76,7 +76,8 @@ public class ScalityOsisController {
     @Operation(summary = "Create a tenant in the platform", description = "Operation ID: createTenant<br> Create a tenant in the platform. The platform decides whether to adopt the cd_tenand_id in request body as tenant_id. This means the platform could generate new tenant_id by itself for the new tenant. The tenant_id in request body is ignored.",
             responses = {@ApiResponse(responseCode = "201", description = "A tenant is created",
                     content = @Content(schema = @Schema(implementation = OsisTenant.class))),
-                    @ApiResponse(responseCode = "400", description = "Bad Request")})
+                    @ApiResponse(responseCode = "400", description = "Bad Request")},
+            tags = {"tenant"})
     @PostMapping(value = "/api/v1/tenants", produces = "application/json", consumes = "application/json")
     public OsisTenant createTenant(@Parameter(description = "Tenant to create in the platform", required = true) @Valid @RequestBody OsisTenant osisTenant) {
         return osisService.createTenant(osisTenant);
@@ -99,7 +100,8 @@ public class ScalityOsisController {
     @Operation(summary = "Create a user in the platform tenant", description = "Operation ID: createUser<br> Create a user in the platform. The platform decides whether to adopt the cd_user_id in request body as canonical ID. This means the platform could generate new user_id by itself for the new user. The user_id in request body is ignored.",
             responses = {@ApiResponse(responseCode = "201", description = "A user is created",
                     content = @Content(schema = @Schema(implementation = OsisUser.class))),
-                    @ApiResponse(responseCode = "400", description = "Bad Request")})
+                    @ApiResponse(responseCode = "400", description = "Bad Request")},
+            tags = {"tenant", "user"})
     @PostMapping(value = "/api/v1/tenants/{tenantId}/users", produces = "application/json", consumes = "application/json")
     public OsisUser createUser(
             @Parameter(description = "The ID of the tenant which the created user belongs to", required = true) @PathVariable("tenantId") String tenantId,
@@ -124,7 +126,7 @@ public class ScalityOsisController {
      */
     @Operation(summary = "Delete the S3 credential of the platform user", description = "Operation ID: deleteCredential<br> Delete the S3 credential of the platform user. Parameters tenant_id and tenant_id are always in request; the platform decides whether to use them.",
             responses = {@ApiResponse(responseCode = "204", description = "The S3 credential is deleted")},
-            tags = {"s3credential", "optional"})
+            tags = {"credentials"})
     @DeleteMapping(value = "/api/v1/s3credentials/{accessKey}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCredential(
@@ -146,7 +148,8 @@ public class ScalityOsisController {
             responses = {
                     @ApiResponse(responseCode = "204", description = "The tenant is deleted"),
                     @ApiResponse(responseCode = "501", description = "The optional API is not implemented")
-            })
+            },
+            tags = {"tenant"})
     @DeleteMapping(value = "/api/v1/tenants/{tenantId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @NotImplement(name = ScalityOsisConstants.DELETE_TENANT_API_CODE)
@@ -170,7 +173,7 @@ public class ScalityOsisController {
      */
     @Operation(summary = "Delete the user in the platform tenant", description = "Operation ID: deleteUser<br> Delete the user in the platform tenant",
             responses = {@ApiResponse(responseCode = "204", description = "The user is deleted")},
-            tags = {"user", "required"})
+            tags = {"tenant", "user"})
     @DeleteMapping(value = "/api/v1/tenants/{tenantId}/users/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(
@@ -196,7 +199,7 @@ public class ScalityOsisController {
                     @ApiResponse(responseCode = "200", description = "The bucket list of the platform tenant is returned",
                             content = @Content(schema = @Schema(implementation = PageOfOsisBucketMeta.class)))
             },
-            tags = {"console", "optional"})
+            tags = {"bucket"})
     @GetMapping(value = "/api/v1/bucket-list", produces = "application/json")
     public PageOfOsisBucketMeta getBucketList(
             @NotNull @Parameter(description = "The ID of the tenant to get its bucket list", required = true) @Valid @RequestParam(value = "tenant_id", required = true) String tenantId,
@@ -219,7 +222,7 @@ public class ScalityOsisController {
                     @ApiResponse(responseCode = "200", description = "The console URI is returned"),
                     @ApiResponse(responseCode = "501", description = "The optional API is not implemented"),
             },
-            tags = {"console", "optional"})
+            tags = {"other"})
     @GetMapping(value = "/api/v1/console", produces = "application/json")
     public String getConsole(@Parameter(description = "The ID of the tenant to get its console URI") @Valid @RequestParam(value = "tenant_id", required = false) Optional<String> tenantId) {
         if (tenantId.isPresent()) {
@@ -248,7 +251,7 @@ public class ScalityOsisController {
                     @ApiResponse(responseCode = "200", description = "The S3 credential is returned"),
                     @ApiResponse(responseCode = "404", description = "Not Found"),
             },
-            tags = {"s3credential", "required"})
+            tags = {"credentials"})
     @GetMapping(value = "/api/v1/s3credentials/{accessKey}", produces = "application/json")
     public OsisS3Credential getCredential(
             @Parameter(description = "The ID of the tenant which the user belongs to") @Valid @RequestParam(value = "tenant_id", required = false) String tenantId,
@@ -269,7 +272,7 @@ public class ScalityOsisController {
                     @ApiResponse(responseCode = "200", description = "OK"),
                     @ApiResponse(responseCode = "404", description = "Not Found")
             },
-            tags = {"info", "required"})
+            tags = {"other"})
     @GetMapping(value = "/api/info", produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public Information getInfo(HttpServletRequest request) {
@@ -289,7 +292,7 @@ public class ScalityOsisController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "S3 capabilities of the platform")
             },
-            tags = {"usage", "required"})
+            tags = {"other"})
     @GetMapping(value = "/api/v1/s3capabilities", produces = "application/json")
     public OsisS3Capabilities getS3Capabilities() {
         return osisService.getS3Capabilities();
@@ -311,7 +314,7 @@ public class ScalityOsisController {
                     @ApiResponse(responseCode = "200", description = "The tenant is returned"),
                     @ApiResponse(responseCode = "404", description = "The tenant doesn't exist")
             },
-            tags = {"usage", "required"})
+            tags = {"tenant"})
     @GetMapping(value = "/api/v1/tenants/{tenantId}", produces = "application/json")
     public OsisTenant getTenant(
             @NotNull @Parameter(description = "Tenant ID to get the tenant from the platform", required = true) @PathVariable("tenantId") String tenantId) {
@@ -337,7 +340,7 @@ public class ScalityOsisController {
                     @ApiResponse(responseCode = "200", description = "The usage of the tenant or user is returned"),
                     @ApiResponse(responseCode = "501", description = "The optional API is not implemented")
             },
-            tags = {"usage", "optional"})
+            tags = {"other"})
     @GetMapping(value = "/api/v1/usage", produces = "application/json")
     public OsisUsage getUsage(
             @Parameter(description = "The ID of the tenant to get its usage. 'tenant_id' takes precedence over 'user_id' to take effect if both are specified.") @Valid @RequestParam(value = "tenant_id", required = false) Optional<String> tenantId,
@@ -362,7 +365,7 @@ public class ScalityOsisController {
                     @ApiResponse(responseCode = "200", description = "The user is returned"),
                     @ApiResponse(responseCode = "404", description = "The tenant doesn't exist")
             },
-            tags = {"user", "required"})
+            tags = {"user"})
     @GetMapping(value = "/api/v1/users/{canonicalUserId}", produces = "application/json")
     public OsisUser getUserWithCanonicalID(
             @Parameter(description = "The canonical ID of the user to get", required = true) @PathVariable("canonicalUserId") String canonicalUserId) {
@@ -386,7 +389,7 @@ public class ScalityOsisController {
                     @ApiResponse(responseCode = "200", description = "The user is returned"),
                     @ApiResponse(responseCode = "404", description = "The tenant doesn't exist")
             },
-            tags = {"user", "required"})
+            tags = {"tenant", "user"})
     @GetMapping(value = "/api/v1/tenants/{tenantId}/users/{userId}", produces = "application/json")
     public OsisUser getUserWithId(
             @Parameter(description = "The ID of the tenant which the user belongs to", required = true) @PathVariable("tenantId") String tenantId,
@@ -407,7 +410,7 @@ public class ScalityOsisController {
                     @ApiResponse(responseCode = "200", description = "The tenant exists"),
                     @ApiResponse(responseCode = "404", description = "The tenant doesn't exist")
             },
-            tags = {"tenant", "required"})
+            tags = {"tenant"})
     @RequestMapping(value = "/api/v1/tenants/{tenantId}", method = RequestMethod.HEAD)
     public Void headTenant(@Parameter(description = "Tenant ID to check on the platform", required = true) @PathVariable("tenantId") String tenantId) {
         osisService.headTenant(tenantId);
@@ -431,7 +434,7 @@ public class ScalityOsisController {
                     @ApiResponse(responseCode = "200", description = "The user exists"),
                     @ApiResponse(responseCode = "404", description = "The user doesn't exist")
             },
-            tags = {"user", "required"})
+            tags = {"tenant", "user"})
     @RequestMapping(value = "/api/v1/tenants/{tenantId}/users/{userId}", method = RequestMethod.HEAD)
     public boolean headUser(
             @Parameter(description = "The ID of the tenant which the user belongs to", required = true)
@@ -459,7 +462,7 @@ public class ScalityOsisController {
                             content = @Content(schema = @Schema(implementation = PageOfS3Credentials.class))
                     )
             },
-            tags = {"s3credential", "required"})
+            tags = {"tenant", "user", "credentials"})
     @GetMapping(value = "/api/v1/tenants/{tenantId}/users/{userId}/s3credentials", produces = "application/json")
     public PageOfS3Credentials listCredentials(
             @Parameter(description = "The ID of the tenant which the user belongs to", required = true) @PathVariable("tenantId") String tenantId,
@@ -485,7 +488,7 @@ public class ScalityOsisController {
                             content = @Content(schema = @Schema(implementation = PageOfTenants.class))
                     )
             },
-            tags = {"tenant", "required"})
+            tags = {"tenant"})
     @GetMapping(value = "/api/v1/tenants", produces = "application/json")
     public PageOfTenants listTenants(
             @Parameter(description = "The start index of tenants to return") @Valid @RequestParam(value = "offset", required = false, defaultValue = "0") Long offset,
@@ -509,7 +512,7 @@ public class ScalityOsisController {
                             content = @Content(schema = @Schema(implementation = PageOfUsers.class))
                     )
             },
-            tags = {"user", "required"})
+            tags = {"tenant", "user"})
     @GetMapping(value = "/api/v1/tenants/{tenantId}/users", produces = "application/json")
     public PageOfUsers listUsers(
             @Parameter(description = "The ID of the tenant which the listed users belongs to", required = true) @PathVariable("tenantId") String tenantId,
@@ -544,7 +547,7 @@ public class ScalityOsisController {
                     @ApiResponse(responseCode = "400", description = "Bad Request",
                             content = @Content(schema = @Schema(implementation = Error.class)))
             },
-            tags = {"user", "required"})
+            tags = {"credentials"})
     @PatchMapping(value = "/api/v1/s3credentials/{accessKey}", produces = "application/json", consumes = "application/json")
     public OsisS3Credential updateCredentialStatus(
             @Parameter(description = "The ID of the tenant which the user belongs to") @RequestParam(value = "tenant_id", required = false) String tenantId,
@@ -571,7 +574,7 @@ public class ScalityOsisController {
                     @ApiResponse(responseCode = "400", description = "Bad Request",
                             content = @Content(schema = @Schema(implementation = Error.class)))
             },
-            tags = {"tenant", "required"})
+            tags = {"tenant"})
     @PatchMapping(value = "/api/v1/tenants/{tenantId}", produces = "application/json", consumes = "application/json")
     public OsisTenant updateTenantStatus(
             @Parameter(description = "Tenant ID of the tenant to update status", required = true) @PathVariable("tenantId") String tenantId,
@@ -593,22 +596,13 @@ public class ScalityOsisController {
      * @return The user status is updated (status code 201)
      *         or Bad Request (status code 400)
      */
-//    @ApiOperation(value = "Enable or disable status in the tenant", nickname = "updateUserStatus", notes = "Operation ID: updateUserStatus<br> Update status of the user in the platform tenant ", response = OsisUser.class, authorizations = {
-//            @Authorization(value = "basicAuth")
-//    }, tags = { "user", "required", })
-//    @ApiResponses(value = {
-//            @ApiResponse(code = 201, message = "The user status is updated", response = OsisUser.class),
-//            @ApiResponse(code = 400, message = "Bad Request", response = Error.class) })
-//    @ApiImplicitParams({
-//    })
-
     @Operation(summary = "Enable or disable status in the tenant", description = "Operation ID: updateUserStatus<br> Update status of the user in the platform tenant",
             responses = {
                     @ApiResponse(responseCode = "201", description = "The user status is updated"),
                     @ApiResponse(responseCode = "400", description = "Bad Request",
                             content = @Content(schema = @Schema(implementation = Error.class)))
             },
-            tags = {"user", "required"})
+            tags = {"tenant", "user"})
     @PatchMapping(value = "/api/v1/tenants/{tenantId}/users/{userId}", produces = "application/json", consumes = "application/json")
     public OsisUser updateUserStatus(
             @Parameter(description = "The ID of the tenant which the user to update belongs to", required = true) @PathVariable("tenantId") String tenantId,
@@ -630,7 +624,7 @@ public class ScalityOsisController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Tenants of the platform are returned")
             },
-            tags = {"tenant", "required"})
+            tags = {"tenant"})
     @GetMapping(value = "/api/v1/tenants/query", produces = "application/json")
     public PageOfTenants queryTenants(
             @Parameter(description = "The start index of tenants to return") @Valid @RequestParam(value = "offset", required = false, defaultValue = "0") long offset,
@@ -652,7 +646,7 @@ public class ScalityOsisController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Users of the platform tenant are returned")
             },
-            tags = {"user", "required"})
+            tags = {"user"})
     @GetMapping(value = "/api/v1/users/query", produces = "application/json")
     public PageOfUsers queryUsers(
             @Parameter(description = "The start index of users to return") @Valid @RequestParam(value = "offset", required = false, defaultValue = "0") long offset,
@@ -678,7 +672,7 @@ public class ScalityOsisController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "S3 credentials of the platform user are returned")
             },
-            tags = {"s3credential", "required"})
+            tags = {"credentials"})
     @GetMapping(value = "/api/v1/s3credentials/query", produces = "application/json")
     public PageOfS3Credentials queryCredentials(
             @Parameter(description = "The start index of credentials to return") @Valid @RequestParam(value = "offset", required = false, defaultValue = "0") long offset,
@@ -690,7 +684,8 @@ public class ScalityOsisController {
     @Operation(summary = "get bucket logging id", description = "",
             responses = {
                     @ApiResponse(responseCode = "501", description = "The optional API is not implemented")
-            })
+            },
+            tags = {"bucket"})
     @GetMapping(value = "/api/v1/bucket-logging-id", produces = "application/json")
     @NotImplement(name = ScalityOsisConstants.GET_BUCKET_ID_LOGGING_API_CODE)
     public OsisBucketLoggingId getBucketLoggingId() {
@@ -700,7 +695,7 @@ public class ScalityOsisController {
     @Operation(summary = "get anonymous user", description = "Operation ID: getAnonymousUser<br> get anonymous user",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The anonymous user is returned")
-            })
+            }, tags = {"user"})
     @GetMapping(value = "/api/v1/anonymous-user", produces = "application/json")
     public AnonymousUser getAnonymousUser() {
         return this.osisService.getAnonymousUser();
@@ -710,7 +705,8 @@ public class ScalityOsisController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "The ScalityOsisCaps has been updated"),
                     @ApiResponse(responseCode = "501", description = "The optional API is not implemented")
-            })
+            },
+            tags = {"other"})
     @PostMapping(value = "/api/admin-apis", produces = "application/json")
     public ScalityOsisCaps updateOsisCaps(@RequestBody ScalityOsisCaps osisCaps) {
         return this.osisService.updateOsisCaps(osisCaps);
