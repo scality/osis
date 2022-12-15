@@ -1,17 +1,16 @@
 /**
- *Copyright 2020 VMware, Inc.
- *Copyright 2022 Scality, Inc.
- *SPDX-License-Identifier: Apache License 2.0
+ * Copyright 2020 VMware, Inc.
+ * Copyright 2022 Scality, Inc.
+ * SPDX-License-Identifier: Apache License 2.0
  */
-
 package com.scality.osis.model;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PageOfOsisBucketMeta implements Page<OsisBucketMeta> {
-    private List<OsisBucketMeta> items;
 
+    private List<OsisBucketMeta> items;
     private PageInfo pageInfo;
 
     public PageOfOsisBucketMeta items(List<OsisBucketMeta> items) {
@@ -20,7 +19,7 @@ public class PageOfOsisBucketMeta implements Page<OsisBucketMeta> {
     }
 
     public PageOfOsisBucketMeta addItem(OsisBucketMeta item) {
-        if(this.items == null) {
+        if (this.items == null) {
             this.items = new ArrayList<>();
         }
         this.items.add(item);

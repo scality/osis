@@ -1,8 +1,8 @@
 buildscript {
     ext {
-        osisVersion = '2.0.1'
+        osisVersion = '2.0.2'
         vaultclientVersion = '1.0.0'
-        springBootVersion = '2.7.5'
+        springBootVersion = '2.7.6'
     }
 }
 
@@ -64,9 +64,7 @@ allprojects {
         implementation "org.springframework.boot:spring-boot-starter-data-redis:$springBootVersion"
         implementation "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
         testImplementation "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
-
-        implementation 'io.springfox:springfox-swagger2:3.0.0'
-        implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+        implementation 'org.springdoc:springdoc-openapi-ui:1.6.4'
         implementation 'javax.validation:validation-api:2.0.1.Final'
         implementation 'org.apache.commons:commons-lang3:3.12.0'
         implementation 'io.jsonwebtoken:jjwt:0.9.1'
@@ -108,3 +106,18 @@ nexusPublishing {
         }
     }
 }
+
+// This task is in charge to set version and build date in the interface App of osis-core in order to avoid duplicated constants
+task app {
+    doLast {
+        println "Set version number and build date in the interface 'App.java'"
+        ant.replaceregexp(file: 'osis-core/src/main/java/com/scality/osis/App.java', match: 'VERSION\\s*=\\s*".*"', replace: 'VERSION = "' + "${osisVersion}" + '"')
+        ant.replaceregexp(file: 'osis-core/src/main/java/com/scality/osis/App.java', match: 'DATE\\s*=\\s*\\d*[l,L]', replace: 'DATE = ' + new Date().getTime() + 'L')
+        File file = file('osis-core/src/main/java/com/scality/osis/App.java')
+        def lines = file.readLines()
+        lines.each { String line ->
+            println line
+        }
+    }
+}
+compileJava.dependsOn app

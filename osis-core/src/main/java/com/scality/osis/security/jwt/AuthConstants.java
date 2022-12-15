@@ -1,7 +1,7 @@
 /**
- *Copyright 2020 VMware, Inc.
- *Copyright 2022 Scality, Inc.
- *SPDX-License-Identifier: Apache License 2.0
+ * Copyright 2020 VMware, Inc.
+ * Copyright 2022 Scality, Inc.
+ * SPDX-License-Identifier: Apache License 2.0
  */
 
 package com.scality.osis.security.jwt;
@@ -12,6 +12,10 @@ public final class AuthConstants {
     }
 
     public static final String API_INFO = "/api/info";
+
+    // Swagger and OpenApi
+    public static final String OPEN_API = "/v3/api-docs/**";
+    public static final String SWAGGER = "/swagger*/**";
 
     public static final String CLAIMS_SCOPES = "scopes";
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
