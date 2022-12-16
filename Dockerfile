@@ -1,4 +1,4 @@
-FROM gradle:7.3.0-jdk17-alpine AS gradle-build
+FROM gradle:7.5.1-jdk17-alpine AS gradle-build
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle bootJar -PsonatypeUsername=${NEXUS_UNAME} -PsonatypePassword=${NEXUS_PWD}

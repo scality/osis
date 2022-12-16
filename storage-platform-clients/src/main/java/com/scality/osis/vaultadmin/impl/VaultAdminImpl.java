@@ -21,6 +21,7 @@ import com.scality.vaultclient.dto.*;
 import com.scality.vaultclient.services.AccountServicesClient;
 import com.scality.vaultclient.services.SecurityTokenServicesClient;
 import com.scality.osis.vaultadmin.VaultAdmin;
+import jakarta.annotation.PostConstruct;
 import okhttp3.HttpUrl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +30,6 @@ import com.amazonaws.services.securitytoken.model.Credentials;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Vault administrator implementation

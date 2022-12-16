@@ -13,6 +13,10 @@ public final class AuthConstants {
 
     public static final String API_INFO = "/api/info";
 
+    // Swagger and OpenApi
+    public static final String OPEN_API = "/v3/api-docs/**";
+    public static final String SWAGGER = "/swagger*/**";
+
     public static final String CLAIMS_SCOPES = "scopes";
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
 

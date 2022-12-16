@@ -15,6 +15,7 @@ import com.scality.osis.security.jwt.login.LoginAuthenticationProvider;
 import com.scality.osis.security.jwt.login.LoginProcessingFilter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -27,9 +28,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import java.util.List;
 
-import static com.scality.osis.security.jwt.AuthConstants.API_INFO;
+import static com.scality.osis.security.jwt.AuthConstants.*;
 
 @EnableWebSecurity
+@Configuration
 @ConditionalOnProperty(value = "security.jwt.enabled", havingValue = "true", matchIfMissing = true)
 public class OsisJwtWebSecurityConfigurerAdapter {
 
@@ -44,34 +46,32 @@ public class OsisJwtWebSecurityConfigurerAdapter {
     private LoginAuthenticationProvider loginAuthenticationProvider;
     private JwtAuthenticationProvider jwtAuthenticationProvider;
     private JwtTokenExtractor tokenExtractor;
-    private AuthenticationManager authenticationManager;
     private ObjectMapper objectMapper;
 
     public OsisJwtWebSecurityConfigurerAdapter(RestAuthenticationEntryPoint authenticationEntryPoint, AuthenticationSuccessHandler successHandler,
                                                AuthenticationFailureHandler failureHandler, LoginAuthenticationProvider loginAuthenticationProvider,
                                                JwtAuthenticationProvider jwtAuthenticationProvider,
-                                               JwtTokenExtractor tokenExtractor, AuthenticationManager authenticationManager, ObjectMapper objectMapper) {
+                                               JwtTokenExtractor tokenExtractor, ObjectMapper objectMapper) {
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.successHandler = successHandler;
         this.failureHandler = failureHandler;
         this.loginAuthenticationProvider = loginAuthenticationProvider;
         this.jwtAuthenticationProvider = jwtAuthenticationProvider;
         this.tokenExtractor = tokenExtractor;
-        this.authenticationManager = authenticationManager;
         this.objectMapper = objectMapper;
     }
 
-    protected LoginProcessingFilter buildLoginProcessingFilter(String loginEntryPoint) {
+    protected LoginProcessingFilter buildLoginProcessingFilter(String loginEntryPoint, AuthenticationManager authenticationManager) {
         LoginProcessingFilter filter = new LoginProcessingFilter(loginEntryPoint, successHandler, failureHandler, objectMapper);
-        filter.setAuthenticationManager(this.authenticationManager);
+        filter.setAuthenticationManager(authenticationManager);
         return filter;
     }
 
     protected JwtTokenAuthenticationProcessingFilter buildJwtTokenAuthenticationProcessingFilter(
-            List<String> pathsToSkip, String pattern) {
+            List<String> pathsToSkip, String pattern, AuthenticationManager authenticationManager) {
         SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(pathsToSkip, pattern);
         JwtTokenAuthenticationProcessingFilter filter = new JwtTokenAuthenticationProcessingFilter(failureHandler, tokenExtractor, matcher);
-        filter.setAuthenticationManager(this.authenticationManager);
+        filter.setAuthenticationManager(authenticationManager);
         return filter;
     }
 
@@ -85,7 +85,8 @@ public class OsisJwtWebSecurityConfigurerAdapter {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        List<String> permitAllEndpoints = List.of(AUTHENTICATION_URL, REFRESH_TOKEN_URL, API_INFO);
+        List<String> permitAllEndpoints = List.of(AUTHENTICATION_URL, REFRESH_TOKEN_URL, API_INFO, OPEN_API, SWAGGER);
+        var authenticationManager = http.getSharedObject(AuthenticationManager.class);
 
         return http.csrf().disable()
                 .exceptionHandling()
@@ -94,15 +95,15 @@ public class OsisJwtWebSecurityConfigurerAdapter {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .authorizeRequests(authorizeRequests ->
-                        authorizeRequests
-                                .antMatchers(permitAllEndpoints.toArray(String[]::new)).permitAll()
-                                .antMatchers(API_ROOT_URL).authenticated() // Protected API End-points
+                .authorizeHttpRequests(authorizeHttpRequests ->
+                        authorizeHttpRequests
+                                .requestMatchers(permitAllEndpoints.toArray(String[]::new)).permitAll()
+                                .requestMatchers(API_ROOT_URL).authenticated() // Protected API End-points
                 )
-                .addFilterBefore(buildLoginProcessingFilter(AUTHENTICATION_URL),
+                .addFilterBefore(buildLoginProcessingFilter(AUTHENTICATION_URL, authenticationManager),
                         UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(permitAllEndpoints,
-                        API_ROOT_URL), UsernamePasswordAuthenticationFilter.class)
+                        API_ROOT_URL, authenticationManager), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }

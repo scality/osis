@@ -1,16 +1,16 @@
 /**
- *Copyright 2020 VMware, Inc.
- *Copyright 2022 Scality, Inc.
- *SPDX-License-Identifier: Apache License 2.0
+ * Copyright 2020 VMware, Inc.
+ * Copyright 2022 Scality, Inc.
+ * SPDX-License-Identifier: Apache License 2.0
  */
-
 package com.scality.osis.model;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import javax.validation.constraints.NotNull;
 
 public class OsisUsage {
+
     @NotNull
     private Long bucketCount;
 
@@ -44,7 +44,7 @@ public class OsisUsage {
      *
      * @return bucketCount
      */
-    @ApiModelProperty(example = "532", required = true, value = "bucket count of tenant or user")
+    @Schema(description = "bucket count of tenant or user", requiredMode= Schema.RequiredMode.REQUIRED, example = "532")
     public Long getBucketCount() {
         return bucketCount;
     }
@@ -63,7 +63,7 @@ public class OsisUsage {
      *
      * @return objectCount
      */
-    @ApiModelProperty(example = "298635", required = true, value = "object count of tenant or user")
+    @Schema(description = "object count of tenant or user", requiredMode= Schema.RequiredMode.REQUIRED, example = "298635")
     public Long getObjectCount() {
         return objectCount;
     }
@@ -82,7 +82,7 @@ public class OsisUsage {
      *
      * @return totalBytes
      */
-    @ApiModelProperty(example = "80948230763", required = true, value = "total storage bytes of tenant or user")
+    @Schema(description = "total storage bytes of tenant or user", requiredMode= Schema.RequiredMode.REQUIRED, example = "80948230763")
     public Long getTotalBytes() {
         return totalBytes;
     }
@@ -101,7 +101,7 @@ public class OsisUsage {
      *
      * @return avaialbleBytes
      */
-    @ApiModelProperty(example = "48193854929", required = true, value = "available storage bytes of tenant or user")
+    @Schema(description = "available storage bytes of tenant or user", requiredMode= Schema.RequiredMode.REQUIRED, example = "48193854929")
     public Long getAvailableBytes() {
         return availableBytes;
     }
@@ -120,7 +120,7 @@ public class OsisUsage {
      *
      * @return usedBytes
      */
-    @ApiModelProperty(example = "32754375834", required = true, value = "used storage bytes of tenant or user")
+    @Schema(description = "used storage bytes of tenant or user", requiredMode= Schema.RequiredMode.REQUIRED, example = "32754375834")
     public Long getUsedBytes() {
         return usedBytes;
     }
@@ -129,4 +129,3 @@ public class OsisUsage {
         this.usedBytes = usedBytes;
     }
 }
-

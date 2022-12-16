@@ -6,3 +6,5 @@ reports/
 
 secring.gpg
 gradle.properties
+
+*.log

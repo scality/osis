@@ -1,80 +1,81 @@
 /**
- *Copyright 2020 VMware, Inc.
- *Copyright 2022 Scality, Inc.
- *SPDX-License-Identifier: Apache License 2.0
+ * Copyright 2020 VMware, Inc.
+ * Copyright 2022 Scality, Inc.
+ * SPDX-License-Identifier: Apache License 2.0
  */
-
 package com.scality.osis.model;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.time.Instant;
 
 public class OsisBucketMeta {
-  @NotNull
-  private String name;
 
-  @Valid
-  @NotNull
-  private String creationDate;
+    @NotNull
+    private String name;
 
-  @NotNull
-  private String userId;
+    @Valid
+    @NotNull
+    private String creationDate;
 
-  public OsisBucketMeta name(String name) {
-    this.name = name;
-    return this;
-  }
+    @NotNull
+    private String userId;
 
-  public OsisBucketMeta creationDate(String creationDate) {
-    this.creationDate = creationDate;
-    return this;
-  }
+    public OsisBucketMeta name(String name) {
+        this.name = name;
+        return this;
+    }
 
-  public OsisBucketMeta userId(String userId) {
-    this.userId = userId;
-    return this;
-  }
+    public OsisBucketMeta creationDate(String creationDate) {
+        this.creationDate = creationDate;
+        return this;
+    }
 
-  /**
-   * bucket name
-   * @return name
-  */
-  @ApiModelProperty(required = true, value = "bucket name")
-  public String getName() {
-    return name;
-  }
+    public OsisBucketMeta userId(String userId) {
+        this.userId = userId;
+        return this;
+    }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    /**
+     * bucket name
+     *
+     * @return name
+     */
+    @Schema(description = "bucket name", requiredMode= Schema.RequiredMode.REQUIRED)
+    public String getName() {
+        return name;
+    }
 
-  /**
-   * bucket creation date
-   * @return creationDate
-  */
-  @ApiModelProperty(required = true, value = "bucket creation date")
-  public String getCreationDate() {
-    return creationDate;
-  }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-  public void setCreationDate(String creationDate) {
-    this.creationDate = creationDate;
-  }
+    /**
+     * bucket creation date
+     *
+     * @return creationDate
+     */
+    @Schema(description = "bucket creation date", requiredMode= Schema.RequiredMode.REQUIRED)
+    public String getCreationDate() {
+        return creationDate;
+    }
 
-  /**
-   * user id of bucket owner
-   * @return userId
-  */
-  @ApiModelProperty(required = true, value = "user id of bucket owner")
-  public String getUserId() {
-    return userId;
-  }
+    public void setCreationDate(String creationDate) {
+        this.creationDate = creationDate;
+    }
 
-  public void setUserId(String userId) {
-    this.userId = userId;
-  }
+    /**
+     * user id of bucket owner
+     *
+     * @return userId
+     */
+    @Schema(description = "user id of bucket owner", requiredMode= Schema.RequiredMode.REQUIRED)
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 }
-

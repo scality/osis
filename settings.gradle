@@ -2,3 +2,4 @@ rootProject.name = 'osis-scality'
 include 'osis-app'
 include 'osis-core'
 include 'storage-platform-clients'
+
