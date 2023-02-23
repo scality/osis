@@ -117,6 +117,8 @@ public class Information {
     @Valid
     private List<String> storageClasses = null;
 
+    private boolean iam = true;
+
     public Information platformName(String platformName) {
         this.platformName = platformName;
         return this;
@@ -337,6 +339,25 @@ public class Information {
 
     public void setStorageClasses(List<String> storageClasses) {
         this.storageClasses = storageClasses;
+    }
+
+    /**
+     * @param iam true
+     * @return this
+     */
+    public Information iam(boolean iam) {
+        this.iam = iam;
+        return this;
+    }
+
+    /**
+     * Get IAM support
+     *
+     * @return true
+     */
+    @Schema(description = "IAM support")
+    public Boolean getIam() {
+        return iam;
     }
 }
 
