@@ -78,6 +78,7 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         assertEquals(TEST_S3_URL, information.getServices().getS3(), "Invalid S3 URL");
         assertNotNull(information.getNotImplemented(), NULL_ERR);
         assertEquals(domain + IAM_PREFIX, information.getServices().getIam(), "Invalid IAM URL");
+        assertEquals(true, information.getIam(), "Invalid IAM support status");
 
     }
 
@@ -101,6 +102,7 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         assertEquals(TEST_S3_URL, information.getServices().getS3(), "Invalid S3 URL");
         assertNotNull(information.getNotImplemented(), NULL_ERR);
         assertEquals(domain + IAM_PREFIX, information.getServices().getIam(), "Invalid IAM URL");
+        assertEquals(true, information.getIam(), "Invalid IAM support status");
     }
 
     @Test
