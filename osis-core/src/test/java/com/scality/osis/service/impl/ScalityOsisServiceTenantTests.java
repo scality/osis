@@ -291,6 +291,34 @@ class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
+    void testUpdateTenantRequestParametersConsistencyForTenantID() {
+        final OsisTenant osisTenantReq = createSampleOsisTenantObj();
+        osisTenantReq.setTenantId(SAMPLE_ID + "1");
+
+        // Call Scality Osis service to update a tenant
+        final VaultServiceException exception = assertThrows(VaultServiceException.class, () -> {
+            scalityOsisServiceUnderTest.updateTenant(SAMPLE_ID, osisTenantReq);
+        });
+
+        assertEquals(400, exception.getStatus().value());
+        assertEquals("E_BAD_REQUEST", exception.getErrorCode());
+    }
+
+    @Test
+    void testUpdateTenantRequestParametersConsistencyForName() {
+        final OsisTenant osisTenantReq = createSampleOsisTenantObj();
+        osisTenantReq.setTenantId(SAMPLE_TENANT_NAME + "1");
+
+        // Call Scality Osis service to update a tenant
+        final VaultServiceException exception = assertThrows(VaultServiceException.class, () -> {
+            scalityOsisServiceUnderTest.updateTenant(SAMPLE_ID, osisTenantReq);
+        });
+
+        assertEquals(400, exception.getStatus().value());
+        assertEquals("E_BAD_REQUEST", exception.getErrorCode());
+    }
+
+    @Test
     void testGetTenant() {
         // Setup
 
