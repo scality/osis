@@ -831,32 +831,33 @@ public final class ScalityModelConverter {
      * Converts S3 Bucket to OSIS bucket meta
      *
      * @param bucket S3 Bucket instance
+     * @param canonicalId canonicalId
      * @return the OSIS bucket meta
      */
-    public static OsisBucketMeta toOsisBucketMeta(Bucket bucket, String userId) {
+    public static OsisBucketMeta toOsisBucketMeta(Bucket bucket, String canonicalId) {
 
         return new OsisBucketMeta()
                 .name(bucket.getName())
                 .creationDate(bucket.getCreationDate().toInstant().toString())
-                .userId(userId);
+                .userId(canonicalId);
     }
 
     /**
      * Converts S3 list buckets response to OSIS page of bucket meta
      *
      * @param buckets the bucket list response
-     * @param userId userId
+     * @param canonicalId canonical ID
      * @param offset offset
      * @param limit limit
      * @return the OSIS page of bucket meta
      */
-    public static PageOfOsisBucketMeta toPageOfOsisBucketMeta(List<Bucket> buckets, String userId, long offset, long limit) {
+    public static PageOfOsisBucketMeta toPageOfOsisBucketMeta(List<Bucket> buckets, String canonicalId, long offset, long limit) {
         List<OsisBucketMeta> bucketItems = new ArrayList<>();
 
         List<Bucket> selectedBuckets = buckets.stream().skip(offset).limit(limit).collect(Collectors.toList());
 
         for (Bucket bucket : selectedBuckets) {
-            bucketItems.add(toOsisBucketMeta(bucket, userId));
+            bucketItems.add(toOsisBucketMeta(bucket, canonicalId));
         }
 
         PageInfo pageInfo = new PageInfo(limit, offset, (long) buckets.size());

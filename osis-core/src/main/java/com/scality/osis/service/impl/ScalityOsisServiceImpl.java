@@ -1151,21 +1151,23 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             final AmazonS3 s3Client = this.s3.getS3Client(tempCredentials,
                     appEnv.getRegionInfo().get(0));
 
+            // Get account info by tenant ID for canonical ID
+            GetAccountRequestDTO getAccountRequest = ScalityModelConverter.toGetAccountRequestWithID(tenantId);
+            logger.debug("[Vault]GetAccount request:{}", new Gson().toJson(getAccountRequest));
+
+            AccountData accountData = vaultAdmin.getAccount(getAccountRequest);
+            logger.debug("[Vault]GetAccount response:{}", new Gson().toJson(accountData));
+
             //s3 listBucket has no pagination, so list all
             List<Bucket> buckets = s3Client.listBuckets();
-
             logger.debug("[S3] List all Buckets size:{}", buckets.size());
 
-            final PageOfUsers pageOfUsers = listUsers(tenantId, 0, 1);
-            final String userId = pageOfUsers.getItems().get(0).getUserId();
-
-            PageOfOsisBucketMeta pageOfOsisBucketMeta = ScalityModelConverter.toPageOfOsisBucketMeta(buckets, userId, offset, limit);
-
+            PageOfOsisBucketMeta pageOfOsisBucketMeta = ScalityModelConverter.toPageOfOsisBucketMeta(
+                buckets, accountData.getCanonicalId(), offset, limit);
             logger.info("List Buckets response:{}", new Gson().toJson(pageOfOsisBucketMeta));
 
             return pageOfOsisBucketMeta;
         } catch (Exception e) {
-
             if (isAdminPolicyError(e)) {
                 try {
                     generateAdminPolicy(tenantId);
