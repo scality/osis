@@ -862,15 +862,26 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     }
 
     @Override
-    public boolean headTenant(String tenantId) {
+    public void headTenant(String tenantId) {
         try {
             logger.info("Head Tenant request received:: tenant ID:{}", tenantId);
+            // OSE can send a cloud director tenant UUID as tenant ID
+            // as a part of their flow instead of the storage account ID
+            if (ScalityUtils.isValidUUID(tenantId)) {
+                throw new NotFoundException("Invalid Tenant ID");
+            }
             AccountData accountData = vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId));
             logger.info("Head Tenant response:: {}", accountData);
-            return accountData != null && accountData.getId().equals(tenantId);
+            if (accountData == null || !accountData.getId().equals(tenantId)) {
+                throw new NotFoundException("The tenant does not exist for the given ID");
+            }
         } catch (Exception e) {
+            // ideally we should catch the NotFoundException separately and throw it
+            // and for other errors a generic exception should be thrown such as RuntimeException
+            // Post testing with Vmware OSE 2.2.0.1, OSE expects a 404 in any error scenario and does not handle any other error code
+            // Reference: https://developer.vmware.com/apis/1034#/tenant/headTenant
             logger.error("Head Tenant error. Error details: ", e);
-            return false;
+            throw new NotFoundException("Head Tenant error. Error details: " + e.getMessage());
         }
     }
 

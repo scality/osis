@@ -24,7 +24,7 @@ public interface ScalityOsisService {
 
     OsisTenant getTenant(String tenantId);
 
-    boolean headTenant(String tenantId);
+    void headTenant(String tenantId);
 
     void deleteTenant(String tenantId, Boolean purgeData);
 
