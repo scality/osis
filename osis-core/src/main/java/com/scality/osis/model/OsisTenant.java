@@ -21,6 +21,8 @@ public class OsisTenant {
     //  @NotNull
     private String tenantId;
 
+    private String canonicalId;
+
     private List<String> cdTenantIds;
 
     public OsisTenant active(boolean active) {
@@ -73,6 +75,30 @@ public class OsisTenant {
 
     public void setTenantId(String tenantId) {
         this.tenantId = tenantId;
+    }
+
+    /**
+     * tenant canonical id
+     * @param canonicalId
+     * @return
+     */
+    public OsisTenant canonicalId(String canonicalId) {
+        this.canonicalId = canonicalId;
+        return this;
+    }
+
+    /**
+     * tenant canonical id
+     *
+     * @return canonicalId
+     */
+    @Schema(description = "tenant canonical id", required = true, example = "4f6117a3fd3a4aca27000e4b1c518d28484115e5722beb3ce5f380583000531f")
+    public String getCanonicalId() {
+        return canonicalId;
+    }
+
+    public void setCanonicalId(String canonicalId) {
+        this.canonicalId = canonicalId;
     }
 
     public OsisTenant cdTenantIds(List<String> cdTenantIds) {
