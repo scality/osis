@@ -343,7 +343,8 @@ class BaseOsisServiceTest {
                     final String accountArn = request.getAccountArn();
                     final String emailAddress = request.getEmailAddress() == null ? SAMPLE_SCALITY_ACCOUNT_EMAIL
                             : request.getEmailAddress();
-                    final String canonicalId = request.getCanonicalId() == null ? SAMPLE_ID : request.getCanonicalId();
+                    final String canonicalId = request.getCanonicalId() == null ? TEST_CANONICAL_ID
+                        : request.getCanonicalId();
                     final Map<String, String> customAttributestes = new HashMap<>();
                     customAttributestes.put(CD_TENANT_ID_PREFIX + SAMPLE_CD_TENANT_ID, "");
 
@@ -550,7 +551,7 @@ class BaseOsisServiceTest {
             final Bucket bucket = new Bucket();
             bucket.setName(TEST_BUCKET_NAME + (index));
             bucket.setCreationDate(new Date());
-            bucket.setOwner(new Owner(SAMPLE_TENANT_ID, SAMPLE_TENANT_NAME));
+            bucket.setOwner(new Owner(TEST_CANONICAL_ID, SAMPLE_TENANT_NAME));
 
             buckets.add(bucket);
         }
