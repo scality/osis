@@ -550,7 +550,23 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     @Override
     public OsisTenant updateTenant(String tenantId, OsisTenant osisTenant) {
         try {
-            logger.info("Update Tenant request received:{}", new Gson().toJson(osisTenant));
+            logger.info("Update Tenant request received, tenantId:{}, osisTenant:{}",
+                tenantId, new Gson().toJson(osisTenant));
+
+            // check tenantID and OSIS tenant Consistency
+            // special check for ensuring consistency between tenant name and ID
+            // the check ensures name and ID in the request belong to the one storage account and its not mis-match
+            // this bug was observed as a part of testing OSE v2.2.0.1
+            OsisTenant osisTenantFromStoragePlatform = getTenant(tenantId);
+            if (!Objects.equals(osisTenant.getName(), osisTenantFromStoragePlatform.getName()) ||
+                    !Objects.equals(osisTenant.getTenantId(), osisTenantFromStoragePlatform.getTenantId())) {
+                logger.error("Update Tenant failed. Tenant name and tenant ID doesn't match in the request and storage platform");
+                throw new VaultServiceException(
+                    HttpStatus.BAD_REQUEST,
+                    "E_BAD_REQUEST", "Tenant name and tenant ID doesn't match in the request and storage platform"
+                );
+            }
+
             UpdateAccountAttributesRequestDTO updateAccountAttributesRequest = ScalityModelConverter
                     .toUpdateAccountAttributesRequestDTO(osisTenant);
 
@@ -571,7 +587,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             // Update Tenant supports only 400:BAD_REQUEST error, change status code in the
             // VaultServiceException
             logger.error("Update Tenant error. Error details: ", e);
-            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getErrorCode(), e.getReason());
         }
     }
 
