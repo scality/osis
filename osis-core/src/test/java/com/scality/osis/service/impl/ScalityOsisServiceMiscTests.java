@@ -128,6 +128,7 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
 
         // Verify the results
         assertEquals(TEST_BUCKET_TOTAL_NUMBER, response.getPageInfo().getTotal());
+        assertEquals(TEST_CANONICAL_ID, response.getItems().get(0).getUserId());
         assertEquals(offset, response.getPageInfo().getOffset());
         assertEquals(limit, response.getPageInfo().getLimit());
         assertEquals((int) limit, response.getItems().size());
