@@ -9,6 +9,7 @@ import com.scality.vaultclient.dto.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
+import com.scality.osis.model.exception.NotFoundException;
 
 import java.util.ArrayList;
 
@@ -320,10 +321,18 @@ class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
         // Setup
         when(vaultAdminMock.getAccount(null)).thenReturn(null);
 
-        // Run the test
-        // Verify the results
-        assertTrue(scalityOsisServiceUnderTest.headTenant(TEST_TENANT_ID));
+        // Test with valid tenant ID
+        assertDoesNotThrow(() -> scalityOsisServiceUnderTest.headTenant(SAMPLE_TENANT_ID));
+    }
 
+    @Test
+    void testHeadTenantCloudDirectorTenantId() {
+        // Setup
+        when(vaultAdminMock.getAccount(null)).thenReturn(null);
+
+        // Test with cloud director tenant ID
+        assertThrows(NotFoundException.class,
+            () -> scalityOsisServiceUnderTest.headTenant(SAMPLE_CD_TENANT_ID));
     }
 
     @Test
@@ -331,22 +340,35 @@ class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
         // Setup
         when(vaultAdminMock.getAccount(null)).thenReturn(null);
 
-        // Run the test
-        // Verify the results
-        assertFalse(scalityOsisServiceUnderTest.headTenant(null));
-
+        assertThrows(NotFoundException.class,
+            () -> scalityOsisServiceUnderTest.headTenant(null));
     }
+
 
     @Test
     void testHeadTenantErr() {
-        // Setup
+        // Setup not found response from vaultclient
         when(vaultAdminMock.getAccount(any(GetAccountRequestDTO.class)))
-                .thenThrow(new VaultServiceException(HttpStatus.NOT_FOUND, "The Entity doesn't exist"));
+                .thenAnswer((Answer<AccountData>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.NOT_FOUND, "Bad Request");
+                });
 
-        // Run the test
-        // Verify the results
-        assertFalse(scalityOsisServiceUnderTest.headTenant(TEST_TENANT_ID));
-
+        assertThrows(NotFoundException.class, () -> {
+            scalityOsisServiceUnderTest.headTenant(SAMPLE_TENANT_ID);
+        });
     }
 
+    @Test
+    void testHeadTenant400() {
+        // Setup for  Bad request for tenant ID
+        when(vaultAdminMock.getAccount(any(GetAccountRequestDTO.class)))
+                .thenAnswer((Answer<AccountData>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.BAD_REQUEST, "Bad Request");
+                });
+
+        // Verify the results to check 404 is returned even if vaultclient returns 400
+        assertThrows(NotFoundException.class, () -> {
+            scalityOsisServiceUnderTest.headTenant("bad_tenant_id");
+        });
+    }
 }
