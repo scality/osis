@@ -1,0 +1,46 @@
+---
+name: codeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: Static analysis with CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SIGNING_KEY: ${{ secrets.SIGNING_SECRET_KEY_RING_FILE }}
+      NEXUS_UNAME: ${{ secrets.NEXUS_USERNAME }}
+      NEXUS_PWD: ${{ secrets.NEXUS_PASSWORD }}
+      SIGNING_KEYID: ${{ secrets.SIGNING_KEY_ID }}
+      SIGNING_PWD: ${{ secrets.SIGNING_PASSWORD }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: "corretto"
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 7.3
+      
+      - name: Execute build with Gradle wrapper
+        run: ./gradlew build -PsonatypeUsername=$NEXUS_UNAME -PsonatypePassword=$NEXUS_PWD
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: java
+
+      - name: Build and analyze
+        uses: github/codeql-action/analyze@v2

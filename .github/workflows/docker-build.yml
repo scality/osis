@@ -22,13 +22,14 @@ on:
       REGISTRY_PASSWORD:
         required: true
 
-env:
-  NAMESPACE: ${{ inputs.namespace }}
-  TAG: ${{ inputs.tag }}
-  REGISTRY: ${{ inputs.registry }}
-
 jobs:
   build:
+    env:
+      NAMESPACE: ${{ inputs.namespace }}
+      TAG: ${{ inputs.tag }}
+      REGISTRY: ${{ inputs.registry }}
+      REGISTRY_LOGIN: "${{ secrets.REGISTRY_LOGIN || github.repository_owner }}"
+      REGISTRY_PASSWORD: "${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}"
     name: Build and Push
     runs-on: ubuntu-latest
     timeout-minutes: 10

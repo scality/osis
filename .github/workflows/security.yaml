@@ -1,0 +1,32 @@
+---
+name: security
+
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 8 * * 1' # Monday - 8am - UTC
+  workflow_dispatch:
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/docker-build.yaml
+    env:
+      REGISTRY_LOGIN: ${{ secrets.REGISTRY_LOGIN }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+
+  trivy:
+    needs: build
+    name: Trivy Vulnerability Scan for Code
+    uses: scality/workflows/.github/workflows/trivy.yaml@v1
+    with:
+      name: osis
+      namespace: osis-dev
+      registry: registry.scality.com
