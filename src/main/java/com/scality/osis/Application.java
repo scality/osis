@@ -12,13 +12,20 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
- * @author ges
+ * @author VMware, Inc.
+ * @author Scality, Inc.
  */
 @SpringBootApplication(exclude = {
         DataSourceAutoConfiguration.class
 })
 @EnableAsync
 public class Application {
+    /**
+     * The main entry point for the application. This method is called when the program is run
+     * and is responsible for starting the Spring Boot application.
+     * @param args array of command-line arguments
+     * @throws Exception If an error occurs while initializing the Spring Boot application
+     */
     public static void main(String[] args) throws Exception {
         new SpringApplication(Application.class).run(args);
     }
