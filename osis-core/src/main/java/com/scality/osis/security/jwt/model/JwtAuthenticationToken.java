@@ -13,17 +13,33 @@ import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
 
+/**
+ * This class represents an authentication token that is used to authenticate a user.
+ * It extends the Spring AbstractAuthenticationToken class and provides implementations for its abstract methods.
+ * @see AbstractAuthenticationToken
+ * @see RawAccessToken
+ * @see UserContext
+ */
 public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     private transient RawAccessToken rawAccessToken;
     private transient UserContext userContext;
 
+    /**
+     * Creates an authentication token with the specified raw access token.
+     * @param unsafeToken the raw access token
+     */
     public JwtAuthenticationToken(RawAccessToken unsafeToken) {
         super(null);
         this.rawAccessToken = unsafeToken;
         this.setAuthenticated(false);
     }
 
+    /**
+     * Creates an authentication token with the specified user context and authorities.
+     * @param userContext the user context
+     * @param authorities the authorities
+     */
     public JwtAuthenticationToken(UserContext userContext, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.eraseCredentials();

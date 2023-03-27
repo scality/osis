@@ -24,10 +24,22 @@ import java.util.Arrays;
 
 import static com.scality.osis.security.jwt.AuthConstants.ROLE_ADMIN;
 
+/**
+ * This class serves as the entry point for the Spring Boot application in the Scality OSIS API.
+ * It initializes the application and starts it up, enabling asynchronous processing and excluding database auto-configuration.
+ *
+ * @see AuthenticationProvider
+ */
 public class LoginAuthenticationProvider implements AuthenticationProvider {
     private final BCryptPasswordEncoder encoder;
     private final UserDetailsService userService;
 
+    /**
+     * Constructs a new LoginAuthenticationProvider.
+     *
+     * @param userService the user service
+     * @param encoder the password encoder
+     */
     @Autowired
     public LoginAuthenticationProvider(final PlatformUserDetailsService userService,
             final BCryptPasswordEncoder encoder) {

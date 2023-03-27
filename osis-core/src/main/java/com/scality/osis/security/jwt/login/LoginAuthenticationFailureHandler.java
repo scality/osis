@@ -23,9 +23,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * This class is an implementation of the Spring AuthenticationFailureHandler interface.
+ * It is responsible for handling authentication failures in the Scality OSIS API login
+ * process, including invalid credentials, expired tokens, and unsupported authentication
+ * methods.
+ */
 public class LoginAuthenticationFailureHandler implements AuthenticationFailureHandler {
     private final ObjectMapper mapper;
 
+    /**
+     * Constructor for LoginAuthenticationFailureHandler.
+     *
+     * @param mapper The ObjectMapper used to serialize the error response.
+     * @see ObjectMapper
+     */
     @Autowired
     public LoginAuthenticationFailureHandler(ObjectMapper mapper) {
         this.mapper = mapper;

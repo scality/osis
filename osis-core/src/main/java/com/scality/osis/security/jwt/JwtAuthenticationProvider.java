@@ -23,9 +23,17 @@ import java.util.stream.Collectors;
 
 import static com.scality.osis.security.jwt.AuthConstants.CLAIMS_SCOPES;
 
+/**
+ * This class serves as the entry point for the Spring Boot application in the Scality OSIS API.
+ * It initializes the application and starts it up, enabling asynchronous processing and excluding database auto-configuration.
+ */
 public class JwtAuthenticationProvider implements AuthenticationProvider {
     private final ScalityAppEnv appEnv;
 
+    /**
+     * Constructs a new JwtAuthenticationProvider.
+     * @param appEnv the application environment
+     */
     @Autowired
     public JwtAuthenticationProvider(ScalityAppEnv appEnv) {
         this.appEnv = appEnv;

@@ -29,11 +29,22 @@ import java.util.Map;
 import static com.scality.osis.security.jwt.AuthConstants.KEY_ACCESS_TOKEN;
 import static com.scality.osis.security.jwt.AuthConstants.KEY_REFRESH_TOKEN;
 
+/**
+ * This class is an implementation of the Spring AuthenticationSuccessHandler interface.
+ */
 public class LoginAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
     private final ObjectMapper mapper;
     private final JwtTokenFactory tokenFactory;
 
+    /**
+     * Constructor for LoginAuthenticationSuccessHandler.
+     *
+     * @param mapper The ObjectMapper used to serialize the error response.
+     * @param tokenFactory The JwtTokenFactory used to generate the access and refresh tokens.
+     * @see ObjectMapper
+     * @see JwtTokenFactory
+     */
     @Autowired
     public LoginAuthenticationSuccessHandler(final ObjectMapper mapper, final JwtTokenFactory tokenFactory) {
         this.mapper = mapper;
@@ -57,6 +68,13 @@ public class LoginAuthenticationSuccessHandler implements AuthenticationSuccessH
         clearAuthenticationAttributes(request);
     }
 
+    /**
+     * Removes temporary authentication-related data which may have been stored in the
+     * session during the authentication process.
+     *
+     * @param request The HTTP request.
+     * @see WebAttributes
+     */
     protected final void clearAuthenticationAttributes(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null) {

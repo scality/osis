@@ -22,6 +22,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+/**
+ * Async service to create a role with sts:AssumeRole permissions for the tenant
+ * and generate an access key for the tenant
+ */
 @Component
 public class AsyncScalityOsisService {
         private static final Logger logger = LoggerFactory.getLogger(AsyncScalityOsisService.class);
@@ -32,11 +36,22 @@ public class AsyncScalityOsisService {
         @Autowired
         private VaultAdmin vaultAdmin;
 
+        /**
+         * Create a role with sts:AssumeRole permissions for the tenant
+         *
+         * @param osisTenant OsisTenant instance
+         */
         @Async
         public void setupAssumeRole(OsisTenant osisTenant) {
                 setupAssumeRole(osisTenant.getTenantId(), osisTenant.getName());
         }
 
+        /**
+         * Create a role with sts:AssumeRole permissions for the tenant
+         *
+         * @param tenantId tenant ID
+         * @param tenantName tenant name
+         */
         public void setupAssumeRole(String tenantId, String tenantName) {
                 try {
                         logger.info(" Started [setupAssumeRole] for the Tenant:{}", tenantId);
@@ -94,6 +109,14 @@ public class AsyncScalityOsisService {
                 }
         }
 
+        /**
+         * Create and Attach Admin policy to the OSIS admin role
+         *
+         * @param tenantId Tenant Id
+         * @param tenantName Tenant Name
+         * @param assumeRoleName Assume Role Name
+         * @throws Exception
+         */
         public void setupAdminPolicy(String tenantId, String tenantName, String assumeRoleName) throws Exception {
                 logger.info(" Started [setupAdminPolicy] for the Tenant:{}", tenantId);
 

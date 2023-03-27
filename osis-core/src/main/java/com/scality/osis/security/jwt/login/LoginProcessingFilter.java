@@ -34,6 +34,18 @@ public class LoginProcessingFilter extends AbstractAuthenticationProcessingFilte
     private final AuthenticationFailureHandler failureHandler;
     private final ObjectMapper objectMapper;
 
+    /**
+     * Constructor for LoginProcessingFilter.
+     *
+     * @param defaultProcessUrl The default process url.
+     * @param successHandler The AuthenticationSuccessHandler used to handle authentication success.
+     * @param failureHandler The AuthenticationFailureHandler used to handle authentication failures.
+     * @param mapper The ObjectMapper used to map the request body to LoginRequest.
+     * @see LoginRequest
+     * @see AuthenticationSuccessHandler
+     * @see AuthenticationFailureHandler
+     * @see ObjectMapper
+     */
     public LoginProcessingFilter(String defaultProcessUrl, AuthenticationSuccessHandler successHandler,
             AuthenticationFailureHandler failureHandler, ObjectMapper mapper) {
         super(defaultProcessUrl);

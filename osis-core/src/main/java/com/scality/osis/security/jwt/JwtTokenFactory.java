@@ -25,13 +25,27 @@ import java.util.stream.Collectors;
 
 import static com.scality.osis.security.jwt.AuthConstants.CLAIMS_SCOPES;
 
+/**
+ * Factory class for creating JWT tokens.
+ */
 public class JwtTokenFactory {
     private final ScalityAppEnv appEnv;
 
+    /**
+     * Constructs a new JwtTokenFactory.
+     *
+     * @param appEnv the application environment
+     */
     public JwtTokenFactory(ScalityAppEnv appEnv) {
         this.appEnv = appEnv;
     }
 
+    /**
+     * Creates a new access token.
+     *
+     * @param userContext the user context
+     * @return the access token
+     */
     public AccessToken createAccessJwtToken(UserContext userContext) {
         if (StringUtils.isBlank(userContext.getUsername()))
             throw new IllegalArgumentException("Username is required to create token.");
@@ -58,6 +72,17 @@ public class JwtTokenFactory {
         return new AccessToken(token, claims);
     }
 
+    /**
+     * This method creates a new refresh token with the given UserContext.
+     *
+     * @param userContext the user context
+     * @return the refresh token
+     * @throws IllegalArgumentException if the UserContext username is blank
+     *
+     * @see UserContext
+     * @see JwtToken
+     * @see Scopes
+     */
     public JwtToken createRefreshToken(UserContext userContext) {
         if (StringUtils.isBlank(userContext.getUsername())) {
             throw new IllegalArgumentException("Username is required to create token.");

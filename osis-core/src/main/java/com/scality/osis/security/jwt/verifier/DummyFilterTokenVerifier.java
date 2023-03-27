@@ -8,6 +8,9 @@ package com.scality.osis.security.jwt.verifier;
 
 import org.springframework.stereotype.Component;
 
+/**
+ * Dummy implementation of {@link JwtTokenVerifier} that always returns true.
+ */
 @Component
 public class DummyFilterTokenVerifier implements JwtTokenVerifier {
     @Override

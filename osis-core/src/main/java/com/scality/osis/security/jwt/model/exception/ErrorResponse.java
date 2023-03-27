@@ -10,6 +10,11 @@ import org.springframework.http.HttpStatus;
 
 import java.util.Date;
 
+/**
+ * Represents an error response, with a message, error code, HTTP status, and timestamp.
+ * Used to provide a standardized format for error response
+ * @see HttpStatus
+ */
 public class ErrorResponse {
     private final HttpStatus status;
 
@@ -19,6 +24,13 @@ public class ErrorResponse {
 
     private final Date timestamp;
 
+    /**
+     * Creates an error response.
+     *
+     * @param message the error message
+     * @param errorCode the error code
+     * @param status the HTTP status
+     */
     protected ErrorResponse(final String message, final ErrorCode errorCode, HttpStatus status) {
         this.message = message;
         this.errorCode = errorCode;
@@ -26,22 +38,42 @@ public class ErrorResponse {
         this.timestamp = new Date();
     }
 
+    /**
+     * Creates an error response.
+     *
+     * @param message the error message
+     * @param errorCode the error code
+     * @param status the HTTP status
+     * @return the error response
+     */
     public static ErrorResponse of(final String message, final ErrorCode errorCode, HttpStatus status) {
         return new ErrorResponse(message, errorCode, status);
     }
 
+    /**
+     * @return the status
+     */
     public Integer getStatus() {
         return status.value();
     }
-
+    
+    /**
+     * @return the message
+     */
     public String getMessage() {
         return message;
     }
 
+    /**
+     * @return the status
+     */
     public ErrorCode getErrorCode() {
         return errorCode;
     }
 
+    /**
+     * @return the timestamp
+     */
     public Date getTimestamp() {
         return timestamp;
     }

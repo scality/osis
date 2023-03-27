@@ -6,6 +6,16 @@
 
 package com.scality.osis.security.jwt.verifier;
 
+/**
+ * Interface for verifying a JWT token.
+ */
 public interface JwtTokenVerifier {
+
+    /**
+     * Verify a JWT token.
+     *
+     * @param jti the JWT token to verify
+     * @return true if the token is valid, false otherwise
+     */
     boolean verify(String jti);
 }

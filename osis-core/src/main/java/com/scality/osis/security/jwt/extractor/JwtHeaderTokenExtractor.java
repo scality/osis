@@ -11,6 +11,9 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 
 import static com.scality.osis.security.jwt.AuthConstants.HEADER_PREFIX;
 
+/**
+ * Extracts the JWT token from the Authorization header.
+ */
 public class JwtHeaderTokenExtractor implements JwtTokenExtractor {
 
     @Override

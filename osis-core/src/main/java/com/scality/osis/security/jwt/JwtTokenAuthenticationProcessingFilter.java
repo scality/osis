@@ -25,10 +25,27 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * This class extends the Spring AbstractAuthenticationProcessingFilter
+ * and provides methods for processing JSON Web Tokens (JWTs) in the Scality OSIS API.
+@see AbstractAuthenticationProcessingFilter
+@see AuthenticationFailureHandler
+@see JwtTokenExtractor
+@see JwtAuthenticationToken
+@see RawAccessToken
+@see SecurityContext
+ */
 public class JwtTokenAuthenticationProcessingFilter extends AbstractAuthenticationProcessingFilter {
     private final AuthenticationFailureHandler failureHandler;
     private final JwtTokenExtractor tokenExtractor;
 
+    /**
+     * Constructor for JwtTokenAuthenticationProcessingFilter.
+     *
+     * @param failureHandler The AuthenticationFailureHandler used to handle authentication failures.
+     * @param tokenExtractor The JwtTokenExtractor used to extract the token from the request.
+     * @param matcher The RequestMatcher used to determine if the filter should be applied.
+     */
     @Autowired
     public JwtTokenAuthenticationProcessingFilter(AuthenticationFailureHandler failureHandler,
             JwtTokenExtractor tokenExtractor, RequestMatcher matcher) {
