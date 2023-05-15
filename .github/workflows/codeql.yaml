@@ -14,11 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      SIGNING_KEY: ${{ secrets.SIGNING_SECRET_KEY_RING_FILE }}
       NEXUS_UNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PWD: ${{ secrets.NEXUS_PASSWORD }}
-      SIGNING_KEYID: ${{ secrets.SIGNING_KEY_ID }}
-      SIGNING_PWD: ${{ secrets.SIGNING_PASSWORD }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
