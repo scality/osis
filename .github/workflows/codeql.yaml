@@ -20,6 +20,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: java
+
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
@@ -33,11 +38,6 @@ jobs:
       
       - name: Execute build with Gradle wrapper
         run: ./gradlew build -PsonatypeUsername=$NEXUS_UNAME -PsonatypePassword=$NEXUS_PWD
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: java
 
       - name: Build and analyze
         uses: github/codeql-action/analyze@v2
