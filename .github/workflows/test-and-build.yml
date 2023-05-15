@@ -1,32 +1,58 @@
-name: test-and-build
+---
+name: docker-build
 
 on:
-  push:
-    branches-ignore:
-      - development/**
-      - main/**
-      - q/*/**
+  workflow_call:
+    inputs:
+      namespace:
+        required: false
+        type: string
+        default: osis-dev
+      tag:
+        required: false
+        type: string
+        default: "${{ github.sha }}"
+      registry:
+        required: false
+        type: string
+        default: registry.scality.com
+    secrets:
+      REGISTRY_LOGIN:
+        required: true
+      REGISTRY_PASSWORD:
+        required: true
+
+env:
+  NAMESPACE: ${{ inputs.namespace }}
+  TAG: ${{ inputs.tag }}
+  REGISTRY: ${{ inputs.registry }}
 
 jobs:
-  gradle_build_and_upload:
-    name: Gradle build and upload snapshot
-    uses: ./.github/workflows/gradle-build-and-upload.yml
-    secrets: inherit
-
-  docker-build:
-    name: Development docker image
-    uses: ./.github/workflows/docker-build.yml
-    secrets:
-      REGISTRY_LOGIN: ${{ secrets.REGISTRY_LOGIN }}
-      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-
-  code_coverage:
-    name: code coverage
+  build:
+    name: Build and Push
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Registry
+        uses: docker/login-action@v2
         with:
-          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
-          name: codecov-osis
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_LOGIN }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build and push development docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/osis:${{ env.TAG }}
+          cache-from: type=gha,scope=osis
+          cache-to: type=gha,mode=max,scope=osis
+          build-args: |
+            NODE_ENV=${{ matrix.build.env }}
