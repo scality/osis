@@ -12,7 +12,6 @@ jobs:
   analyze:
     name: Static analysis with CodeQL
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     env:
       NEXUS_UNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PWD: ${{ secrets.NEXUS_PASSWORD }}
