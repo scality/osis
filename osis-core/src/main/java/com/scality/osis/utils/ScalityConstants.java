@@ -84,7 +84,8 @@ public final class ScalityConstants {
             "         \"Effect\":\"Allow\",\n" +
             "         \"Action\":[\n" +
             "            \"iam:*\",\n" +
-            "            \"s3:*\"\n" +
+            "            \"s3:*\",\n" +
+            "            \"utapi:*\"\n" +
             "         ],\n" +
             "         \"Resource\":\"*\"\n" +
             "      }\n" +
@@ -103,6 +104,8 @@ public final class ScalityConstants {
 
     public static final String DEFAULT_VAULT_HEALTHCHECK_TIMEOUT = "3000";
     public static final String DEFAULT_S3_HEALTHCHECK_TIMEOUT = "3000";
+    public static final String DEFAULT_UTAPI_HEALTHCHECK_TIMEOUT = "3000";
+
     public static final String HEALTH_CHECK_ENDPOINT = "/_/healthcheck";
 
     public static final String USER_POLICY_ARN_REGEX = "arn:aws:iam::$ACCOUNTID:policy/userPolicy@$ACCOUNTID";

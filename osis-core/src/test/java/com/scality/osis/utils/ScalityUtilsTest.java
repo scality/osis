@@ -2,6 +2,9 @@ package com.scality.osis.utils;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.UUID;
 
@@ -46,5 +49,16 @@ class ScalityUtilsTest {
 
         // Verify the results
         assertTrue(filterMap.isEmpty());
+    }
+
+    @Test
+    void testGetHourTime() {
+        // Setup
+
+        // Run the test
+        final Long hourTime = ScalityUtils.getHourTime();
+
+        // Verify the results
+        assertEquals(LocalDateTime.ofInstant(Instant.ofEpochMilli(hourTime), ZoneOffset.UTC).getHour(), LocalDateTime.now().getHour());
     }
 }

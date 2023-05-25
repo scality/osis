@@ -6,6 +6,7 @@
 
 package com.scality.osis.service.impl;
 
+import com.amazonaws.Response;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.s3.AmazonS3;
@@ -26,6 +27,11 @@ import com.scality.osis.s3.S3;
 import com.scality.osis.security.crypto.model.SecretKeyRepoData;
 import com.scality.osis.security.utils.CipherFactory;
 import com.scality.osis.service.ScalityOsisService;
+import com.scality.osis.utapi.Utapi;
+import com.scality.osis.utapiclient.dto.ListMetricsRequestDTO;
+import com.scality.osis.utapiclient.dto.MetricsData;
+import com.scality.osis.utapiclient.services.UtapiServiceClient;
+import com.scality.osis.utapiclient.utils.UtapiClientException;
 import com.scality.osis.utils.ScalityModelConverter;
 import com.scality.osis.utils.ScalityUtils;
 import com.scality.osis.vaultadmin.VaultAdmin;
@@ -44,6 +50,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.scality.osis.utils.ScalityConstants.*;
+import static com.scality.osis.utils.ScalityUtils.getHourTime;
 
 /**
  * The type Scality osis service.
@@ -56,6 +63,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     private ScalityAppEnv appEnv;
     private VaultAdmin vaultAdmin;
     private S3 s3;
+    private Utapi utapi;
     private ScalityOsisCapsManager scalityOsisCapsManager;
 
     @Autowired
@@ -75,13 +83,16 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
      * @param appEnv                 the app env
      * @param vaultAdmin             the vault admin
      * @param s3                     the s3 client
+     * @param utapi                  the utapi client
      * @param scalityOsisCapsManager the osis caps manager
      */
     public ScalityOsisServiceImpl(ScalityAppEnv appEnv, VaultAdmin vaultAdmin, S3 s3,
-            ScalityOsisCapsManager scalityOsisCapsManager) {
+                                  Utapi utapi,
+                                  ScalityOsisCapsManager scalityOsisCapsManager) {
         this.appEnv = appEnv;
         this.vaultAdmin = vaultAdmin;
         this.s3 = s3;
+        this.utapi = utapi;
         this.scalityOsisCapsManager = scalityOsisCapsManager;
     }
 
@@ -324,7 +335,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                     if (!Objects.equals(osisTenant.getName(), displayName)) {
                         // 3. format user name ex. user1, represent username of a user
                         logger.debug("Query Users filter display_name represents username");
-                        username = username !=null ? username : displayName;
+                        username = username != null ? username : displayName;
                     } else {
                         logger.debug("Query Users filter display_name represents tenant_name");
                     }
@@ -551,7 +562,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     public OsisTenant updateTenant(String tenantId, OsisTenant osisTenant) {
         try {
             logger.info("Update Tenant request received, tenantId:{}, osisTenant:{}",
-                tenantId, new Gson().toJson(osisTenant));
+                    tenantId, new Gson().toJson(osisTenant));
 
             // check tenantID and OSIS tenant Consistency
             // special check for ensuring consistency between tenant name and ID
@@ -562,8 +573,8 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                     !Objects.equals(osisTenant.getTenantId(), osisTenantFromStoragePlatform.getTenantId())) {
                 logger.error("Update Tenant failed. Tenant name and tenant ID doesn't match in the request and storage platform");
                 throw new VaultServiceException(
-                    HttpStatus.BAD_REQUEST,
-                    "E_BAD_REQUEST", "Tenant name and tenant ID doesn't match in the request and storage platform"
+                        HttpStatus.BAD_REQUEST,
+                        "E_BAD_REQUEST", "Tenant name and tenant ID doesn't match in the request and storage platform"
                 );
             }
 
@@ -1190,7 +1201,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             logger.debug("[S3] List all Buckets size:{}", buckets.size());
 
             PageOfOsisBucketMeta pageOfOsisBucketMeta = ScalityModelConverter.toPageOfOsisBucketMeta(
-                buckets, accountData.getCanonicalId(), offset, limit);
+                    buckets, accountData.getCanonicalId(), offset, limit);
             logger.info("List Buckets response:{}", new Gson().toJson(pageOfOsisBucketMeta));
 
             return pageOfOsisBucketMeta;
@@ -1218,7 +1229,116 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     @Override
     public OsisUsage getOsisUsage(Optional<String> tenantId, Optional<String> userId) {
-        return new OsisUsage();
+
+        if (!appEnv.isUtapiEnabled()) {
+            logger.info("Utapi is not enabled, returning empty usage");
+            return new OsisUsage();
+        }
+
+        logger.info("Get Osis Usage request received:: tenant ID:{}, user ID:{}", tenantId, userId);
+        OsisUsage osisUsage = new OsisUsage();
+
+        if (tenantId.isEmpty()) {
+            logger.info("tenant ID is empty, getting platform usage at global level");
+
+            int start = 0;
+            int limit = 100;
+            boolean hasMoreTenants = true;
+            while (hasMoreTenants) {
+                PageOfTenants pageOfTenants = listTenants(start, limit);
+                pageOfTenants.getItems().forEach(tenant -> {
+                    logger.info("Getting usage for tenant:{}", tenant.getTenantId());
+                    OsisUsage tenantOsisUsage = getOsisUsage(Optional.of(tenant.getTenantId()), Optional.empty());
+                    logger.info("Usage for tenant:{} is:{}", tenant.getTenantId(), new Gson().toJson(tenantOsisUsage));
+
+                    logger.debug("Consolidating usage for tenant:{}", tenant.getTenantId());
+                    osisUsage.consolidateUsage(tenantOsisUsage);
+                    logger.debug("Consolidated usage:{}", new Gson().toJson(osisUsage));
+                });
+                start += limit;
+                hasMoreTenants = pageOfTenants.getPageInfo().getTotal() >= limit;
+            }
+
+            logger.info("Usage for all tenants is:{}", new Gson().toJson(osisUsage));
+
+        } else {
+
+            try {
+                // getting utapi client for tenant
+                Credentials tempCredentials = getCredentials(tenantId.get());
+                final UtapiServiceClient utapiClient = this.utapi.getUtapiServiceClient(tempCredentials,
+                        appEnv.getRegionInfo().get(0));
+
+                if (userId.isEmpty()) {
+
+                    logger.info("tenant ID is specified, getting usage at tenant level, tenant ID:{}", tenantId.get());
+
+                    // getting s3 client for tenant
+                    final AmazonS3 s3Client = this.s3.getS3Client(tempCredentials,
+                            appEnv.getRegionInfo().get(0));
+
+                    logger.debug("Listing buckets for tenant:{}", tenantId.get());
+                    List<Bucket> buckets = s3Client.listBuckets();
+
+                    // set bucket count by the size of listing buckets
+                    osisUsage.setBucketCount((long) buckets.size());
+
+                    logger.debug("[UTAPI] Listing metrics for tenant:{}", tenantId.get());
+                    ListMetricsRequestDTO listMetricsRequestDTO = ScalityModelConverter.toScalityListMetricsRequest(
+                            "accounts",
+                            List.of(tenantId.get()),
+                            List.of(getHourTime())
+                    );
+                    Response<MetricsData[]> listMetricsResponseDTO = utapiClient.listAccountsMetrics(listMetricsRequestDTO);
+                    MetricsData metricsData = listMetricsResponseDTO.getAwsResponse()[0];
+                    logger.debug("[UTAPI] List Metrics response:{}", new Gson().toJson(metricsData));
+
+                    // set object count and used bytes by the utapi metrics
+                    osisUsage.setObjectCount(metricsData.getNumberOfObjects().get(1));
+                    osisUsage.setUsedBytes(metricsData.getStorageUtilized().get(1));
+
+                    AccountData account = vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId.get()));
+                    if (account.getQuota() > 0) {
+                        osisUsage.setTotalBytes((long) account.getQuota()); // set total bytes by the vault quota
+                        osisUsage.setAvailableBytes(osisUsage.getTotalBytes() - osisUsage.getUsedBytes()); // set available bytes by the difference between total bytes and used bytes
+                    }
+                    logger.info("Usage for tenant:{} is:{}", tenantId.get(), new Gson().toJson(osisUsage));
+
+                } else {
+
+                    logger.info("tenant ID and user ID are specified, getting usage at user level, tenant ID:{}, user ID:{}", tenantId.get(), userId.get());
+
+                    logger.debug("[UTAPI] Listing metrics for user:{}", userId.get());
+                    ListMetricsRequestDTO listMetricsRequestDTO = ScalityModelConverter.toScalityListMetricsRequest(
+                            "users",
+                            List.of(userId.get()),
+                            List.of(getHourTime())
+                    );
+                    Response<MetricsData[]> listMetricsResponseDTO = utapiClient.listUsersMetrics(listMetricsRequestDTO);
+                    MetricsData metricsData = listMetricsResponseDTO.getAwsResponse()[0];
+                    logger.debug("[UTAPI] List Metrics response:{}", new Gson().toJson(metricsData));
+
+                    // set object count and used bytes by the utapi metrics
+                    osisUsage.setObjectCount(metricsData.getNumberOfObjects().get(1));
+                    osisUsage.setUsedBytes(metricsData.getStorageUtilized().get(1));
+
+                    logger.info("Usage for user:{} is:{}", userId.get(), new Gson().toJson(osisUsage));
+                }
+            } catch (Exception err) {
+                if (isAdminPolicyError(err)) {
+                    try {
+                        generateAdminPolicy(tenantId.get());
+                        return getOsisUsage(tenantId, userId);
+                    } catch (Exception ex) {
+                        err = ex;
+                    }
+                }
+                logger.error("GetUsage error. Returning empty list. Error details: ", err);
+                // For errors, GetUsage should return empty OsisUsage
+                return osisUsage;
+            }
+        }
+        return osisUsage;
     }
 
     @Override
@@ -1355,7 +1475,11 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
         return (e instanceof AmazonIdentityManagementException &&
                 (HttpStatus.FORBIDDEN.value() == ((AmazonIdentityManagementException) e).getStatusCode()))
                 ||
-                (e instanceof AmazonS3Exception && (HttpStatus.FORBIDDEN.value() == ((AmazonS3Exception) e).getStatusCode()));
+                (e instanceof AmazonS3Exception &&
+                        (HttpStatus.FORBIDDEN.value() == ((AmazonS3Exception) e).getStatusCode()))
+                ||
+                (e instanceof UtapiClientException &&
+                        (HttpStatus.FORBIDDEN.value() == ((UtapiClientException) e).getStatusCode()));
     }
 
     private void storeSecretKey(String repoKey, String secretAccessKey) throws Exception {

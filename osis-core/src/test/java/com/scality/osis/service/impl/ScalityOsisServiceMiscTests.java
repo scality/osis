@@ -1,22 +1,25 @@
 package com.scality.osis.service.impl;
 
+import com.amazonaws.Response;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
-import com.scality.osis.model.Information;
-import com.scality.osis.model.OsisS3Credential;
-import com.scality.osis.model.PageOfOsisBucketMeta;
-import com.scality.osis.model.ScalityOsisCaps;
+import com.scality.osis.model.*;
 import com.scality.osis.model.exception.NotImplementedException;
 import com.scality.osis.s3.impl.S3ServiceException;
+import com.scality.osis.utapi.impl.UtapiServiceException;
+import com.scality.osis.utapiclient.dto.ListMetricsRequestDTO;
+import com.scality.osis.utapiclient.dto.MetricsData;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
-import com.scality.vaultclient.dto.GenerateAccountAccessKeyRequest;
+import com.scality.vaultclient.dto.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -171,14 +174,130 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
-    void testGetOsisUsage() {
+    void testGetOsisUsageForAll() {
+
         // Setup
+        when(vaultAdminMock.listAccounts(anyLong(), any(ListAccountsRequestDTO.class)))
+                .thenAnswer((Answer<ListAccountsResponseDTO>) invocation -> {
+                            final List<AccountData> accounts = new ArrayList<>();
+
+                            // Generate Accounts with ids (markerVal + i) to maxItems count
+                            for (int index = 0; index < 5; index++) {
+                                final AccountData data = new AccountData();
+                                data.setEmailAddress("xyz@scality.com");
+                                data.setName(TEST_NAME);
+                                data.setId(SAMPLE_TENANT_ID + index); // setting ID with index
+                                accounts.add(data);
+                            }
+
+                            final ListAccountsResponseDTO response = new ListAccountsResponseDTO();
+                            response.setAccounts(accounts);
+                            response.setTruncated(false);
+                            return response;
+                        }
+                );
+        when(s3ClientMock.listBuckets())
+                .thenAnswer((Answer<List<Bucket>>) invocation -> {
+                    final List<Bucket> buckets = new ArrayList<>();
+
+                    // Generate Buckets with ids (markerVal + i) to maxItems count
+                    for (int index = 0; index < 5; index++) {
+                        final Bucket bucket = new Bucket();
+                        bucket.setOwner(new Owner(TEST_CANONICAL_ID, TEST_CANONICAL_ID));
+                        bucket.setName(TEST_BUCKET_NAME + index); // setting ID with index
+                        buckets.add(bucket);
+                    }
+                    return buckets;
+                });
+        when(utapiServiceClientMock.listAccountsMetrics(any(ListMetricsRequestDTO.class)))
+                .thenAnswer((Answer<Response<MetricsData[]>>) invocation -> getListMetricsMockResponse());
 
         // Run the test
-        assertNotNull(scalityOsisServiceUnderTest.getOsisUsage(Optional.of(TEST_STR), Optional.of(TEST_STR)), NULL_ERR);
+        final OsisUsage response = scalityOsisServiceUnderTest.getOsisUsage(Optional.empty(), Optional.empty());
 
         // Verify the results
+        assertEquals(25, response.getBucketCount());
+        assertEquals(50, response.getObjectCount());
+        assertEquals(500, response.getUsedBytes());
+        assertEquals(-1, response.getAvailableBytes());
+        assertEquals(-1, response.getTotalBytes());
+    }
 
+    @Test
+    void testGetOsisUsageForTenant() {
+
+        // Setup
+        when(s3ClientMock.listBuckets())
+                .thenAnswer((Answer<List<Bucket>>) invocation -> {
+                    final List<Bucket> buckets = new ArrayList<>();
+
+                    // Generate Buckets with ids (markerVal + i) to maxItems count
+                    for (int index = 0; index < 5; index++) {
+                        final Bucket bucket = new Bucket();
+                        bucket.setOwner(new Owner(TEST_TENANT_ID, TEST_NAME));
+                        bucket.setName(TEST_BUCKET_NAME + index); // setting ID with index
+                        buckets.add(bucket);
+                    }
+                    return buckets;
+                });
+        when(utapiServiceClientMock.listAccountsMetrics(any(ListMetricsRequestDTO.class)))
+                .thenAnswer((Answer<Response<MetricsData[]>>) invocation -> getListMetricsMockResponse());
+        when(vaultAdminMock.getAccount(any(GetAccountRequestDTO.class)))
+                .thenAnswer((Answer<AccountData>) invocation -> {
+                            final AccountData data = new AccountData();
+                            data.setName(TEST_NAME);
+                            data.setId(TEST_TENANT_ID);
+                            data.setQuota(1000);
+                            return data;
+                        });
+
+        // Run the test
+        final OsisUsage response = scalityOsisServiceUnderTest.getOsisUsage(Optional.of(TEST_TENANT_ID), Optional.empty());
+
+        // Verify the results
+        assertEquals(5, response.getBucketCount());
+        assertEquals(10, response.getObjectCount());
+        assertEquals(100, response.getUsedBytes());
+        assertEquals(900, response.getAvailableBytes());
+        assertEquals(1000, response.getTotalBytes());
+    }
+
+    @Test
+    void testGetOsisUsageForUser() {
+
+        // Setup
+        when(utapiServiceClientMock.listUsersMetrics(any(ListMetricsRequestDTO.class)))
+                .thenAnswer((Answer<Response<MetricsData[]>>) invocation -> getListMetricsMockResponse());
+
+        // Run the test
+        final OsisUsage response = scalityOsisServiceUnderTest.getOsisUsage(Optional.of(TEST_TENANT_ID), Optional.of(TEST_USER_ID));
+
+        // Verify the results
+        assertEquals(-1, response.getBucketCount());
+        assertEquals(10, response.getObjectCount());
+        assertEquals(100, response.getUsedBytes());
+        assertEquals(-1, response.getAvailableBytes());
+        assertEquals(-1, response.getTotalBytes());
+    }
+
+    @Test
+    void testGetOsisUsageErr() {
+
+        // Setup
+        when(utapiServiceClientMock.listUsersMetrics(any(ListMetricsRequestDTO.class)))
+                .thenAnswer((Answer<Response<MetricsData[]>>) invocation -> {
+                    throw new UtapiServiceException(HttpStatus.BAD_REQUEST, "Bad Request");
+                });
+
+        // Run the test
+        final OsisUsage response = scalityOsisServiceUnderTest.getOsisUsage(Optional.of(TEST_TENANT_ID), Optional.of(TEST_USER_ID));
+
+        // Verify the results
+        assertEquals(-1, response.getBucketCount());
+        assertEquals(-1, response.getObjectCount());
+        assertEquals(-1, response.getUsedBytes());
+        assertEquals(-1, response.getAvailableBytes());
+        assertEquals(-1, response.getTotalBytes());
     }
 
     @Test

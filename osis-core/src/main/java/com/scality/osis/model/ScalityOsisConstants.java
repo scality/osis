@@ -14,13 +14,11 @@ public final class ScalityOsisConstants {
     }
 
     public static final String DELETE_TENANT_API_CODE = "deleteTenant";
-    public static final String GET_USAGE_API_CODE = "getUsage";
     public static final String GET_BUCKET_LIST_API_CODE = "getBucketList";
     public static final String GET_BUCKET_ID_LOGGING_API_CODE = "getBucketLoggingId";
 
     public static final List<String> API_CODES = Arrays.asList(
             DELETE_TENANT_API_CODE,
-            GET_USAGE_API_CODE,
             GET_BUCKET_LIST_API_CODE,
             GET_BUCKET_ID_LOGGING_API_CODE
     );

@@ -1,26 +1,34 @@
 package com.scality.osis.service.impl;
 
+import com.amazonaws.Response;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.identitymanagement.model.User;
+import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.Owner;
-import com.amazonaws.services.securitytoken.model.*;
+import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
+import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.model.OsisUser;
 import com.scality.osis.redis.service.ScalityRedisRepository;
 import com.scality.osis.resource.ScalityOsisCapsManager;
 import com.scality.osis.s3.impl.S3Impl;
 import com.scality.osis.security.crypto.BaseCipher;
-import com.scality.osis.security.crypto.model.*;
+import com.scality.osis.security.crypto.model.CipherInformation;
+import com.scality.osis.security.crypto.model.SecretKeyRepoData;
 import com.scality.osis.security.utils.CipherFactory;
+import com.scality.osis.utapi.impl.UtapiImpl;
+import com.scality.osis.utapiclient.dto.MetricsData;
+import com.scality.osis.utapiclient.services.UtapiServiceClient;
 import com.scality.osis.vaultadmin.impl.VaultAdminImpl;
-import com.scality.osis.vaultadmin.impl.cache.*;
+import com.scality.osis.vaultadmin.impl.cache.CacheFactory;
+import com.scality.osis.vaultadmin.impl.cache.CacheImpl;
 import com.scality.vaultclient.dto.*;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
-import org.mockito.*;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -30,13 +38,17 @@ import java.util.*;
 
 import static com.scality.osis.security.utils.SecurityConstants.DEFAULT_AES_GCM_TAG_LENGTH;
 import static com.scality.osis.security.utils.SecurityConstants.NAME_AES_256_GCM_CIPHER;
-import static com.scality.osis.utils.ScalityConstants.*;
+import static com.scality.osis.utils.ScalityConstants.CD_TENANT_ID_PREFIX;
+import static com.scality.osis.utils.ScalityConstants.REDIS_SPRING_CACHE_TYPE;
 import static com.scality.osis.utils.ScalityTestUtils.*;
-import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.DEFAULT_CACHE_MAX_CAPACITY;
+import static com.scality.osis.vaultadmin.impl.cache.CacheConstants.NAME_LIST_ACCOUNTS_CACHE;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings("PMD.ExcessiveImports")
+@SuppressWarnings({"PMD.ExcessiveImports", "PMD.TooManyStaticImports"})
 class BaseOsisServiceTest {
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -47,6 +59,9 @@ class BaseOsisServiceTest {
 
     @Mock
     protected S3Impl s3Mock;
+
+    @Mock
+    protected UtapiImpl utapiMock;
 
     protected ScalityOsisServiceImpl scalityOsisServiceUnderTest;
 
@@ -65,6 +80,9 @@ class BaseOsisServiceTest {
     protected AmazonS3 s3ClientMock;
 
     @Mock
+    protected UtapiServiceClient utapiServiceClientMock;
+
+    @Mock
     protected ScalityRedisRepository<SecretKeyRepoData> redisRepositoryMock;
 
     @Mock
@@ -77,7 +95,7 @@ class BaseOsisServiceTest {
     protected void init() {
         MockitoAnnotations.openMocks(this);
         initMocks();
-        scalityOsisServiceUnderTest = new ScalityOsisServiceImpl(appEnvMock, vaultAdminMock, s3Mock, osisCapsManagerMock);
+        scalityOsisServiceUnderTest = new ScalityOsisServiceImpl(appEnvMock, vaultAdminMock, s3Mock, utapiMock, osisCapsManagerMock);
 
         asyncScalityOsisServiceUnderTest = new AsyncScalityOsisService();
         ReflectionTestUtils.setField(asyncScalityOsisServiceUnderTest, "vaultAdmin", vaultAdminMock);
@@ -99,12 +117,15 @@ class BaseOsisServiceTest {
         when(appEnvMock.getApiVersion()).thenReturn(API_VERSION);
         when(appEnvMock.getS3InterfaceEndpoint()).thenReturn(TEST_S3_INTERFACE_URL);
         when(appEnvMock.getS3Endpoint()).thenReturn(TEST_S3_URL);
+        when(appEnvMock.isUtapiEnabled()).thenReturn(true);
+        when(appEnvMock.getUtapiEndpoint()).thenReturn(TEST_UTAPI_URL);
         when(appEnvMock.getAssumeRoleName()).thenReturn(SAMPLE_ASSUME_ROLE_NAME);
         when(appEnvMock.getSpringCacheType()).thenReturn(REDIS_SPRING_CACHE_TYPE);
         when(appEnvMock.getS3CapabilitiesFilePath()).thenReturn(TEST_S3_CAPABILITIES_FILE_PATH);
         when(osisCapsManagerMock.getNotImplements()).thenReturn(new ArrayList<>());
         when(vaultAdminMock.getIAMClient(any(Credentials.class), any())).thenReturn(iamMock);
         when(s3Mock.getS3Client(any(Credentials.class), any())).thenReturn(s3ClientMock);
+        when(utapiMock.getUtapiServiceClient(any(Credentials.class), any())).thenReturn(utapiServiceClientMock);
 
         initCreateTenantMocks();
         initUpdateTenantMocks();
@@ -557,5 +578,18 @@ class BaseOsisServiceTest {
         }
 
         return buckets;
+    }
+
+    protected Response<MetricsData[]> getListMetricsMockResponse() {
+        final MetricsData[] metricsData = new MetricsData[1];
+
+        metricsData[0] = new MetricsData();
+        metricsData[0].setAccountId(TEST_TENANT_ID);
+        metricsData[0].setNumberOfObjects(Arrays.asList(0L, 10L));
+        metricsData[0].setStorageUtilized(Arrays.asList(0L, 100L));
+        metricsData[0].setIncomingBytes(0L);
+        metricsData[0].setOutgoingBytes(0L);
+        metricsData[0].setOperations(Map.of("s3:ListObject", 1));
+        return new Response<>(metricsData, null);
     }
 }

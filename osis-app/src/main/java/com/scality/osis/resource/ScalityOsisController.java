@@ -332,7 +332,7 @@ public class ScalityOsisController {
      * @return The usage of the tenant or user is returned (status code 200)
      *         or The optional API is not implemented (status code 501)
      */
-    @Operation(summary = "Get the usage of the platform tenant or user", description = "Operation ID: getUsage<br> Get the platform usage of global (without query parameter), tenant (with tenant_id) or user (only with user_id)",
+    @Operation(summary = "Get the usage of the platform tenant or user", description = "Operation ID: getUsage<br> Get the platform usage of global (without query parameter), tenant (only with tenant_id) or user (with tenant_id and user_id).",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The usage of the tenant or user is returned"),
                     @ApiResponse(responseCode = "501", description = "The optional API is not implemented")
@@ -340,9 +340,9 @@ public class ScalityOsisController {
             tags = {"usage", "optional"})
     @GetMapping(value = "/api/v1/usage", produces = "application/json")
     public OsisUsage getUsage(
-            @Parameter(description = "The ID of the tenant to get its usage. 'tenant_id' takes precedence over 'user_id' to take effect if both are specified.") @Valid @RequestParam(value = "tenant_id", required = false) Optional<String> tenantId,
-            @Parameter(description = "The ID of the user to get its usage. 'tenant_id' takes precedence over 'user_id' to take effect if both are specified.") @Valid @RequestParam(value = "user_id", required = false) Optional<String> userId) {
-        if (!tenantId.isPresent() && userId.isPresent()) {
+            @Parameter(description = "The ID of the tenant to get its usage.") @Valid @RequestParam(value = "tenant_id", required = false) Optional<String> tenantId,
+            @Parameter(description = "The ID of the user to get its usage.") @Valid @RequestParam(value = "user_id", required = false) Optional<String> userId) {
+        if (tenantId.isEmpty() && userId.isPresent()) {
             throw new BadRequestException("userId must be specified with associated tenantId!");
         }
         return osisService.getOsisUsage(tenantId, userId);

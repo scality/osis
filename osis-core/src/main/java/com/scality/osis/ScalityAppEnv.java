@@ -190,4 +190,19 @@ public class ScalityAppEnv {
         }
         return Integer.parseInt(s3HealthCheckTimeout);
     }
+
+    public boolean isUtapiEnabled() {
+        return Boolean.parseBoolean(env.getProperty("osis.scality.utapi.enabled"));
+    }
+    public String getUtapiEndpoint() {
+        return env.getProperty("osis.scality.utapi.endpoint");
+    }
+
+    public int getUtapiHealthCheckTimeout() {
+        String utapiHealthCheckTimeout =  env.getProperty("osis.scality.utapi.healthcheck.timeout");
+        if(StringUtils.isBlank(utapiHealthCheckTimeout)) {
+            utapiHealthCheckTimeout = DEFAULT_UTAPI_HEALTHCHECK_TIMEOUT;
+        }
+        return Integer.parseInt(utapiHealthCheckTimeout);
+    }
 }

@@ -9,6 +9,8 @@ package com.scality.osis.utils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -54,5 +56,10 @@ public final class ScalityUtils {
 
                 });
         return kvMap;
+    }
+
+    public static Long getHourTime() {
+        LocalDateTime hour = LocalDateTime.now().withMinute(0).withSecond(0).withNano(0);
+        return hour.toInstant(ZoneOffset.UTC).toEpochMilli();
     }
 }

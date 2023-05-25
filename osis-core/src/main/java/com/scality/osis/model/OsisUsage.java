@@ -27,11 +27,11 @@ public class OsisUsage {
     private Long usedBytes;
 
     public OsisUsage() {
-        totalBytes = 0L;
-        availableBytes = 0L;
-        usedBytes = 0L;
-        bucketCount = 0L;
-        objectCount = 0L;
+        totalBytes = -1L;
+        availableBytes = -1L;
+        usedBytes = -1L;
+        bucketCount = -1L;
+        objectCount = -1L;
     }
 
     public OsisUsage bucketCount(Long bucketCount) {
@@ -127,6 +127,12 @@ public class OsisUsage {
 
     public void setUsedBytes(Long usedBytes) {
         this.usedBytes = usedBytes;
+    }
+
+    public void consolidateUsage(OsisUsage usage) {
+        this.bucketCount = Math.max(this.bucketCount, 0) + usage.getBucketCount();
+        this.objectCount = Math.max(this.objectCount, 0) + usage.getObjectCount();
+        this.usedBytes = Math.max(this.usedBytes, 0) + usage.getUsedBytes();
     }
 }
 

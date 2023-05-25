@@ -7,11 +7,12 @@ package com.scality.osis.utils;
 
 import com.amazonaws.services.identitymanagement.model.User;
 import com.amazonaws.services.identitymanagement.model.*;
+import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
-import com.amazonaws.services.s3.model.Bucket;
 import com.scality.osis.model.*;
 import com.scality.osis.model.exception.BadRequestException;
+import com.scality.osis.utapiclient.dto.ListMetricsRequestDTO;
 import com.scality.vaultclient.dto.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -868,4 +869,20 @@ public final class ScalityModelConverter {
         return pageOfOsisBucketMeta;
     }
 
+    public static ListMetricsRequestDTO toScalityListMetricsRequest(String metricType, List<String> resources, List<Long> timeRange) {
+        ListMetricsRequestDTO listMetricsRequestDTO = new ListMetricsRequestDTO();
+        if (com.amazonaws.util.StringUtils.isNullOrEmpty(metricType) || metricType.equals("buckets")) {
+            listMetricsRequestDTO.setBuckets(resources);
+        } else if (metricType.equals("accounts")) {
+            listMetricsRequestDTO.setAccounts(resources);
+        } else if (metricType.equals("users")) {
+            listMetricsRequestDTO.setUsers(resources);
+        } else if (metricType.equals("service")) {
+            listMetricsRequestDTO.setService(resources);
+        } else {
+            throw new IllegalArgumentException("Invalid metric type");
+        }
+        listMetricsRequestDTO.setTimeRange(timeRange);
+        return listMetricsRequestDTO;
+    }
 }
