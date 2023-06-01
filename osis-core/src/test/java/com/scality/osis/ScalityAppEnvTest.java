@@ -524,4 +524,52 @@ class ScalityAppEnvTest {
         // Verify the results
         assertEquals(result, 3000, "testGetS3HealthCheckTimeout failed");
     }
+
+    @Test
+    void testIsUtapiEnabled() {
+        // Setup
+        when(mockEnv.getProperty("osis.scality.utapi.enabled")).thenReturn("true");
+
+        // Run the test
+        final Boolean result = appEnvUnderTest.isUtapiEnabled();
+
+        // Verify the results
+        assertEquals(result, true, "testIsUtapiEnabled failed");
+    }
+
+    @Test
+    void testGetUtapiEndpoint() {
+        // Setup
+        when(mockEnv.getProperty("osis.scality.utapi.endpoint")).thenReturn(TEST_RESULT);
+
+        // Run the test
+        final String result = appEnvUnderTest.getUtapiEndpoint();
+
+        // Verify the results
+        assertEquals(result, TEST_RESULT, "testGetUtapiEndpoint failed");
+    }
+
+    @Test
+    void testGetUtapiEndpointEnvironmentReturnsNull() {
+        // Setup
+        when(mockEnv.getProperty("osis.scality.utapi.endpoint")).thenReturn(null);
+
+        // Run the test
+        final String result = appEnvUnderTest.getUtapiEndpoint();
+
+        // Verify the results
+        assertNull(result, TEST_RESULT_NULL_ERR);
+    }
+
+    @Test
+    void testGetUtapiHealthCheckTimeout() {
+        //Setup
+        when(mockEnv.getProperty("osis.scality.utapi.healthcheck.timeout")).thenReturn("3000");
+
+        // Run the test
+        final Integer result = appEnvUnderTest.getUtapiHealthCheckTimeout();
+
+        // Verify the results
+        assertEquals(result, 3000, "testGetUtapiHealthCheckTimeout failed");
+    }
 }
