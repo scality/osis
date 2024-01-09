@@ -14,6 +14,8 @@ import com.scality.osis.utapiclient.dto.ListMetricsRequestDTO;
 import com.scality.osis.utapiclient.dto.MetricsData;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
 import com.scality.vaultclient.dto.*;
+
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -27,6 +29,8 @@ import java.util.Optional;
 import static com.scality.osis.utils.ScalityConstants.IAM_PREFIX;
 import static com.scality.osis.utils.ScalityTestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
@@ -173,7 +177,19 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         assertEquals(0L, response.getItems().size());
     }
 
+
+    // test to check if getUsage API throws an error not implemented
+    // this will be removed as a part of S3C-8266
     @Test
+    void testGetUsage() {
+        // Setup
+        assertThrows(NotImplementedException.class, () -> scalityOsisServiceUnderTest.getOsisUsage(Optional.of(SAMPLE_TENANT_ID), Optional.of(SAMPLE_CD_TENANT_ID)),
+                NOT_IMPLEMENTED_EXCEPTION_ERR);
+    }
+
+    @Test
+    @Disabled
+    // This will be enable with S3C-8266
     void testGetOsisUsageForAll() {
 
         // Setup
@@ -224,6 +240,8 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
+    @Disabled
+    // This will be enable with S3C-8266
     void testGetOsisUsageForTenant() {
 
         // Setup
@@ -263,6 +281,8 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
+    @Disabled
+    // This will be enable with S3C-8266
     void testGetOsisUsageForUser() {
 
         // Setup
@@ -281,6 +301,8 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     @Test
+    @Disabled
+    // This will be enable with S3C-8266
     void testGetOsisUsageErr() {
 
         // Setup

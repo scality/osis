@@ -339,13 +339,13 @@ public class ScalityOsisController {
             },
             tags = {"usage", "optional"})
     @GetMapping(value = "/api/v1/usage", produces = "application/json")
+    // getUsage API will be re-enabled in S3C-8035
+    @NotImplement(name = ScalityOsisConstants.GET_USAGE_API_CODE)
     public OsisUsage getUsage(
             @Parameter(description = "The ID of the tenant to get its usage.") @Valid @RequestParam(value = "tenant_id", required = false) Optional<String> tenantId,
             @Parameter(description = "The ID of the user to get its usage.") @Valid @RequestParam(value = "user_id", required = false) Optional<String> userId) {
-        if (tenantId.isEmpty() && userId.isPresent()) {
-            throw new BadRequestException("userId must be specified with associated tenantId!");
-        }
-        return osisService.getOsisUsage(tenantId, userId);
+                logger.info("Get Osis Usage request received:: tenant ID:{}, user ID:{}", tenantId, userId);
+                throw new NotImplementedException();
     }
 
     /*
