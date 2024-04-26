@@ -1,0 +1,29 @@
+---
+name: security
+
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 8 * * 1' # Monday - 8am - UTC
+  workflow_dispatch:
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/docker-build.yml
+
+  trivy:
+    needs: build
+    name: Trivy Vulnerability Scan for Code
+    uses: scality/workflows/.github/workflows/trivy.yaml@v1
+    with:
+      name: ${{ github.event.repository.name }}
+      namespace: ${{ github.repository_owner }}
+      registry: ghcr.io

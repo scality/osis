@@ -67,7 +67,7 @@ docker restart scality-vault-1
 - Pull this docker image. Use the latest commit from thew repository as SHA in the below command.
 
 ```sh
-docker pull registry.scality.com/vmware-ose-scality-dev/vmware-ose-scality:<SHA>
+docker pull ghcr.io/scality/osis:<SHA>
 
 ```
 
@@ -105,7 +105,7 @@ docker pull registry.scality.com/vmware-ose-scality-dev/vmware-ose-scality:<SHA>
        -p 8443:8443 \
        -v /root/keyStore.p12:/app/lib/osis.p12:ro,z \
        -v /root/crypto.yml:/app/config/crypto.yml:ro,z \
-       registry.scality.com/vmware-ose-scality-dev/vmware-ose-scality:<SHA1>
+       ghcr.io/scality/osis:<SHA1>
     ```
 
 Note: For S3 Connector, use the host network as shows in the example above.
