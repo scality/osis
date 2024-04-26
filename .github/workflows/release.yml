@@ -13,8 +13,7 @@ jobs:
     name: Docker image
     uses: ./.github/workflows/docker-build.yml
     with:
-      namespace: osis
-      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+      tag: ${{ github.event.inputs.tag }}
 
   github-release:
     name: Creating GitHub Release
@@ -24,7 +23,7 @@ jobs:
       - docker-build
     steps:
       - name: Github Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
