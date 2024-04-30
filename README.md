@@ -20,11 +20,11 @@ This project is for OSIS, which integrates [Scality RING](https://www.scality.co
     ```
     Dev:
     ```sh
-        $ docker pull registry.scality.com/vmware-ose-scality-dev/vmware-ose-scality:<short SHA-1 commit hash>
+        docker pull ghcr.io/scality/osis:<short SHA-1 commit hash>
     ```
     Production image:
     ```sh
-        $ docker pull registry.scality.com/vmware-ose-scality/vmware-ose-scality:<tag>
+        docker pull ghcr.io/scality/osis:<tag>
     ```
 1. Generate a self-signed SSL certificate and store it in a binary PKCS#12 format file with extension `.p12` file. (Refer [here](#To-generate-PKCS12-file-for-self-signed-SSL-certificate))
 
@@ -57,7 +57,7 @@ This project is for OSIS, which integrates [Scality RING](https://www.scality.co
        -v <absolute_path_to_.p12_file>:/app/lib/osis.p12:ro,z \
        -v <absolute_path_to_crypto.yml_file>:/conf/crypto.yml:ro,z \
        -v <absolute_path_to_application.properties_file>:/conf/application.properties:ro,z \
-       registry.scality.com/vmware-ose-scality-dev/vmware-ose-scality:<short SHA-1 commit hash>
+       ghcr.io/scality/osis:<short SHA-1 commit hash>
     ```
    Production image:
     ```sh
@@ -68,7 +68,7 @@ This project is for OSIS, which integrates [Scality RING](https://www.scality.co
        -v <absolute_path_to_.p12_file>:/app/lib/osis.p12:ro,z \
        -v <absolute_path_to_crypto.yml_file>:/conf/crypto.yml:ro,z \
        -v <absolute_path_to_application.properties_file>:/conf/application.properties:ro,z \
-       registry.scality.com/vmware-ose-scality/vmware-ose-scality:<tag>
+       ghcr.io/scality/osis:<tag>
     ```
 
 

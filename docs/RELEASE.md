@@ -2,11 +2,10 @@
 
 ## Docker Image generation
 
-Docker images are hosted on registry.scality.com.
-It has two names spaces for Vmware-ose-scality:
+Docker images are hosted on ghcr.io/scality.
+It has one image:
 
-* Production Namespace: registry.scality.com/vmware-ose-scality
-* Dev Namespace: registry.scality.com/vmware-ose-scality-dev
+* Production container image: ghcr.io/scality/osis
 
 Production namespace provides write access to a few admins and CI while read
 access is given to all the developers. Dev namespace provides write access
@@ -17,8 +16,8 @@ images to be used by developers, CI builds, build chain and so on.
 ## How to pull docker images
 
 ```sh
-    docker pull registry.scality.com/vmware-ose-scality-dev/vmware-ose-scality:<short SHA-1 commit hash>
-    docker pull registry.scality.com/vmware-ose-scality/vmware-ose-scality:<tag>
+    docker pull ghcr.io/scality/osis:<short SHA-1 commit hash>
+    docker pull ghcr.io/scality/osis:<tag>
 ```
 
 ## Release Process

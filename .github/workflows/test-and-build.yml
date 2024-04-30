@@ -16,9 +16,6 @@ jobs:
   docker-build:
     name: Development docker image
     uses: ./.github/workflows/docker-build.yml
-    secrets:
-      REGISTRY_LOGIN: ${{ secrets.REGISTRY_LOGIN }}
-      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
 
   code_coverage:
     name: code coverage
@@ -26,7 +23,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
           name: codecov-osis
