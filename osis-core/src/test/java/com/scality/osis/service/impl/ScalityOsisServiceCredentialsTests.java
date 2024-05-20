@@ -11,8 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
 
+import javax.crypto.AEADBadTagException;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import static com.scality.osis.utils.ScalityConstants.*;
 import static com.scality.osis.utils.ScalityTestUtils.*;
@@ -452,6 +454,15 @@ class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
     }
 
     @Test
+    void testGetS3CredentialsKeyPresentInRedisUnableToDecrypt() throws Exception {
+        when(baseCipherMock.decrypt(any(), any(), any())).thenThrow(new AEADBadTagException("Decryption failed"));
+        final OsisS3Credential result = scalityOsisServiceUnderTest.getS3Credential(SAMPLE_TENANT_ID, TEST_USER_ID, TEST_ACCESS_KEY);
+        // When decryption fails, the API call should succeed, and we should return the result with secret key listed as
+        // "Not Available"
+        assertEquals("Not Available", result.getSecretKey());
+    }
+
+    @Test
     void testListS3Credentials() {
         // Setup
         final long offset = 0L;
@@ -524,6 +535,15 @@ class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
         assertEquals(TEST_ACCESS_KEY_2, resultWithNoSecret.getAccessKey());
         assertEquals(NOT_AVAILABLE, resultWithNoSecret.getSecretKey());
 
+    }
+
+    @Test
+    void testListS3CredentialsKeyPresentInRedisUnableToDecrypt() throws Exception {
+        when(baseCipherMock.decrypt(any(), any(), any())).thenThrow(new AEADBadTagException("Decryption failed"));
+        final List<OsisS3Credential> result = scalityOsisServiceUnderTest.listS3Credentials(TEST_TENANT_ID,
+                TEST_USER_ID, 0L, 1000L).getItems();
+        // When decryption fails, the API call should succeed, and we should get a new access key in the result
+        assertEquals(2, result.size());
     }
 
     @Test

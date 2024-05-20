@@ -1391,14 +1391,19 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
         String secretKey = null;
 
         if (repoVal != null) {
+            try {
+                // Using `repoKey` for Associated Data during decryption
+                secretKey = cipherFactory.getCipherByID(repoVal.getKeyID())
+                        .decrypt(repoVal,
+                                cipherFactory.getSecretCipherKeyByID(repoVal.getKeyID()),
+                                repoKey);
 
-            // Using `repoKey` for Associated Data during encryption
-            secretKey = cipherFactory.getCipherByID(repoVal.getKeyID())
-                    .decrypt(repoVal,
-                            cipherFactory.getSecretCipherKeyByID(repoVal.getKeyID()),
-                            repoKey);
-
-            logger.debug("[Cache] Retrieve Secret Key successful");
+                logger.debug("[Cache] Retrieve Secret Key successful");
+            } catch (Exception e) {
+                logger.error("Error: Unable to decrypt secret key data for Redis key: {}. Error details: {}", repoKey, e.getMessage());
+                logger.debug("Full stack trace:", e);
+                deleteSecretKey(repoKey);
+            }
         }
         return secretKey;
     }
