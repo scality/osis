@@ -3,7 +3,9 @@ name: dependency review
 
 on:
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - development/2.1
 
 jobs:
   dependency-review:
