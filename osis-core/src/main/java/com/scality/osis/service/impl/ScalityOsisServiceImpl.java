@@ -1249,10 +1249,9 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
         } catch (VaultServiceException e) {
 
             if (!StringUtils.isNullOrEmpty(e.getErrorCode()) &&
-                    NO_SUCH_ENTITY_ERR.equals(e.getErrorCode()) &&
-                    ROLE_DOES_NOT_EXIST_ERR.equals(e.getReason())) {
-                // If role does not exists, invoke setupAssumeRole
-                logger.error(ROLE_DOES_NOT_EXIST_ERR + ". Recreating the role");
+                    ACCESS_DENIED.equals(e.getErrorCode())) {
+                // if access denied, invoke setupAssumeRole
+                logger.error(e.getReason() + ". Recreating the role");
                 // Call get Account with Account ID to retrieve account name
                 AccountData account = vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(accountID));
                 asyncScalityOsisService.setupAssumeRole(accountID, account.getName());
