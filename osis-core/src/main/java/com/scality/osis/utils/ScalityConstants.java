@@ -56,9 +56,7 @@ public final class ScalityConstants {
 
     public static final String IAM_PREFIX = "/";
 
-    public static final String NO_SUCH_ENTITY_ERR = "NoSuchEntity";
-
-    public static final String ROLE_DOES_NOT_EXIST_ERR = "Role does not exist";
+    public static final String ACCESS_DENIED = "AccessDenied";
 
     public static final String NOT_AVAILABLE = "Not Available";
 
