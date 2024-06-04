@@ -339,7 +339,7 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         // Setup
 
         when(vaultAdminMock.getTempAccountCredentials(any(AssumeRoleRequest.class)))
-                .thenThrow(new VaultServiceException(HttpStatus.NOT_FOUND, "NoSuchEntity", "Role does not exist"))
+                .thenThrow(new VaultServiceException(HttpStatus.FORBIDDEN, "AccessDenied", "User: backbeat is not allowed to assume role"))
                 .thenAnswer((Answer<Credentials>) invocation -> {
                     final Credentials credentials = new Credentials();
                     credentials.setAccessKeyId(TEST_ACCESS_KEY);
