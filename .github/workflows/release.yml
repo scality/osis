@@ -31,10 +31,3 @@ jobs:
           tag_name: ${{ github.event.inputs.tag }}
           generate_release_notes: true
           target_commitish: ${{ github.sha }}
-
-  gradle-release:
-    name: Gradle build and upload release
-    uses: ./.github/workflows/gradle-build-and-upload.yml
-    secrets: inherit
-    with:
-      release: true
