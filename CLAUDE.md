@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Stack at a glance
+
+OSIS is a **Java 17 Spring Boot 2.7.6** service built with **Gradle 7** as a multi-module project. Expect:
+
+- `*.java` under `osis-app/`, `osis-core/`, `storage-platform-clients/`, and the root `src/main/java/`
+- `*.gradle` build scripts (root `build.gradle`, per-module, plus `jacoco.gradle` / `pmd.gradle` / `spotbugs.gradle` / `upload-artifact.gradle`)
+- `application.properties` and `crypto.yml` config templates under `src/main/resources/`
+- Internal Scality dep: `com.scality:vaultclient` (Maven-published, pinned via `vaultclientVersion` in root `build.gradle`)
+- External: AWS SDK (S3, STS, IAM), Spring Security + JWT, Spring Data Redis (Sentinel), SpringDoc OpenAPI
+
 ## What this service is
 
 OSIS (Object Storage Interoperability Service) is the control-plane adapter that lets **VMware Cloud Director Object Storage Extension (OSE)** drive **Scality RING** for tenant/user/credential management. The data path stays between OSE and RING; OSIS only handles the control channel by translating OSE's REST contract into calls against Scality `Vault` (the Scality identity service, *not* HashiCorp Vault), S3, and Utapi.
