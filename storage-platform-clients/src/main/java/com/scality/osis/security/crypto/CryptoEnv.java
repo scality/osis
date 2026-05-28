@@ -27,7 +27,7 @@ import java.util.List;
 @PropertySources({
         /* Uncomment below line for only testing purposes */
 //        @PropertySource(value="classpath:crypto.yml", factory = YamlPropertySourceFactory.class),
-        @PropertySource(value="file:/conf/crypto.yml", factory = YamlPropertySourceFactory.class, ignoreResourceNotFound=true)
+        @PropertySource(value="${osis.security.crypto-config-path:file:/conf/crypto.yml}", factory = YamlPropertySourceFactory.class, ignoreResourceNotFound=true)
 })
 @Component
 public class CryptoEnv {
