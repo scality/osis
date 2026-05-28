@@ -10,8 +10,8 @@ variable "subnet_id" {
   type = string
 }
 
-variable "security_group_id" {
-  type = string
+variable "security_group_ids" {
+  type = list(string)
 }
 
 variable "key_name" {
@@ -25,7 +25,12 @@ variable "instance_type" {
 
 variable "root_volume_gb" {
   type    = number
-  default = 150
+  default = 400
+}
+
+variable "root_volume_type" {
+  type    = string
+  default = "gp2"
 }
 
 # Rocky AMI lookup. Defaults target Rocky 9 community AMIs published by

@@ -3,13 +3,19 @@
 aws:
   profile: sso                  # AWS named profile (configured via `aws configure sso`)
   region: eu-north-1            # one of: eu-north-1, us-west-2, ap-northeast-1
-  vpc_id: vpc-XXXXXXXX          # Scality managed VPC (ask #aws-support if unknown)
-  subnet_id: subnet-XXXXXXXX    # a *-private-* subnet inside the VPC
-  security_group_id: sg-XXXXXXXX # security group named like allow-vpn-private-and-vms
+  subnet_id: subnet-XXXXXXXX    # a *-private-* subnet in the Scality managed VPC
+  # Attach BOTH the allow-vpn-private-and-vms SG (always required for Scality
+  # VPN reach) AND a per-user SG carrying the lab's inbound rules
+  # (HTTP/80, HTTPS/443, SSH/22, PostgreSQL/5432, NFS/2049, 8080, 8443).
+  # Create the per-user SG once per account; see docs/README.md.
+  security_group_ids:
+    - sg-XXXXXXXX               # allow-vpn-private-and-vms
+    - sg-YYYYYYYY               # your per-user inbound-rules SG
   key_name: my-key              # AWS key pair name
   key_path: ~/.ssh/my-key.pem   # local path to the matching .pem
   instance_type: c5.4xlarge
-  root_volume_gb: 150
+  root_volume_gb: 400
+  root_volume_type: gp2
   os: rocky-9                   # rocky-8 | rocky-9
 
 vmware:

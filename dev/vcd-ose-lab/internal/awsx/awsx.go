@@ -20,21 +20,41 @@ type Outputs struct {
 // is gitignored. Called before every apply/destroy so changes to lab.yaml
 // flow through without manual sync.
 func WriteTfvars(tfDir string, cfg *config.Config) error {
-	content := fmt.Sprintf(`aws_profile       = %q
-aws_region        = %q
-subnet_id         = %q
-security_group_id = %q
-key_name          = %q
-instance_type     = %q
-root_volume_gb    = %d
+	sgList := "["
+	for i, id := range cfg.AWS.SecurityGroupIDs {
+		if i > 0 {
+			sgList += ", "
+		}
+		sgList += fmt.Sprintf("%q", id)
+	}
+	sgList += "]"
+
+	rootVolumeType := cfg.AWS.RootVolumeType
+	if rootVolumeType == "" {
+		rootVolumeType = "gp2"
+	}
+	rootVolumeGB := cfg.AWS.RootVolumeGB
+	if rootVolumeGB == 0 {
+		rootVolumeGB = 400
+	}
+
+	content := fmt.Sprintf(`aws_profile        = %q
+aws_region         = %q
+subnet_id          = %q
+security_group_ids = %s
+key_name           = %q
+instance_type      = %q
+root_volume_gb     = %d
+root_volume_type   = %q
 `,
 		cfg.AWS.Profile,
 		cfg.AWS.Region,
 		cfg.AWS.SubnetID,
-		cfg.AWS.SecurityGroupID,
+		sgList,
 		cfg.AWS.KeyName,
 		cfg.AWS.InstanceType,
-		cfg.AWS.RootVolumeGB,
+		rootVolumeGB,
+		rootVolumeType,
 	)
 	return os.WriteFile(filepath.Join(tfDir, "terraform.tfvars"), []byte(content), 0o600)
 }

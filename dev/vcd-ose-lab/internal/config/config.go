@@ -16,16 +16,16 @@ type Config struct {
 }
 
 type AWSConfig struct {
-	Profile         string `yaml:"profile"`
-	Region          string `yaml:"region"`
-	VPCID           string `yaml:"vpc_id"`
-	SubnetID        string `yaml:"subnet_id"`
-	SecurityGroupID string `yaml:"security_group_id"`
-	KeyName         string `yaml:"key_name"`
-	KeyPath         string `yaml:"key_path"`
-	InstanceType    string `yaml:"instance_type"`
-	RootVolumeGB    int    `yaml:"root_volume_gb"`
-	OS              string `yaml:"os"`
+	Profile          string   `yaml:"profile"`
+	Region           string   `yaml:"region"`
+	SubnetID         string   `yaml:"subnet_id"`
+	SecurityGroupIDs []string `yaml:"security_group_ids"`
+	KeyName          string   `yaml:"key_name"`
+	KeyPath          string   `yaml:"key_path"`
+	InstanceType     string   `yaml:"instance_type"`
+	RootVolumeGB     int      `yaml:"root_volume_gb"`
+	RootVolumeType   string   `yaml:"root_volume_type"`
+	OS               string   `yaml:"os"`
 }
 
 type VMwareConfig struct {
@@ -84,9 +84,10 @@ func (c *Config) MissingRequired() []string {
 	}
 	check("aws.profile", c.AWS.Profile)
 	check("aws.region", c.AWS.Region)
-	check("aws.vpc_id", c.AWS.VPCID)
 	check("aws.subnet_id", c.AWS.SubnetID)
-	check("aws.security_group_id", c.AWS.SecurityGroupID)
+	if len(c.AWS.SecurityGroupIDs) == 0 {
+		missing = append(missing, "aws.security_group_ids")
+	}
 	check("aws.key_name", c.AWS.KeyName)
 	check("aws.key_path", c.AWS.KeyPath)
 	check("endpoints.osis_url", c.Endpoints.OSISURL)
