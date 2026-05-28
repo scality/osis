@@ -1,0 +1,158 @@
+cd /Users/anurag4dsb/anurag-builds-things/scality/osis/dev/vcd-ose-lab && echo SESSION_READY
+[1m[7m%[27m[1m[0m                                                                                                                                                                                                                            k../scality/osis\]7;file://Mac-001.lan/Users/anurag4dsb/anurag-builds-things/scality/osis\[0m[27m[24m[J[01;32m➜  [36mosis[00m [K[?1h=[?2004hccd /Users/anurag4dsb/anurag-builds-things/scality/osis/dev/vcd-ose-lab && echo SESSION_READY[?1l>[?2004l
+kcd\SESSION_READY
+[1m[7m%[27m[1m[0m                                                                                                                                                                                                                            k..v/vcd-ose-lab\]7;file://Mac-001.lan/Users/anurag4dsb/anurag-builds-things/scality/osis/dev/vcd-ose-lab\[0m[27m[24m[J[01;32m➜  [36mvcd-ose-lab[00m [K[?1h=[?2004h[0m[27m[24m[J[01;32m➜  [36mvcd-ose-lab[00m [01;34mgit:([31mfeature/OSIS-155-vcd-ose-lab[34m) [33m✗[00m [Ktterraform -chdir=terraform init -input=false && echo __TF_INIT_OK__ || echo __TF_INIT_FAIL__[?1l>[?2004l
+kterraform\[0m[1mInitializing provider plugins found in the configuration...[0m
+- Reusing previous version of hashicorp/aws from the dependency lock file
+- Using previously-installed hashicorp/aws v5.100.0
+
+[0m[1mInitializing the backend...[0m
+
+
+
+[0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[0m[32m
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.[0m
+__TF_INIT_OK__
+[1m[7m%[27m[1m[0m                                                                                                                                                                                                                            k..v/vcd-ose-lab\]7;file://Mac-001.lan/Users/anurag4dsb/anurag-builds-things/scality/osis/dev/vcd-ose-lab\[0m[27m[24m[J[01;32m➜  [36mvcd-ose-lab[00m [01;34mgit:([31mfeature/OSIS-155-vcd-ose-lab[34m) [33m✗[00m [K[?1h=[?2004htterraform -chdir=terraform plan -out=terraform/tfplan && echo __TF_PLAN_OK__ || echo __TF_PLAN_FAIL__[?1l>[?2004l
+kterraform\[0m[1mdata.aws_ami.rocky: Reading...[0m[0m
+[0m[1mdata.aws_ami.rocky: Read complete after 0s [id=ami-0159af92e963cb183][0m
+[31m╷[0m[0m
+[31m│[0m [0m[1m[31mError: [0m[0m[1mFailed to write plan file[0m
+[31m│[0m [0m
+[31m│[0m [0m[0mThe plan file could not be written: open terraform/tfplan: no such file or directory.
+[31m╵[0m[0m
+__TF_PLAN_FAIL__
+[1m[7m%[27m[1m[0m                                                                                                                                                                                                                            k..v/vcd-ose-lab\]7;file://Mac-001.lan/Users/anurag4dsb/anurag-builds-things/scality/osis/dev/vcd-ose-lab\[0m[27m[24m[J[01;32m➜  [36mvcd-ose-lab[00m [01;34mgit:([31mfeature/OSIS-155-vcd-ose-lab[34m) [33m✗[00m [K[?1h=[?2004htterraform -chdir=terraform plan -out=tfplan && echo __TF_PLAN_OK__ || echo __TF_PLAN_FAIL__[?1l>[?2004l
+kterraform\[0m[1mdata.aws_ami.rocky: Reading...[0m[0m
+[0m[1mdata.aws_ami.rocky: Read complete after 0s [id=ami-0159af92e963cb183][0m
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  [32m+[0m create[0m
+
+Terraform will perform the following actions:
+
+[1m  # aws_instance.lab[0m will be created
+[0m  [32m+[0m[0m resource "aws_instance" "lab" {
+      [32m+[0m[0m ami                                  = "ami-0159af92e963cb183"
+      [32m+[0m[0m arn                                  = (known after apply)
+      [32m+[0m[0m associate_public_ip_address          = false
+      [32m+[0m[0m availability_zone                    = (known after apply)
+      [32m+[0m[0m cpu_core_count                       = (known after apply)
+      [32m+[0m[0m cpu_threads_per_core                 = (known after apply)
+      [32m+[0m[0m disable_api_stop                     = (known after apply)
+      [32m+[0m[0m disable_api_termination              = (known after apply)
+      [32m+[0m[0m ebs_optimized                        = (known after apply)
+      [32m+[0m[0m enable_primary_ipv6                  = (known after apply)
+      [32m+[0m[0m get_password_data                    = false
+      [32m+[0m[0m host_id                              = (known after apply)
+      [32m+[0m[0m host_resource_group_arn              = (known after apply)
+      [32m+[0m[0m iam_instance_profile                 = (known after apply)
+      [32m+[0m[0m id                                   = (known after apply)
+      [32m+[0m[0m instance_initiated_shutdown_behavior = (known after apply)
+      [32m+[0m[0m instance_lifecycle                   = (known after apply)
+      [32m+[0m[0m instance_state                       = (known after apply)
+      [32m+[0m[0m instance_type                        = "c5.4xlarge"
+      [32m+[0m[0m ipv6_address_count                   = (known after apply)
+      [32m+[0m[0m ipv6_addresses                       = (known after apply)
+      [32m+[0m[0m key_name                             = "anuragM"
+      [32m+[0m[0m monitoring                           = (known after apply)
+      [32m+[0m[0m outpost_arn                          = (known after apply)
+      [32m+[0m[0m password_data                        = (known after apply)
+      [32m+[0m[0m placement_group                      = (known after apply)
+      [32m+[0m[0m placement_partition_number           = (known after apply)
+      [32m+[0m[0m primary_network_interface_id         = (known after apply)
+      [32m+[0m[0m private_dns                          = (known after apply)
+      [32m+[0m[0m private_ip                           = (known after apply)
+      [32m+[0m[0m public_dns                           = (known after apply)
+      [32m+[0m[0m public_ip                            = (known after apply)
+      [32m+[0m[0m secondary_private_ips                = (known after apply)
+      [32m+[0m[0m security_groups                      = (known after apply)
+      [32m+[0m[0m source_dest_check                    = true
+      [32m+[0m[0m spot_instance_request_id             = (known after apply)
+      [32m+[0m[0m subnet_id                            = "subnet-027470be720a7fd4a"
+      [32m+[0m[0m tags                                 = {
+          [32m+[0m[0m "Name"    = "vcd-ose-lab"
+          [32m+[0m[0m "Project" = "OSIS-VCD-Lab"
+        }
+      [32m+[0m[0m tags_all                             = {
+          [32m+[0m[0m "Name"    = "vcd-ose-lab"
+          [32m+[0m[0m "Project" = "OSIS-VCD-Lab"
+        }
+      [32m+[0m[0m tenancy                              = (known after apply)
+      [32m+[0m[0m user_data                            = (known after apply)
+      [32m+[0m[0m user_data_base64                     = (known after apply)
+      [32m+[0m[0m user_data_replace_on_change          = false
+      [32m+[0m[0m vpc_security_group_ids               = [
+          [32m+[0m[0m "sg-020e7ef5404993cc4",
+          [32m+[0m[0m "sg-0eb2b55eadddd4087",
+        ]
+
+      [32m+[0m[0m capacity_reservation_specification (known after apply)
+
+      [32m+[0m[0m cpu_options (known after apply)
+
+      [32m+[0m[0m ebs_block_device (known after apply)
+
+      [32m+[0m[0m enclave_options (known after apply)
+
+      [32m+[0m[0m ephemeral_block_device (known after apply)
+
+      [32m+[0m[0m instance_market_options (known after apply)
+
+      [32m+[0m[0m maintenance_options (known after apply)
+
+      [32m+[0m[0m metadata_options (known after apply)
+
+      [32m+[0m[0m network_interface (known after apply)
+
+      [32m+[0m[0m private_dns_name_options (known after apply)
+
+      [32m+[0m[0m root_block_device {
+          [32m+[0m[0m delete_on_termination = true
+          [32m+[0m[0m device_name           = (known after apply)
+          [32m+[0m[0m encrypted             = (known after apply)
+          [32m+[0m[0m iops                  = (known after apply)
+          [32m+[0m[0m kms_key_id            = (known after apply)
+          [32m+[0m[0m tags_all              = (known after apply)
+          [32m+[0m[0m throughput            = (known after apply)
+          [32m+[0m[0m volume_id             = (known after apply)
+          [32m+[0m[0m volume_size           = 400
+          [32m+[0m[0m volume_type           = "gp2"
+        }
+    }
+
+[1mPlan:[0m [0m1 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  [32m+[0m[0m ami_id      = "ami-0159af92e963cb183"
+  [32m+[0m[0m instance_id = (known after apply)
+  [32m+[0m[0m private_ip  = (known after apply)
+[90m
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[0m
+
+Saved the plan to: tfplan
+
+To perform exactly these actions, run the following command to apply:
+    terraform apply "tfplan"
+__TF_PLAN_OK__
+[1m[7m%[27m[1m[0m                                                                                                                                                                                                                            k..v/vcd-ose-lab\]7;file://Mac-001.lan/Users/anurag4dsb/anurag-builds-things/scality/osis/dev/vcd-ose-lab\[0m[27m[24m[J[01;32m➜  [36mvcd-ose-lab[00m [01;34mgit:([31mfeature/OSIS-155-vcd-ose-lab[34m) [33m✗[00m [K[?1h=[?2004h[0m[27m[24m[J[01;32m➜  [36mvcd-ose-lab[00m [01;34mgit:([31mfeature/OSIS-155-vcd-ose-lab[34m) [33m✗[00m tterraform -chdir=terraform apply tfplan && echo __TF_APP [KLLY_OK__ || echo __TF_APPLY_FAIL__[?1l>[?2004l
+kterraform\[0m[1maws_instance.lab: Creating...[0m[0m
+[0m[1maws_instance.lab: Still creating... [00m10s elapsed][0m[0m
+[0m[1maws_instance.lab: Creation complete after 13s [id=i-02728ce69c98ba53d][0m
+[0m[1m[32m
+Apply complete! Resources: 1 added, 0 changed, 0 destroyed.[0m
+[0m[1m[32m
+Outputs:
+
+[0mami_id = "ami-0159af92e963cb183"
+instance_id = "i-02728ce69c98ba53d"
+private_ip = "10.160.96.15"
+__TF_APPLY_OK__
+[1m[7m%[27m[1m[0m                                                                                                            k..v/vcd-ose-lab\]7;file://Mac-001.lan/Users/anurag4dsb/anurag-builds-things/scality/osis/dev/vcd-ose-lab\[0m[27m[24m[J[01;32m➜  [36mvcd-ose-lab[00m [01;34mgit:([31mfeature/OSIS-155-vcd-ose-lab[34m) [33m✗[00m [K[?1h=[?2004h[0m[27m[24m[J[01;32m➜  [36mvcd-ose-lab[00m [01;34mgit:([31mfeature/OSIS-155-vcd-ose-lab[34m) [33m✗[00m [0m[27m[24m[J[01;32m➜  [36mvcd-ose-lab[00m [01;34mgit:([31mfeature/OSIS-155-vcd-ose-lab[34m) [33m✗[00m [0m[27m[24m[J[01;32m➜  [36mvcd-ose-lab[00m [01;34mgit:([31mfeature/OSIS-155-vcd-ose-lab[34m) [33m✗[00m [0m[27m[24m[J[01;32m➜  [36mvcd-ose-lab[00m [01;34mgit:([31mfeature/OSIS-155-vcd-ose-lab[34m) [33m✗[00m b d[1C [?2004l

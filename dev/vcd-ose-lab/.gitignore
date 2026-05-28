@@ -1,0 +1,11 @@
+.DS_Store
+configs/lab.yaml
+terraform/terraform.tfvars
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/tfplan
+binaries/*.bin
+binaries/*.rpm
+_capture/*.local.md
