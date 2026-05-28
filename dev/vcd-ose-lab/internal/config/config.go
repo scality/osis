@@ -16,6 +16,7 @@ type Config struct {
 }
 
 type AWSConfig struct {
+	Profile         string `yaml:"profile"`
 	Region          string `yaml:"region"`
 	VPCID           string `yaml:"vpc_id"`
 	SubnetID        string `yaml:"subnet_id"`
@@ -81,6 +82,7 @@ func (c *Config) MissingRequired() []string {
 			missing = append(missing, field)
 		}
 	}
+	check("aws.profile", c.AWS.Profile)
 	check("aws.region", c.AWS.Region)
 	check("aws.vpc_id", c.AWS.VPCID)
 	check("aws.subnet_id", c.AWS.SubnetID)

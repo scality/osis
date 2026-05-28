@@ -62,7 +62,7 @@ func Run(repoRoot string) []Check {
 	checks = append(checks, checkTool("ssh", "ssh is required (preinstalled on macOS/Linux)"))
 	checks = append(checks, checkTool("scp", "scp is required (preinstalled on macOS/Linux)"))
 
-	checks = append(checks, checkAWSCreds(cfg.AWS.Region))
+	checks = append(checks, checkAWSCreds(cfg.AWS.Profile, cfg.AWS.Region))
 
 	checks = append(checks, checkSSHKey(cfg.AWS.KeyPath))
 
@@ -85,20 +85,28 @@ func checkTool(name, action string) Check {
 	return Check{Name: name + " on PATH", OK: true}
 }
 
-func checkAWSCreds(region string) Check {
+func checkAWSCreds(profile, region string) Check {
 	if _, err := exec.LookPath("aws"); err != nil {
 		return Check{Name: "AWS credentials", OK: false, Detail: "aws CLI not installed", Action: "brew install awscli, then aws sso login"}
 	}
-	cmd := exec.Command("aws", "sts", "get-caller-identity", "--region", region)
+	args := []string{"sts", "get-caller-identity", "--region", region}
+	if profile != "" {
+		args = append(args, "--profile", profile)
+	}
+	cmd := exec.Command("aws", args...)
 	if out, err := cmd.CombinedOutput(); err != nil {
+		hint := "Run `aws sso login` (or configure credentials another way) and retry."
+		if profile != "" {
+			hint = fmt.Sprintf("Run `aws sso login --profile %s` and retry.", profile)
+		}
 		return Check{
 			Name:   "AWS credentials",
 			OK:     false,
 			Detail: strings.TrimSpace(string(out)),
-			Action: "Run `aws sso login` (or configure credentials another way) and retry.",
+			Action: hint,
 		}
 	}
-	return Check{Name: "AWS credentials", OK: true}
+	return Check{Name: "AWS credentials (profile " + profile + ")", OK: true}
 }
 
 func checkSSHKey(path string) Check {

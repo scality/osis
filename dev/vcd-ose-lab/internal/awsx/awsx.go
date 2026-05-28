@@ -20,13 +20,15 @@ type Outputs struct {
 // is gitignored. Called before every apply/destroy so changes to lab.yaml
 // flow through without manual sync.
 func WriteTfvars(tfDir string, cfg *config.Config) error {
-	content := fmt.Sprintf(`aws_region        = %q
+	content := fmt.Sprintf(`aws_profile       = %q
+aws_region        = %q
 subnet_id         = %q
 security_group_id = %q
 key_name          = %q
 instance_type     = %q
 root_volume_gb    = %d
 `,
+		cfg.AWS.Profile,
 		cfg.AWS.Region,
 		cfg.AWS.SubnetID,
 		cfg.AWS.SecurityGroupID,
