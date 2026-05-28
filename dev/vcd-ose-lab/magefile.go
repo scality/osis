@@ -5,7 +5,10 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
+	"github.com/scality/osis/dev/vcd-ose-lab/internal/awsx"
+	"github.com/scality/osis/dev/vcd-ose-lab/internal/config"
 	"github.com/scality/osis/dev/vcd-ose-lab/internal/preflight"
 )
 
@@ -34,6 +37,24 @@ func Preflight() error {
 	if failed > 0 {
 		return fmt.Errorf("%d preflight check(s) failed", failed)
 	}
+	return nil
+}
+
+// Tfvars renders configs/lab.yaml into terraform/terraform.tfvars.
+func Tfvars() error {
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	cfg, err := config.Load(filepath.Join(wd, "configs", "lab.yaml"))
+	if err != nil {
+		return err
+	}
+	tfDir := filepath.Join(wd, "terraform")
+	if err := awsx.WriteTfvars(tfDir, cfg); err != nil {
+		return err
+	}
+	fmt.Println("wrote", filepath.Join(tfDir, "terraform.tfvars"))
 	return nil
 }
 

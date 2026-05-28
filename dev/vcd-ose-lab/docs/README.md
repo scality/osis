@@ -17,12 +17,30 @@ Source doc (Scality-internal): Confluence page id `2138571097`, "Creating a VMwa
 
 ```
 mage preflight    # verify prerequisites
+mage tfvars       # render configs/lab.yaml into terraform/terraform.tfvars
 mage up           # provision VM, install VCD+OSE, wire endpoints (~25-35 min)
 mage status       # `ose config validate` on the VM
 mage refresh      # re-wire endpoints after editing configs/lab.yaml
 mage ssh          # attach to the shared tmux session on the VM
 mage down         # destroy AWS resources
 ```
+
+A passing `mage preflight` looks like this:
+
+```
+[OK] config file
+[OK] config fields
+[OK] terraform on PATH
+[OK] aws on PATH
+[OK] ssh on PATH
+[OK] scp on PATH
+[OK] AWS credentials (profile sso)
+[OK] SSH key
+[OK] VCD installer (.bin)  (vmware-vcloud-director-distribution-10.5.1-23401219.bin)
+[OK] OSE package (.rpm)  (vmware-ose-3.0.0-23443325.el8.x86_64.rpm)
+```
+
+Any `[FAIL]` row prints an actionable next step (install a tool, fill a config field, `aws sso login`, etc). Fix each and re-run.
 
 ## Agent usage
 
