@@ -2,14 +2,46 @@
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+
+	"github.com/scality/osis/dev/vcd-ose-lab/internal/preflight"
+)
 
 func Preflight() error {
-	return fmt.Errorf("preflight: not yet implemented")
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	checks := preflight.Run(wd)
+	failed := 0
+	for _, c := range checks {
+		mark := "[OK]"
+		if !c.OK {
+			mark = "[FAIL]"
+			failed++
+		}
+		line := fmt.Sprintf("%s %s", mark, c.Name)
+		if c.Detail != "" {
+			line += "  (" + c.Detail + ")"
+		}
+		fmt.Println(line)
+		if !c.OK && c.Action != "" {
+			fmt.Println("       -> " + c.Action)
+		}
+	}
+	if failed > 0 {
+		return fmt.Errorf("%d preflight check(s) failed", failed)
+	}
+	return nil
 }
 
 func Up() error {
-	return fmt.Errorf("up: not yet implemented")
+	if err := Preflight(); err != nil {
+		return err
+	}
+	return fmt.Errorf("up: not yet implemented (preflight passed)")
 }
 
 func Down() error {
