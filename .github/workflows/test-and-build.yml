@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
           name: codecov-osis
