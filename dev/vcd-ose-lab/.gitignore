@@ -1,3 +1,4 @@
+.DS_Store
 configs/lab.yaml
 terraform/terraform.tfvars
 terraform/.terraform/
