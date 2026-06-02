@@ -1,0 +1,19 @@
+name: Review Dependency Bump
+
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+
+jobs:
+  review-dependency-bump:
+    # pr.user.login catches dependabot PRs updated by a human, where github.actor is no longer dependabot[bot].
+    if: github.actor == 'dependabot[bot]' || github.event.pull_request.user.login == 'dependabot[bot]'
+    uses: scality/workflows/.github/workflows/claude-code-dependency-review.yml@v2.8.3
+    with:
+      ACTIONS_APP_ID: ${{ vars.ACTIONS_APP_ID }}
+    secrets:
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      ANTHROPIC_VERTEX_PROJECT_ID: ${{ secrets.ANTHROPIC_VERTEX_PROJECT_ID }}
+      CLOUD_ML_REGION: ${{ secrets.CLOUD_ML_REGION }}
+      ACTIONS_APP_PRIVATE_KEY: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
