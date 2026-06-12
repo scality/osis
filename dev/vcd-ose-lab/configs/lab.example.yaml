@@ -1,0 +1,43 @@
+# Copy to lab.yaml and fill in. lab.yaml is gitignored.
+
+aws:
+  profile: sso                  # AWS named profile (configured via `aws configure sso`)
+  region: eu-north-1            # one of: eu-north-1, us-west-2, ap-northeast-1
+  subnet_id: subnet-XXXXXXXX    # a *-private-* subnet in the Scality managed VPC
+  # Attach BOTH the allow-vpn-private-and-vms SG (always required for Scality
+  # VPN reach) AND a per-user SG carrying the lab's inbound rules
+  # (HTTP/80, HTTPS/443, SSH/22, PostgreSQL/5432, NFS/2049, 8080, 8443).
+  # Create the per-user SG once per account; see docs/README.md.
+  security_group_ids:
+    - sg-XXXXXXXX               # allow-vpn-private-and-vms
+    - sg-YYYYYYYY               # your per-user inbound-rules SG
+  key_name: my-key              # AWS key pair name
+  key_path: ~/.ssh/my-key.pem   # local path to the matching .pem
+  instance_type: c5.4xlarge
+  root_volume_gb: 400
+  root_volume_type: gp2
+  os: rocky-9                   # rocky-8 | rocky-9
+
+vmware:
+  vcd_bin_glob: vmware-vcloud-director-distribution-*.bin
+  vcd_bin_md5: ""               # optional MD5 check; leave empty to skip
+  ose_rpm_glob: vmware-ose-*.rpm
+  ose_rpm_md5: ""
+
+# Endpoints the lab's OSE will be wired against. When ngrok URLs change,
+# edit these and run the `refresh-endpoints` workflow.
+endpoints:
+  osis_url: https://example.ngrok.app
+  vault_url: https://example.ngrok.app
+  s3_url:   https://example.ngrok.app
+  platform_name: scality
+  region: us-east-1
+
+# Secrets. Fill in; do not commit lab.yaml. All five are required by
+# preflight — pick strong values, do not reuse weak doc defaults.
+secrets:
+  vcd_admin_password: ""              # VCD provider UI admin password
+  postgres_password: ""               # used by both vcdadmin and oseadmin DB users
+  osis_super_admin_access_key: ""     # from your local Vault dev DB
+  osis_super_admin_secret_key: ""
+  vcd_cert_passphrase: ""             # PKCS#12 passphrase for VCD cert + OSE keystore
