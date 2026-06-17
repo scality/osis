@@ -28,7 +28,6 @@ vmware:
 # edit these and run the `refresh-endpoints` workflow.
 endpoints:
   osis_url: https://example.ngrok.app
-  vault_url: https://example.ngrok.app
   s3_url:   https://example.ngrok.app
   platform_name: scality
   region: us-east-1

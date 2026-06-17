@@ -37,7 +37,6 @@ type VMwareConfig struct {
 
 type EndpointsConfig struct {
 	OSISURL      string `yaml:"osis_url"`
-	VaultURL     string `yaml:"vault_url"`
 	S3URL        string `yaml:"s3_url"`
 	PlatformName string `yaml:"platform_name"`
 	Region       string `yaml:"region"`
@@ -91,7 +90,6 @@ func (c *Config) MissingRequired() []string {
 	check("aws.key_name", c.AWS.KeyName)
 	check("aws.key_path", c.AWS.KeyPath)
 	check("endpoints.osis_url", c.Endpoints.OSISURL)
-	check("endpoints.vault_url", c.Endpoints.VaultURL)
 	check("endpoints.s3_url", c.Endpoints.S3URL)
 	check("secrets.vcd_admin_password", c.Secrets.VCDAdminPassword)
 	check("secrets.postgres_password", c.Secrets.PostgresPassword)
