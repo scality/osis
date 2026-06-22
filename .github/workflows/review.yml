@@ -7,6 +7,8 @@ on:
 jobs:
   review:
     uses: scality/workflows/.github/workflows/claude-code-review.yml@v2.8.3
+    with:
+      model: claude-opus-4-8
     secrets:
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
