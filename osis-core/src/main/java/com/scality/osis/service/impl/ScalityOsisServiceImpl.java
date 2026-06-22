@@ -10,10 +10,7 @@ import com.amazonaws.Response;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.Credentials;
 import com.amazonaws.util.StringUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -22,14 +19,13 @@ import com.scality.osis.model.*;
 import com.scality.osis.model.exception.NotFoundException;
 import com.scality.osis.model.exception.NotImplementedException;
 import com.scality.osis.resource.ScalityOsisCapsManager;
-import com.scality.osis.s3.S3;
 import com.scality.osis.service.ScalityOsisService;
 import com.scality.osis.service.credentials.SecretKeyStore;
+import com.scality.osis.service.tenant.TenantSession;
 import com.scality.osis.utapi.Utapi;
 import com.scality.osis.utapiclient.dto.ListMetricsRequestDTO;
 import com.scality.osis.utapiclient.dto.MetricsData;
 import com.scality.osis.utapiclient.services.UtapiServiceClient;
-import com.scality.osis.utapiclient.utils.UtapiClientException;
 import com.scality.osis.utils.ScalityModelConverter;
 import com.scality.osis.utils.ScalityUtils;
 import com.scality.osis.vaultadmin.VaultAdmin;
@@ -59,7 +55,6 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
     private ScalityAppEnv appEnv;
     private VaultAdmin vaultAdmin;
-    private S3 s3;
     private Utapi utapi;
     private ScalityOsisCapsManager scalityOsisCapsManager;
 
@@ -69,21 +64,22 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     @Autowired
     private SecretKeyStore secretKeyStore;
 
+    @Autowired
+    private TenantSession tenantSession;
+
     /**
      * Instantiates a new Scality osis service.
      *
      * @param appEnv                 the app env
      * @param vaultAdmin             the vault admin
-     * @param s3                     the s3 client
      * @param utapi                  the utapi client
      * @param scalityOsisCapsManager the osis caps manager
      */
-    public ScalityOsisServiceImpl(ScalityAppEnv appEnv, VaultAdmin vaultAdmin, S3 s3,
+    public ScalityOsisServiceImpl(ScalityAppEnv appEnv, VaultAdmin vaultAdmin,
                                   Utapi utapi,
                                   ScalityOsisCapsManager scalityOsisCapsManager) {
         this.appEnv = appEnv;
         this.vaultAdmin = vaultAdmin;
-        this.s3 = s3;
         this.utapi = utapi;
         this.scalityOsisCapsManager = scalityOsisCapsManager;
     }
@@ -206,66 +202,57 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     @Override
     public OsisUser createUser(OsisUser osisUser) {
         try {
-            logger.info("Create User request received:{}", new Gson().toJson(osisUser));
+            return tenantSession.run(osisUser.getTenantId(), () -> {
+                logger.info("Create User request received:{}", new Gson().toJson(osisUser));
 
-            AccountData accountData = vaultAdmin
-                    .getAccount(ScalityModelConverter.toGetAccountRequestWithID(osisUser.getTenantId()));
-            osisUser.setCanonicalUserId(accountData.getCanonicalId());
+                AccountData accountData = vaultAdmin
+                        .getAccount(ScalityModelConverter.toGetAccountRequestWithID(osisUser.getTenantId()));
+                osisUser.setCanonicalUserId(accountData.getCanonicalId());
 
-            Credentials tempCredentials = getCredentials(osisUser.getTenantId());
-            final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials,
-                    appEnv.getRegionInfo().get(0));
+                final AmazonIdentityManagement iam = tenantSession.getIamClient(osisUser.getTenantId());
 
-            CreateUserRequest createUserRequest = ScalityModelConverter.toCreateUserRequest(osisUser);
-            logger.debug("[Vault] Create User Request:{}", new Gson().toJson(createUserRequest));
+                CreateUserRequest createUserRequest = ScalityModelConverter.toCreateUserRequest(osisUser);
+                logger.debug("[Vault] Create User Request:{}", new Gson().toJson(createUserRequest));
 
-            CreateUserResult createUserResult = iam.createUser(createUserRequest);
+                CreateUserResult createUserResult = iam.createUser(createUserRequest);
 
-            logger.debug("[Vault] Create User response:{}", new Gson().toJson(createUserResult));
+                logger.debug("[Vault] Create User response:{}", new Gson().toJson(createUserResult));
 
-            OsisUser resOsisUser = null;
+                OsisUser resOsisUser = null;
 
-            if (null != createUserResult) {
+                if (null != createUserResult) {
 
-                resOsisUser = ScalityModelConverter.toOsisUser(createUserResult, osisUser.getTenantId());
+                    resOsisUser = ScalityModelConverter.toOsisUser(createUserResult, osisUser.getTenantId());
 
-                /** Get userpolicy@<Account_id> **/
-                Policy userPolicy = getOrCreateUserPolicy(iam, resOsisUser.getTenantId());
+                    /** Get userpolicy@<Account_id> **/
+                    Policy userPolicy = getOrCreateUserPolicy(iam, resOsisUser.getTenantId());
 
-                /** Attach user policy to the user **/
-                AttachUserPolicyRequest attachUserPolicyRequest = ScalityModelConverter
-                        .toAttachUserPolicyRequest(userPolicy.getArn(), resOsisUser.getUserId());
-                logger.debug("[Vault] Attach User Policy Request:{}", new Gson().toJson(attachUserPolicyRequest));
+                    /** Attach user policy to the user **/
+                    AttachUserPolicyRequest attachUserPolicyRequest = ScalityModelConverter
+                            .toAttachUserPolicyRequest(userPolicy.getArn(), resOsisUser.getUserId());
+                    logger.debug("[Vault] Attach User Policy Request:{}", new Gson().toJson(attachUserPolicyRequest));
 
-                AttachUserPolicyResult attachUserPolicyResult = iam.attachUserPolicy(attachUserPolicyRequest);
-                logger.debug("[Vault] Attach User Policy response:{}", new Gson().toJson(attachUserPolicyResult));
+                    AttachUserPolicyResult attachUserPolicyResult = iam.attachUserPolicy(attachUserPolicyRequest);
+                    logger.debug("[Vault] Attach User Policy response:{}", new Gson().toJson(attachUserPolicyResult));
 
-                /** Create User Access Key for the user **/
-                OsisS3Credential osisCredential = createOsisCredential(
-                        resOsisUser.getTenantId(),
-                        resOsisUser.getUserId(),
-                        resOsisUser.getCdTenantId(),
-                        resOsisUser.getUsername(),
-                        iam);
+                    /** Create User Access Key for the user **/
+                    OsisS3Credential osisCredential = createOsisCredential(
+                            resOsisUser.getTenantId(),
+                            resOsisUser.getUserId(),
+                            resOsisUser.getCdTenantId(),
+                            resOsisUser.getUsername(),
+                            iam);
 
-                resOsisUser.setOsisS3Credentials(Arrays.asList(osisCredential));
+                    resOsisUser.setOsisS3Credentials(Arrays.asList(osisCredential));
 
-                logger.info("Create User response:{}",
-                        ScalityModelConverter.maskSecretKey(new Gson().toJson(resOsisUser)));
+                    logger.info("Create User response:{}",
+                            ScalityModelConverter.maskSecretKey(new Gson().toJson(resOsisUser)));
 
-            }
-
-            return resOsisUser;
-
-        } catch (Exception e) {
-            if (isAdminPolicyError(e) && !StringUtils.isNullOrEmpty(osisUser.getTenantId())) {
-                try {
-                    generateAdminPolicy(osisUser.getTenantId());
-                    return createUser(osisUser);
-                } catch (Exception ex) {
-                    e = ex;
                 }
-            }
+
+                return resOsisUser;
+            });
+        } catch (Exception e) {
             // Create User supports only 400:BAD_REQUEST error, change status code in the
             // VaultServiceException
             logger.error("Create User error. Error details: ", e);
@@ -333,45 +320,42 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                     }
                 }
 
-                PageOfUsers pageOfUsers;
+                final String resolvedTenantId = tenantId;
+                final String resolvedUserId = userId;
+                final String resolvedCdUserId = cdUserId;
+                final String resolvedUsername = username;
 
-                if (userId != null || cdUserId != null) {
-                    OsisUser osisUser = getUser(tenantId,
-                            (userId != null) ? userId : cdUserId);
-                    pageOfUsers = ScalityModelConverter.toPageOfUsers(osisUser, offset, limit);
-                } else {
-                    Credentials tempCredentials = getCredentials(tenantId);
-                    final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials,
-                            appEnv.getRegionInfo().get(0));
+                return tenantSession.run(resolvedTenantId, () -> {
+                    PageOfUsers pageOfUsers;
 
-                    ListUsersRequest listUsersRequest = ScalityModelConverter.toIAMListUsersRequest(offset, limit);
+                    if (resolvedUserId != null || resolvedCdUserId != null) {
+                        OsisUser osisUser = getUser(resolvedTenantId,
+                                (resolvedUserId != null) ? resolvedUserId : resolvedCdUserId);
+                        pageOfUsers = ScalityModelConverter.toPageOfUsers(osisUser, offset, limit);
+                    } else {
+                        final AmazonIdentityManagement iam = tenantSession.getIamClient(resolvedTenantId);
 
-                    // Add path prefix with osis username to the listusers request if username exists
-                    if (username != null && !username.isEmpty()) {
-                        listUsersRequest.setPathPrefix("/" + username + "/");
+                        ListUsersRequest listUsersRequest = ScalityModelConverter.toIAMListUsersRequest(offset, limit);
+
+                        // Add path prefix with osis username to the listusers request if username exists
+                        if (resolvedUsername != null && !resolvedUsername.isEmpty()) {
+                            listUsersRequest.setPathPrefix("/" + resolvedUsername + "/");
+                        }
+
+                        logger.debug("[Vault] List Users Request:{}", new Gson().toJson(listUsersRequest));
+
+                        ListUsersResult listUsersResult = iam.listUsers(listUsersRequest);
+
+                        logger.debug("[Vault] List Users response:{}", new Gson().toJson(listUsersResult));
+
+                        pageOfUsers = ScalityModelConverter.toPageOfUsers(listUsersResult, offset, limit,
+                                resolvedTenantId);
+                        logger.info("Query Users response:{}", new Gson().toJson(pageOfUsers));
                     }
-
-                    logger.debug("[Vault] List Users Request:{}", new Gson().toJson(listUsersRequest));
-
-                    ListUsersResult listUsersResult = iam.listUsers(listUsersRequest);
-
-                    logger.debug("[Vault] List Users response:{}", new Gson().toJson(listUsersResult));
-
-                    pageOfUsers = ScalityModelConverter.toPageOfUsers(listUsersResult, offset, limit, tenantId);
-                    logger.info("Query Users response:{}", new Gson().toJson(pageOfUsers));
-                }
-                return pageOfUsers;
+                    return pageOfUsers;
+                });
 
             } catch (Exception e) {
-
-                if (isAdminPolicyError(e) && !StringUtils.isNullOrEmpty(tenantId)) {
-                    try {
-                        generateAdminPolicy(tenantId);
-                        return queryUsers(offset, limit, filter);
-                    } catch (Exception ex) {
-                        e = ex;
-                    }
-                }
 
                 logger.error("Query Users error. Return empty list. Error details: ", e);
                 // For errors, Query users should return empty PageOfUsers
@@ -397,33 +381,24 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     @Override
     public OsisS3Credential createS3Credential(String tenantId, String userId) {
         try {
-            logger.info("Create S3 Credential request received:: tenant ID:{}, user ID:{}",
-                    tenantId, userId);
+            return tenantSession.run(tenantId, () -> {
+                logger.info("Create S3 Credential request received:: tenant ID:{}, user ID:{}",
+                        tenantId, userId);
 
-            OsisTenant tenant = ScalityModelConverter
-                    .toOsisTenant(vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId)));
-            Credentials tempCredentials = getCredentials(tenantId);
-            final AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(tempCredentials,
-                    appEnv.getRegionInfo().get(0));
+                OsisTenant tenant = ScalityModelConverter
+                        .toOsisTenant(vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId)));
+                final AmazonIdentityManagement iamClient = tenantSession.getIamClient(tenantId);
 
-            OsisS3Credential credential = createOsisCredential(tenantId, userId, null, null, iamClient);
+                OsisS3Credential credential = createOsisCredential(tenantId, userId, null, null, iamClient);
 
-            credential.setCdTenantId(tenant.getCdTenantIds().get(0));
+                credential.setCdTenantId(tenant.getCdTenantIds().get(0));
 
-            logger.info("Create S3 Credential response:{}, ",
-                    ScalityModelConverter.maskSecretKey(new Gson().toJson(credential)));
+                logger.info("Create S3 Credential response:{}, ",
+                        ScalityModelConverter.maskSecretKey(new Gson().toJson(credential)));
 
-            return credential;
+                return credential;
+            });
         } catch (Exception e) {
-            if (isAdminPolicyError(e)) {
-                try {
-                    generateAdminPolicy(tenantId);
-                    return createS3Credential(tenantId, userId);
-                } catch (Exception ex) {
-                    e = ex;
-                }
-            }
-
             // Create S3 Credential supports only 400:BAD_REQUEST error
             logger.error("Create S3 Credential error. Error details: ", e);
             throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
@@ -513,34 +488,29 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 logger.info("Delete S3 Credential: GetUserByAccessKey response received, tenant id: {}, user id: {}", tenantId, userId);
             }
 
-            Credentials tempCredentials = getCredentials(tenantId);
-            final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials,
-                    appEnv.getRegionInfo().get(0));
+            final String resolvedTenantId = tenantId;
+            final String resolvedUserId = userId;
 
-            DeleteAccessKeyRequest deleteAccessKeyRequest = ScalityModelConverter
-                    .toDeleteAccessKeyRequest(accessKey, userId);
+            tenantSession.run(resolvedTenantId, () -> {
+                final AmazonIdentityManagement iam = tenantSession.getIamClient(resolvedTenantId);
 
-            logger.debug("[Vault] Delete Access Key Request:{}", new Gson().toJson(deleteAccessKeyRequest));
+                DeleteAccessKeyRequest deleteAccessKeyRequest = ScalityModelConverter
+                        .toDeleteAccessKeyRequest(accessKey, resolvedUserId);
 
-            DeleteAccessKeyResult deleteAccessKeyResult = iam.deleteAccessKey(deleteAccessKeyRequest);
+                logger.debug("[Vault] Delete Access Key Request:{}", new Gson().toJson(deleteAccessKeyRequest));
 
-            logger.debug("[Vault] Delete Access Key response:{}", new Gson().toJson(deleteAccessKeyResult));
+                DeleteAccessKeyResult deleteAccessKeyResult = iam.deleteAccessKey(deleteAccessKeyRequest);
 
-            secretKeyStore.delete(ScalityModelConverter.toRepoKeyForCredentials(userId, accessKey));
+                logger.debug("[Vault] Delete Access Key response:{}", new Gson().toJson(deleteAccessKeyResult));
 
-            logger.info("Delete S3 credential successful:: tenant ID:{}, user ID:{}, accessKey:{}",
-                    tenantId, userId, accessKey);
+                secretKeyStore.delete(ScalityModelConverter.toRepoKeyForCredentials(resolvedUserId, accessKey));
+
+                logger.info("Delete S3 credential successful:: tenant ID:{}, user ID:{}, accessKey:{}",
+                        resolvedTenantId, resolvedUserId, accessKey);
+                return null;
+            });
 
         } catch (Exception e) {
-            if (isAdminPolicyError(e)) {
-                try {
-                    generateAdminPolicy(tenantId);
-                    deleteS3Credential(tenantId, userId, accessKey);
-                } catch (Exception ex) {
-                    e = ex;
-                }
-            }
-
             logger.error("Delete S3 credential failed. Error details:", e);
         }
     }
@@ -597,47 +567,36 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     @Override
     public void deleteUser(String tenantId, String userId, Boolean purgeData) {
         try {
-            logger.info("Delete User request received:: tenant ID:{}, userID:{}", tenantId, userId);
+            tenantSession.run(tenantId, () -> {
+                logger.info("Delete User request received:: tenant ID:{}, userID:{}", tenantId, userId);
 
-            Credentials tempCredentials = getCredentials(tenantId);
-            final AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(tempCredentials,
-                    appEnv.getRegionInfo().get(0));
+                final AmazonIdentityManagement iamClient = tenantSession.getIamClient(tenantId);
 
-            /** Get userpolicy@<Account_id> **/
-            Policy userPolicy = getUserPolicy(iamClient, tenantId);
+                /** Get userpolicy@<Account_id> **/
+                Policy userPolicy = getUserPolicy(iamClient, tenantId);
 
-            if (userPolicy != null) {
-                /** Detach user policy from the user **/
-                DetachUserPolicyRequest detachUserPolicyRequest = ScalityModelConverter
-                        .toDetachUserPolicyRequest(userPolicy.getArn(), userId);
-                logger.debug("[Vault] Detach User Policy Request:{}", new Gson().toJson(detachUserPolicyRequest));
+                if (userPolicy != null) {
+                    /** Detach user policy from the user **/
+                    DetachUserPolicyRequest detachUserPolicyRequest = ScalityModelConverter
+                            .toDetachUserPolicyRequest(userPolicy.getArn(), userId);
+                    logger.debug("[Vault] Detach User Policy Request:{}", new Gson().toJson(detachUserPolicyRequest));
 
-                DetachUserPolicyResult detachUserPolicyResult = iamClient.detachUserPolicy(detachUserPolicyRequest);
-                logger.debug("[Vault] Detach User Policy response:{}", new Gson().toJson(detachUserPolicyResult));
-            }
-
-            DeleteUserRequest deleteUserRequest = ScalityModelConverter.toIAMDeleteUserRequest(userId);
-
-            logger.debug("[Vault] Delete User Request:{}", new Gson().toJson(deleteUserRequest));
-
-            DeleteUserResult deleteUserResult = iamClient.deleteUser(deleteUserRequest);
-
-            logger.debug("[Vault] Delete User response:{}", new Gson().toJson(deleteUserResult));
-
-            logger.info("Delete User successful:: tenant ID:{}, userID:{}", tenantId, userId);
-            return;
-        } catch (Exception e) {
-
-            if (isAdminPolicyError(e)) {
-                try {
-                    generateAdminPolicy(tenantId);
-                    deleteUser(tenantId, userId, purgeData);
-                    return;
-                } catch (Exception ex) {
-                    e = ex;
+                    DetachUserPolicyResult detachUserPolicyResult = iamClient.detachUserPolicy(detachUserPolicyRequest);
+                    logger.debug("[Vault] Detach User Policy response:{}", new Gson().toJson(detachUserPolicyResult));
                 }
-            }
 
+                DeleteUserRequest deleteUserRequest = ScalityModelConverter.toIAMDeleteUserRequest(userId);
+
+                logger.debug("[Vault] Delete User Request:{}", new Gson().toJson(deleteUserRequest));
+
+                DeleteUserResult deleteUserResult = iamClient.deleteUser(deleteUserRequest);
+
+                logger.debug("[Vault] Delete User response:{}", new Gson().toJson(deleteUserResult));
+
+                logger.info("Delete User successful:: tenant ID:{}, userID:{}", tenantId, userId);
+                return null;
+            });
+        } catch (Exception e) {
             // If delete user fails just return no error response
             logger.error("deleteUser error. User not found. Error details: ", e);
         }
@@ -687,59 +646,54 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 logger.info("Get S3 Credential: GetUserByAccessKey response received, tenant id: {}, user id: {}", tenantId, userId);
             }
 
-            Credentials tempCredentials = getCredentials(tenantId);
-            final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials,
-                    appEnv.getRegionInfo().get(0));
+            final String resolvedTenantId = tenantId;
+            final String resolvedUserId = userId;
 
-            ListAccessKeysRequest listAccessKeysRequest = ScalityModelConverter.toIAMListAccessKeysRequest(userId,
-                    limit);
+            return tenantSession.run(resolvedTenantId, () -> {
+                final AmazonIdentityManagement iam = tenantSession.getIamClient(resolvedTenantId);
 
-            logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
+                ListAccessKeysRequest listAccessKeysRequest = ScalityModelConverter.toIAMListAccessKeysRequest(
+                        resolvedUserId, limit);
 
-            ListAccessKeysResult listAccessKeysResult = iam.listAccessKeys(listAccessKeysRequest);
+                logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
 
-            logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
+                ListAccessKeysResult listAccessKeysResult = iam.listAccessKeys(listAccessKeysRequest);
 
-            Optional<AccessKeyMetadata> accessKeyResult = listAccessKeysResult.getAccessKeyMetadata()
-                    .stream()
-                    .filter(accessKeyMetadata -> accessKeyMetadata.getAccessKeyId().equals(accessKey))
-                    .findAny();
+                logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
 
-            if (accessKeyResult.isPresent()) {
-                AccessKeyMetadata accessKeyMetadata = accessKeyResult.get();
+                Optional<AccessKeyMetadata> accessKeyResult = listAccessKeysResult.getAccessKeyMetadata()
+                        .stream()
+                        .filter(accessKeyMetadata -> accessKeyMetadata.getAccessKeyId().equals(accessKey))
+                        .findAny();
 
-                String secretKey = secretKeyStore.retrieve(
-                        ScalityModelConverter.toRepoKeyForCredentials(userId, accessKeyMetadata.getAccessKeyId()));
+                if (accessKeyResult.isPresent()) {
+                    AccessKeyMetadata accessKeyMetadata = accessKeyResult.get();
 
-                // get Osis User by userId
-                GetUserRequest getUserRequest = ScalityModelConverter.toIAMGetUserRequest(userId);
-                logger.debug("[Vault] Get User Request:{}", new Gson().toJson(getUserRequest));
-                GetUserResult getUserResult = iam.getUser(getUserRequest);
-                logger.debug("[Vault] Get User response:{}", new Gson().toJson(getUserResult));
-                OsisUser osisUser = ScalityModelConverter.toOsisUser(getUserResult.getUser(), tenantId);
+                    String secretKey = secretKeyStore.retrieve(
+                            ScalityModelConverter.toRepoKeyForCredentials(resolvedUserId,
+                                    accessKeyMetadata.getAccessKeyId()));
 
-                OsisS3Credential osisCredential = ScalityModelConverter.toOsisS3Credentials(tenantId,
-                        osisUser.getCdTenantId(),
-                        accessKeyMetadata,
-                        secretKey);
-                logger.info("Get S3 credential  response:{}",
-                        ScalityModelConverter.maskSecretKey(new Gson().toJson(osisCredential)));
+                    // get Osis User by userId
+                    GetUserRequest getUserRequest = ScalityModelConverter.toIAMGetUserRequest(resolvedUserId);
+                    logger.debug("[Vault] Get User Request:{}", new Gson().toJson(getUserRequest));
+                    GetUserResult getUserResult = iam.getUser(getUserRequest);
+                    logger.debug("[Vault] Get User response:{}", new Gson().toJson(getUserResult));
+                    OsisUser osisUser = ScalityModelConverter.toOsisUser(getUserResult.getUser(), resolvedTenantId);
 
-                return osisCredential;
-            } else {
-                throw new NotFoundException("The S3 Credential doesn't exist for the given access key");
-            }
+                    OsisS3Credential osisCredential = ScalityModelConverter.toOsisS3Credentials(resolvedTenantId,
+                            osisUser.getCdTenantId(),
+                            accessKeyMetadata,
+                            secretKey);
+                    logger.info("Get S3 credential  response:{}",
+                            ScalityModelConverter.maskSecretKey(new Gson().toJson(osisCredential)));
+
+                    return osisCredential;
+                } else {
+                    throw new NotFoundException("The S3 Credential doesn't exist for the given access key");
+                }
+            });
 
         } catch (Exception e) {
-
-            if (isAdminPolicyError(e)) {
-                try {
-                    generateAdminPolicy(tenantId);
-                    return getS3Credential(tenantId, userId, accessKey);
-                } catch (Exception ex) {
-                    e = ex;
-                }
-            }
             logger.error(
                     "Get S3 credential :: The S3 Credential doesn't exist for the given access key. Error details:",
                     e);
@@ -789,9 +743,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             final OsisUser osisUser = ScalityModelConverter.toCanonicalOsisUser(account, users);
 
             // List all user access keys and if all are inactive, mark user as inactive
-            Credentials tempCredentials = getCredentials(account.getId());
-            final AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(tempCredentials,
-                    appEnv.getRegionInfo().get(0));
+            final AmazonIdentityManagement iamClient = tenantSession.getIamClient(account.getId());
 
             ListAccessKeysRequest listAccessKeysRequest = ScalityModelConverter
                     .toIAMListAccessKeysRequest(osisUser.getUserId(), DEFAULT_MAX_LIMIT);
@@ -824,56 +776,46 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     @Override
     public OsisUser getUser(String tenantId, String userId) {
         try {
-            logger.info("Get User request received:: tenant ID:{}, userID:{}", tenantId, userId);
+            return tenantSession.run(tenantId, () -> {
+                logger.info("Get User request received:: tenant ID:{}, userID:{}", tenantId, userId);
 
-            Credentials tempCredentials = getCredentials(tenantId);
-            final AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(tempCredentials,
-                    appEnv.getRegionInfo().get(0));
+                final AmazonIdentityManagement iamClient = tenantSession.getIamClient(tenantId);
 
-            GetUserRequest getUserRequest = ScalityModelConverter.toIAMGetUserRequest(userId);
+                GetUserRequest getUserRequest = ScalityModelConverter.toIAMGetUserRequest(userId);
 
-            logger.debug("[Vault] Get User Request:{}", new Gson().toJson(getUserRequest));
+                logger.debug("[Vault] Get User Request:{}", new Gson().toJson(getUserRequest));
 
-            GetUserResult getUserResult = iamClient.getUser(getUserRequest);
+                GetUserResult getUserResult = iamClient.getUser(getUserRequest);
 
-            logger.debug("[Vault] Get User response:{}", new Gson().toJson(getUserResult));
+                logger.debug("[Vault] Get User response:{}", new Gson().toJson(getUserResult));
 
-            OsisUser osisUser = ScalityModelConverter.toOsisUser(getUserResult.getUser(), tenantId);
+                OsisUser osisUser = ScalityModelConverter.toOsisUser(getUserResult.getUser(), tenantId);
 
-            // List all user access keys and if all are inactive, mark user as inactive
-            ListAccessKeysRequest listAccessKeysRequest = ScalityModelConverter.toIAMListAccessKeysRequest(userId,
-                    DEFAULT_MAX_LIMIT);
+                // List all user access keys and if all are inactive, mark user as inactive
+                ListAccessKeysRequest listAccessKeysRequest = ScalityModelConverter.toIAMListAccessKeysRequest(userId,
+                        DEFAULT_MAX_LIMIT);
 
-            logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
+                logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
 
-            ListAccessKeysResult listAccessKeysResult = iamClient.listAccessKeys(listAccessKeysRequest);
+                ListAccessKeysResult listAccessKeysResult = iamClient.listAccessKeys(listAccessKeysRequest);
 
-            logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
+                logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
 
-            boolean isActive = false;
-            for (AccessKeyMetadata accessKey : listAccessKeysResult.getAccessKeyMetadata()) {
-                if (accessKey.getStatus().equals(StatusType.Active.toString())) {
-                    isActive = true;
-                    break;
+                boolean isActive = false;
+                for (AccessKeyMetadata accessKey : listAccessKeysResult.getAccessKeyMetadata()) {
+                    if (accessKey.getStatus().equals(StatusType.Active.toString())) {
+                        isActive = true;
+                        break;
+                    }
                 }
-            }
 
-            osisUser.setActive(isActive);
+                osisUser.setActive(isActive);
 
-            logger.info("Get User response:{}", new Gson().toJson(osisUser));
+                logger.info("Get User response:{}", new Gson().toJson(osisUser));
 
-            return osisUser;
+                return osisUser;
+            });
         } catch (Exception e) {
-
-            if (isAdminPolicyError(e)) {
-                try {
-                    generateAdminPolicy(tenantId);
-                    return getUser(tenantId, userId);
-                } catch (Exception ex) {
-                    e = ex;
-                }
-            }
-
             logger.error("GetUser error. User not found. Error details: ", e);
             throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
@@ -908,9 +850,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     public boolean headUser(String tenantId, String userId) {
         try {
             logger.info("Head User request received:: tenant ID:{} user ID:{}", tenantId, userId);
-            Credentials tempCredentials = getCredentials(tenantId);
-
-            final AmazonIdentityManagement iamClient = vaultAdmin.getIAMClient(tempCredentials, appEnv.getRegionInfo().get(0));
+            final AmazonIdentityManagement iamClient = tenantSession.getIamClient(tenantId);
 
             GetUserRequest getUserRequest = ScalityModelConverter.toIAMGetUserRequest(userId);
 
@@ -928,65 +868,55 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     @Override
     public PageOfS3Credentials listS3Credentials(String tenantId, String userId, Long offset, Long limit) {
         try {
-            OsisTenant tenant = ScalityModelConverter
-                    .toOsisTenant(vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId)));
-            logger.info("List s3 credentials request received:: tenant ID:{}, user ID:{}, offset:{}, limit:{}",
-                    tenantId, userId, offset, limit);
+            return tenantSession.run(tenantId, () -> {
+                OsisTenant tenant = ScalityModelConverter
+                        .toOsisTenant(vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId)));
+                logger.info("List s3 credentials request received:: tenant ID:{}, user ID:{}, offset:{}, limit:{}",
+                        tenantId, userId, offset, limit);
 
-            Credentials tempCredentials = getCredentials(tenantId);
-            final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials,
-                    appEnv.getRegionInfo().get(0));
+                final AmazonIdentityManagement iam = tenantSession.getIamClient(tenantId);
 
-            ListAccessKeysRequest listAccessKeysRequest = ScalityModelConverter.toIAMListAccessKeysRequest(userId,
-                    limit);
+                ListAccessKeysRequest listAccessKeysRequest = ScalityModelConverter.toIAMListAccessKeysRequest(userId,
+                        limit);
 
-            logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
+                logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
 
-            ListAccessKeysResult listAccessKeysResult = iam.listAccessKeys(listAccessKeysRequest);
+                ListAccessKeysResult listAccessKeysResult = iam.listAccessKeys(listAccessKeysRequest);
 
-            logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
+                logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
 
-            Map<String, String> secretKeyMap = new HashMap<>();
-            for (AccessKeyMetadata accessKey : listAccessKeysResult.getAccessKeyMetadata()) {
-                String secretKey = secretKeyStore.retrieve(
-                        ScalityModelConverter.toRepoKeyForCredentials(userId, accessKey.getAccessKeyId()));
-                if (!StringUtils.isNullOrEmpty(secretKey)) {
-                    secretKeyMap.put(accessKey.getAccessKeyId(), secretKey);
+                Map<String, String> secretKeyMap = new HashMap<>();
+                for (AccessKeyMetadata accessKey : listAccessKeysResult.getAccessKeyMetadata()) {
+                    String secretKey = secretKeyStore.retrieve(
+                            ScalityModelConverter.toRepoKeyForCredentials(userId, accessKey.getAccessKeyId()));
+                    if (!StringUtils.isNullOrEmpty(secretKey)) {
+                        secretKeyMap.put(accessKey.getAccessKeyId(), secretKey);
+                    }
                 }
-            }
 
-            // If no secret keys are present in Redis, create a new key and add it to
-            // secretKeyMap
-            if (secretKeyMap.isEmpty()) {
-                CreateAccessKeyResult createAccessKeyResult = createAccessKey(userId, iam);
+                // If no secret keys are present in Redis, create a new key and add it to
+                // secretKeyMap
+                if (secretKeyMap.isEmpty()) {
+                    CreateAccessKeyResult createAccessKeyResult = createAccessKey(userId, iam);
 
-                AccessKeyMetadata newAccessKeyMetadata = ScalityModelConverter
-                        .toAccessKeyMetadata(createAccessKeyResult.getAccessKey());
-                listAccessKeysResult.getAccessKeyMetadata().add(newAccessKeyMetadata);
+                    AccessKeyMetadata newAccessKeyMetadata = ScalityModelConverter
+                            .toAccessKeyMetadata(createAccessKeyResult.getAccessKey());
+                    listAccessKeysResult.getAccessKeyMetadata().add(newAccessKeyMetadata);
 
-                secretKeyMap.put(createAccessKeyResult.getAccessKey().getAccessKeyId(),
-                        createAccessKeyResult.getAccessKey().getSecretAccessKey());
-            }
+                    secretKeyMap.put(createAccessKeyResult.getAccessKey().getAccessKeyId(),
+                            createAccessKeyResult.getAccessKey().getSecretAccessKey());
+                }
 
-            PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter
-                    .toPageOfS3Credentials(listAccessKeysResult, offset, limit, tenant, secretKeyMap);
-            logger.info("List S3 credentials  response:{}",
-                    ScalityModelConverter.maskSecretKey(new Gson().toJson(pageOfS3Credentials)));
+                PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter
+                        .toPageOfS3Credentials(listAccessKeysResult, offset, limit, tenant, secretKeyMap);
+                logger.info("List S3 credentials  response:{}",
+                        ScalityModelConverter.maskSecretKey(new Gson().toJson(pageOfS3Credentials)));
 
-            pageOfS3Credentials.getItems()
-                    .forEach(s3Credential -> s3Credential.setCdTenantId(tenant.getCdTenantIds().get(0)));
-            return pageOfS3Credentials;
+                pageOfS3Credentials.getItems()
+                        .forEach(s3Credential -> s3Credential.setCdTenantId(tenant.getCdTenantIds().get(0)));
+                return pageOfS3Credentials;
+            });
         } catch (Exception e) {
-
-            if (isAdminPolicyError(e)) {
-                try {
-                    generateAdminPolicy(tenantId);
-                    return listS3Credentials(tenantId, userId, offset, limit);
-                } catch (Exception ex) {
-                    e = ex;
-                }
-            }
-
             logger.error("ListS3Credentials error. Returning empty list. Error details: ", e);
             // For errors, ListS3Credentials should return empty PageOfS3Credentials
 
@@ -1011,27 +941,21 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 logger.info("UpdatedCredentialStatus: GetUserByAccessKey response received, tenant id: {}, user id: {}", tenantIdOfCurrentUser, userIdOfCurrentUser);
             }
 
-            Credentials tempCredentials = getCredentials(tenantIdOfCurrentUser);
-            final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials,
-                    appEnv.getRegionInfo().get(0));
-            UpdateAccessKeyRequest updateAccessKeyRequest = ScalityModelConverter.toIAMUpdateAccessKeyRequest(
-                    userIdOfCurrentUser,
-                    accessKey,
-                    osisS3Credential.getActive());
-            iam.updateAccessKey(updateAccessKeyRequest);
-            OsisS3Credential newOsisS3Credential = this.getS3Credential(tenantIdOfCurrentUser, userIdOfCurrentUser, accessKey);
-            logger.info("UpdatedCredentialStatus response:{}", ScalityModelConverter.maskSecretKey(new Gson().toJson(newOsisS3Credential)));
-            return newOsisS3Credential;
-        } catch (Exception e) {
-            if (isAdminPolicyError(e)) {
-                try {
-                    generateAdminPolicy(tenantIdOfCurrentUser);
-                    return updateCredentialStatus(tenantIdOfCurrentUser, userIdOfCurrentUser, accessKey, osisS3Credential);
-                } catch (Exception ex) {
-                    e = ex;
-                }
-            }
+            final String resolvedTenantId = tenantIdOfCurrentUser;
+            final String resolvedUserId = userIdOfCurrentUser;
 
+            return tenantSession.run(resolvedTenantId, () -> {
+                final AmazonIdentityManagement iam = tenantSession.getIamClient(resolvedTenantId);
+                UpdateAccessKeyRequest updateAccessKeyRequest = ScalityModelConverter.toIAMUpdateAccessKeyRequest(
+                        resolvedUserId,
+                        accessKey,
+                        osisS3Credential.getActive());
+                iam.updateAccessKey(updateAccessKeyRequest);
+                OsisS3Credential newOsisS3Credential = this.getS3Credential(resolvedTenantId, resolvedUserId, accessKey);
+                logger.info("UpdatedCredentialStatus response:{}", ScalityModelConverter.maskSecretKey(new Gson().toJson(newOsisS3Credential)));
+                return newOsisS3Credential;
+            });
+        } catch (Exception e) {
             logger.error("UpdateCredentialStatus error. Error details: ", e);
             throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         }
@@ -1040,56 +964,46 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     @Override
     public PageOfUsers listUsers(String tenantId, long offset, long limit) {
         try {
-            logger.info("List Users request received:: tenant ID:{}, offset:{}, limit:{}", tenantId, offset, limit);
+            return tenantSession.run(tenantId, () -> {
+                logger.info("List Users request received:: tenant ID:{}, offset:{}, limit:{}", tenantId, offset, limit);
 
-            Credentials tempCredentials = getCredentials(tenantId);
-            final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials,
-                    appEnv.getRegionInfo().get(0));
+                final AmazonIdentityManagement iam = tenantSession.getIamClient(tenantId);
 
-            ListUsersRequest listUsersRequest = ScalityModelConverter.toIAMListUsersRequest(offset, limit);
+                ListUsersRequest listUsersRequest = ScalityModelConverter.toIAMListUsersRequest(offset, limit);
 
-            logger.debug("[Vault] List Users Request:{}", new Gson().toJson(listUsersRequest));
+                logger.debug("[Vault] List Users Request:{}", new Gson().toJson(listUsersRequest));
 
-            ListUsersResult listUsersResult = iam.listUsers(listUsersRequest);
+                ListUsersResult listUsersResult = iam.listUsers(listUsersRequest);
 
-            logger.debug("[Vault] List Users response:{}", new Gson().toJson(listUsersResult));
+                logger.debug("[Vault] List Users response:{}", new Gson().toJson(listUsersResult));
 
-            PageOfUsers pageOfUsers = ScalityModelConverter.toPageOfUsers(listUsersResult, offset, limit, tenantId);
+                PageOfUsers pageOfUsers = ScalityModelConverter.toPageOfUsers(listUsersResult, offset, limit, tenantId);
 
-            for (OsisUser osisUser : pageOfUsers.getItems()) {
-                // List all user access keys and if all are inactive, mark user as inactive
-                ListAccessKeysRequest listAccessKeysRequest = ScalityModelConverter
-                        .toIAMListAccessKeysRequest(osisUser.getUserId(), DEFAULT_MAX_LIMIT);
+                for (OsisUser osisUser : pageOfUsers.getItems()) {
+                    // List all user access keys and if all are inactive, mark user as inactive
+                    ListAccessKeysRequest listAccessKeysRequest = ScalityModelConverter
+                            .toIAMListAccessKeysRequest(osisUser.getUserId(), DEFAULT_MAX_LIMIT);
 
-                logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
+                    logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
 
-                ListAccessKeysResult listAccessKeysResult = iam.listAccessKeys(listAccessKeysRequest);
+                    ListAccessKeysResult listAccessKeysResult = iam.listAccessKeys(listAccessKeysRequest);
 
-                logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
+                    logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
 
-                boolean isActive = false;
-                for (AccessKeyMetadata accessKey : listAccessKeysResult.getAccessKeyMetadata()) {
-                    if (accessKey.getStatus().equals(StatusType.Active.toString())) {
-                        isActive = true;
-                        break;
+                    boolean isActive = false;
+                    for (AccessKeyMetadata accessKey : listAccessKeysResult.getAccessKeyMetadata()) {
+                        if (accessKey.getStatus().equals(StatusType.Active.toString())) {
+                            isActive = true;
+                            break;
+                        }
                     }
+                    osisUser.setActive(isActive);
                 }
-                osisUser.setActive(isActive);
-            }
-            logger.info("List Users response:{}", new Gson().toJson(pageOfUsers));
+                logger.info("List Users response:{}", new Gson().toJson(pageOfUsers));
 
-            return pageOfUsers;
+                return pageOfUsers;
+            });
         } catch (Exception e) {
-
-            if (isAdminPolicyError(e)) {
-                try {
-                    generateAdminPolicy(tenantId);
-                    return listUsers(tenantId, offset, limit);
-                } catch (Exception ex) {
-                    e = ex;
-                }
-            }
-
             logger.error("ListUsers error. Returning empty list. Error details: ", e);
             // For errors, List Users should return empty PageOfUsers
             PageInfo pageInfo = new PageInfo(limit, offset);
@@ -1105,45 +1019,36 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     @Override
     public OsisUser updateUser(String tenantId, String userId, OsisUser osisUser) {
         try {
-            OsisTenant tenant = ScalityModelConverter
-                    .toOsisTenant(vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId)));
-            logger.info("Update User request received:: tenant ID:{}, user ID:{}", tenantId, userId);
+            return tenantSession.run(tenantId, () -> {
+                OsisTenant tenant = ScalityModelConverter
+                        .toOsisTenant(vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId)));
+                logger.info("Update User request received:: tenant ID:{}, user ID:{}", tenantId, userId);
 
-            Credentials tempCredentials = getCredentials(tenantId);
-            final AmazonIdentityManagement iam = vaultAdmin.getIAMClient(tempCredentials,
-                    appEnv.getRegionInfo().get(0));
+                final AmazonIdentityManagement iam = tenantSession.getIamClient(tenantId);
 
-            // List all access keys for the user
-            ListAccessKeysRequest listAccessKeysRequest = ScalityModelConverter.toIAMListAccessKeysRequest(userId,
-                    DEFAULT_MAX_LIMIT);
+                // List all access keys for the user
+                ListAccessKeysRequest listAccessKeysRequest = ScalityModelConverter.toIAMListAccessKeysRequest(userId,
+                        DEFAULT_MAX_LIMIT);
 
-            logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
+                logger.debug("[Vault] List Access Keys Request:{}", new Gson().toJson(listAccessKeysRequest));
 
-            ListAccessKeysResult listAccessKeysResult = iam.listAccessKeys(listAccessKeysRequest);
+                ListAccessKeysResult listAccessKeysResult = iam.listAccessKeys(listAccessKeysRequest);
 
-            logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
+                logger.debug("[Vault] List Access Keys response:{}", new Gson().toJson(listAccessKeysResult));
 
-            for (AccessKeyMetadata accessKey : listAccessKeysResult.getAccessKeyMetadata()) {
-                // Update each access key of the user to active/inactive
-                UpdateAccessKeyRequest updateAccessKeyRequest = ScalityModelConverter.toIAMUpdateAccessKeyRequest(
-                        userId,
-                        accessKey.getAccessKeyId(), osisUser.getActive());
-                iam.updateAccessKey(updateAccessKeyRequest);
-            }
-
-            logger.info("Updated user response:{}", ScalityModelConverter.maskSecretKey(new Gson().toJson(osisUser)));
-            return osisUser;
-        } catch (Exception e) {
-
-            if (isAdminPolicyError(e)) {
-                try {
-                    generateAdminPolicy(tenantId);
-                    return updateUser(tenantId, userId, osisUser);
-                } catch (Exception ex) {
-                    e = ex;
+                for (AccessKeyMetadata accessKey : listAccessKeysResult.getAccessKeyMetadata()) {
+                    // Update each access key of the user to active/inactive
+                    UpdateAccessKeyRequest updateAccessKeyRequest = ScalityModelConverter.toIAMUpdateAccessKeyRequest(
+                            userId,
+                            accessKey.getAccessKeyId(), osisUser.getActive());
+                    iam.updateAccessKey(updateAccessKeyRequest);
                 }
-            }
 
+                logger.info("Updated user response:{}",
+                        ScalityModelConverter.maskSecretKey(new Gson().toJson(osisUser)));
+                return osisUser;
+            });
+        } catch (Exception e) {
             logger.error("Update User error. Error details: ", e);
             throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         }
@@ -1176,37 +1081,28 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     @Override
     public PageOfOsisBucketMeta getBucketList(String tenantId, long offset, long limit) {
         try {
-            logger.info("Get bucket list request received:: tenant ID:{}, offset:{}, limit:{}", tenantId, offset, limit);
-            Credentials tempCredentials = getCredentials(tenantId);
-            final AmazonS3 s3Client = this.s3.getS3Client(tempCredentials,
-                    appEnv.getRegionInfo().get(0));
+            return tenantSession.run(tenantId, () -> {
+                logger.info("Get bucket list request received:: tenant ID:{}, offset:{}, limit:{}", tenantId, offset, limit);
+                final AmazonS3 s3Client = tenantSession.getS3Client(tenantId);
 
-            // Get account info by tenant ID for canonical ID
-            GetAccountRequestDTO getAccountRequest = ScalityModelConverter.toGetAccountRequestWithID(tenantId);
-            logger.debug("[Vault]GetAccount request:{}", new Gson().toJson(getAccountRequest));
+                // Get account info by tenant ID for canonical ID
+                GetAccountRequestDTO getAccountRequest = ScalityModelConverter.toGetAccountRequestWithID(tenantId);
+                logger.debug("[Vault]GetAccount request:{}", new Gson().toJson(getAccountRequest));
 
-            AccountData accountData = vaultAdmin.getAccount(getAccountRequest);
-            logger.debug("[Vault]GetAccount response:{}", new Gson().toJson(accountData));
+                AccountData accountData = vaultAdmin.getAccount(getAccountRequest);
+                logger.debug("[Vault]GetAccount response:{}", new Gson().toJson(accountData));
 
-            //s3 listBucket has no pagination, so list all
-            List<Bucket> buckets = s3Client.listBuckets();
-            logger.debug("[S3] List all Buckets size:{}", buckets.size());
+                //s3 listBucket has no pagination, so list all
+                List<Bucket> buckets = s3Client.listBuckets();
+                logger.debug("[S3] List all Buckets size:{}", buckets.size());
 
-            PageOfOsisBucketMeta pageOfOsisBucketMeta = ScalityModelConverter.toPageOfOsisBucketMeta(
-                    buckets, accountData.getCanonicalId(), offset, limit);
-            logger.info("List Buckets response:{}", new Gson().toJson(pageOfOsisBucketMeta));
+                PageOfOsisBucketMeta pageOfOsisBucketMeta = ScalityModelConverter.toPageOfOsisBucketMeta(
+                        buckets, accountData.getCanonicalId(), offset, limit);
+                logger.info("List Buckets response:{}", new Gson().toJson(pageOfOsisBucketMeta));
 
-            return pageOfOsisBucketMeta;
+                return pageOfOsisBucketMeta;
+            });
         } catch (Exception e) {
-            if (isAdminPolicyError(e)) {
-                try {
-                    generateAdminPolicy(tenantId);
-                    return getBucketList(tenantId, offset, limit);
-                } catch (Exception ex) {
-                    e = ex;
-                }
-            }
-
             logger.error("GetBucketList error. Returning empty list. Error details: ", e);
             // For errors, GetBucketList should return empty PageOfOsisBucketMeta
             PageInfo pageInfo = new PageInfo(limit, offset);
@@ -1235,37 +1131,6 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     }
 
     /**
-     * Gets credentials.
-     *
-     * @param accountID the account id
-     * @return the credentials
-     */
-    public Credentials getCredentials(String accountID) {
-        Credentials credentials = null;
-        try {
-            AssumeRoleRequest assumeRoleRequest = ScalityModelConverter.getAssumeRoleRequestForAccount(accountID,
-                    appEnv.getAssumeRoleName());
-            logger.debug("[Vault] Assume Role request:{}", assumeRoleRequest);
-            credentials = vaultAdmin.getTempAccountCredentials(assumeRoleRequest);
-            logger.debug("[Vault] Assume Role response received with access key:{}, expiration:{}",
-                    credentials.getAccessKeyId(), credentials.getExpiration());
-        } catch (VaultServiceException e) {
-
-            if (!StringUtils.isNullOrEmpty(e.getErrorCode()) &&
-                    ACCESS_DENIED.equals(e.getErrorCode())) {
-                // if access denied, invoke setupAssumeRole
-                logger.error(e.getReason() + ". Recreating the role");
-                // Call get Account with Account ID to retrieve account name
-                AccountData account = vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(accountID));
-                asyncScalityOsisService.setupAssumeRole(accountID, account.getName());
-                return getCredentials(accountID);
-            }
-            throw e;
-        }
-        return credentials;
-    }
-
-    /**
      * Create osis credential osis s 3 credential.
      *
      * @param tenantId   the tenant id
@@ -1275,7 +1140,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
      * @param iam        the iam
      * @return the osis s 3 credential
      */
-    public OsisS3Credential createOsisCredential(String tenantId, String userId, String cdTenantId, String username,
+    OsisS3Credential createOsisCredential(String tenantId, String userId, String cdTenantId, String username,
             AmazonIdentityManagement iam) throws Exception {
 
         CreateAccessKeyResult createAccessKeyResult = createAccessKey(userId, iam);
@@ -1311,7 +1176,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
         return createAccessKeyResult;
     }
 
-    public Policy getOrCreateUserPolicy(AmazonIdentityManagement iam, String tenantId) {
+    Policy getOrCreateUserPolicy(AmazonIdentityManagement iam, String tenantId) {
         Policy userPolicy = getUserPolicy(iam, tenantId);
 
         if (userPolicy == null || StringUtils.isNullOrEmpty(userPolicy.getArn())) {
@@ -1348,21 +1213,6 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
         }
     }
 
-    private void generateAdminPolicy(String tenantId) throws Exception {
-        AccountData account = vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(tenantId));
-        asyncScalityOsisService.setupAdminPolicy(tenantId, account.getName(), appEnv.getAssumeRoleName());
-    }
-
-    private boolean isAdminPolicyError(Exception e) {
-        return (e instanceof AmazonIdentityManagementException &&
-                (HttpStatus.FORBIDDEN.value() == ((AmazonIdentityManagementException) e).getStatusCode()))
-                ||
-                (e instanceof AmazonS3Exception &&
-                        (HttpStatus.FORBIDDEN.value() == ((AmazonS3Exception) e).getStatusCode()))
-                ||
-                (e instanceof UtapiClientException &&
-                        (HttpStatus.FORBIDDEN.value() == ((UtapiClientException) e).getStatusCode()));
-    }
 
     private Map<String, String> getTenantIdAndUserIdByAccessKeyFromVault(String accessKey) {
 

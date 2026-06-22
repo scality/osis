@@ -21,6 +21,7 @@ import com.scality.osis.security.utils.CipherFactory;
 import com.scality.osis.service.credentials.EncryptedSecretKeyStore;
 import com.scality.osis.service.credentials.RedisSecretKeyBackend;
 import com.scality.osis.service.credentials.SecretKeyStore;
+import com.scality.osis.service.tenant.ScalityTenantSession;
 import com.scality.osis.utapi.impl.UtapiImpl;
 import com.scality.osis.utapiclient.dto.MetricsData;
 import com.scality.osis.utapiclient.services.UtapiServiceClient;
@@ -70,6 +71,8 @@ class BaseOsisServiceTest {
 
     protected AsyncScalityOsisService asyncScalityOsisServiceUnderTest;
 
+    protected ScalityTenantSession tenantSessionUnderTest;
+
     @Mock
     protected ScalityAppEnv appEnvMock;
 
@@ -98,14 +101,19 @@ class BaseOsisServiceTest {
     protected void init() {
         MockitoAnnotations.openMocks(this);
         initMocks();
-        scalityOsisServiceUnderTest = new ScalityOsisServiceImpl(appEnvMock, vaultAdminMock, s3Mock, utapiMock, osisCapsManagerMock);
+        scalityOsisServiceUnderTest = new ScalityOsisServiceImpl(appEnvMock, vaultAdminMock, utapiMock, osisCapsManagerMock);
 
         asyncScalityOsisServiceUnderTest = new AsyncScalityOsisService();
         ReflectionTestUtils.setField(asyncScalityOsisServiceUnderTest, "vaultAdmin", vaultAdminMock);
         ReflectionTestUtils.setField(asyncScalityOsisServiceUnderTest, "appEnv", appEnvMock);
 
+        tenantSessionUnderTest = new ScalityTenantSession(appEnvMock, vaultAdminMock, s3Mock,
+                asyncScalityOsisServiceUnderTest);
+
         ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "asyncScalityOsisService",
                 asyncScalityOsisServiceUnderTest);
+
+        ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "tenantSession", tenantSessionUnderTest);
 
         final SecretKeyStore secretKeyStore = new EncryptedSecretKeyStore(
                 new RedisSecretKeyBackend(redisRepositoryMock), cipherFactoryMock);

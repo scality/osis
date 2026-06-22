@@ -4,8 +4,6 @@ import com.amazonaws.Response;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.Owner;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.Credentials;
 import com.scality.osis.model.*;
 import com.scality.osis.model.exception.NotImplementedException;
 import com.scality.osis.s3.impl.S3ServiceException;
@@ -22,7 +20,6 @@ import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -320,53 +317,6 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         assertEquals(-1, response.getUsedBytes());
         assertEquals(-1, response.getAvailableBytes());
         assertEquals(-1, response.getTotalBytes());
-    }
-
-    @Test
-    void testGetCredentials() {
-        // Setup
-
-        // Run the test
-        final Credentials credentials = scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID);
-
-        // Verify the results
-        assertEquals(TEST_ACCESS_KEY, credentials.getAccessKeyId(), "Invalid Access key");
-        assertEquals(TEST_SECRET_KEY, credentials.getSecretAccessKey(), "Invalid Secret Key");
-    }
-
-    @Test
-    void testGetCredentialsWithNoRole() {
-        // Setup
-
-        when(vaultAdminMock.getTempAccountCredentials(any(AssumeRoleRequest.class)))
-                .thenThrow(new VaultServiceException(HttpStatus.FORBIDDEN, "AccessDenied", "User: backbeat is not allowed to assume role"))
-                .thenAnswer((Answer<Credentials>) invocation -> {
-                    final Credentials credentials = new Credentials();
-                    credentials.setAccessKeyId(TEST_ACCESS_KEY);
-                    credentials.setSecretAccessKey(TEST_SECRET_KEY);
-                    credentials.setExpiration(new Date());
-                    credentials.setSessionToken(TEST_SESSION_TOKEN);
-
-                    return credentials;
-                });
-        // Run the test
-        final Credentials credentials = scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID);
-
-        // Verify the results
-        assertEquals(TEST_ACCESS_KEY, credentials.getAccessKeyId(), "Invalid Access key");
-        assertEquals(TEST_SECRET_KEY, credentials.getSecretAccessKey(), "Invalid Secret Key");
-    }
-
-    @Test
-    void testGetCredentials400() {
-        // Setup
-        when(vaultAdminMock.getTempAccountCredentials(any(AssumeRoleRequest.class)))
-                .thenThrow(new VaultServiceException(HttpStatus.BAD_REQUEST, "Bad Request"));
-
-        // Run the test
-        assertThrows(VaultServiceException.class, () -> scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID));
-
-        // Verify the results
     }
 
     @Test
