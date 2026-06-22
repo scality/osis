@@ -21,12 +21,10 @@ import com.scality.osis.ScalityAppEnv;
 import com.scality.osis.model.*;
 import com.scality.osis.model.exception.NotFoundException;
 import com.scality.osis.model.exception.NotImplementedException;
-import com.scality.osis.redis.service.IRedisRepository;
 import com.scality.osis.resource.ScalityOsisCapsManager;
 import com.scality.osis.s3.S3;
-import com.scality.osis.security.crypto.model.SecretKeyRepoData;
-import com.scality.osis.security.utils.CipherFactory;
 import com.scality.osis.service.ScalityOsisService;
+import com.scality.osis.service.credentials.SecretKeyStore;
 import com.scality.osis.utapi.Utapi;
 import com.scality.osis.utapiclient.dto.ListMetricsRequestDTO;
 import com.scality.osis.utapiclient.dto.MetricsData;
@@ -47,7 +45,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static com.scality.osis.utils.ScalityConstants.*;
 import static com.scality.osis.utils.ScalityUtils.getHourTime;
@@ -70,12 +67,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     private AsyncScalityOsisService asyncScalityOsisService;
 
     @Autowired
-    private IRedisRepository<SecretKeyRepoData> scalityRedisRepository;
-
-    @Autowired
-    private CipherFactory cipherFactory;
-
-    private final Map<String, SecretKeyRepoData> springLocalCache = new ConcurrentHashMap<>();
+    private SecretKeyStore secretKeyStore;
 
     /**
      * Instantiates a new Scality osis service.
@@ -534,7 +526,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             logger.debug("[Vault] Delete Access Key response:{}", new Gson().toJson(deleteAccessKeyResult));
 
-            deleteSecretKey(ScalityModelConverter.toRepoKeyForCredentials(userId, accessKey));
+            secretKeyStore.delete(ScalityModelConverter.toRepoKeyForCredentials(userId, accessKey));
 
             logger.info("Delete S3 credential successful:: tenant ID:{}, user ID:{}, accessKey:{}",
                     tenantId, userId, accessKey);
@@ -716,7 +708,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             if (accessKeyResult.isPresent()) {
                 AccessKeyMetadata accessKeyMetadata = accessKeyResult.get();
 
-                String secretKey = retrieveSecretKey(
+                String secretKey = secretKeyStore.retrieve(
                         ScalityModelConverter.toRepoKeyForCredentials(userId, accessKeyMetadata.getAccessKeyId()));
 
                 // get Osis User by userId
@@ -956,7 +948,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             Map<String, String> secretKeyMap = new HashMap<>();
             for (AccessKeyMetadata accessKey : listAccessKeysResult.getAccessKeyMetadata()) {
-                String secretKey = retrieveSecretKey(
+                String secretKey = secretKeyStore.retrieve(
                         ScalityModelConverter.toRepoKeyForCredentials(userId, accessKey.getAccessKeyId()));
                 if (!StringUtils.isNullOrEmpty(secretKey)) {
                     secretKeyMap.put(accessKey.getAccessKeyId(), secretKey);
@@ -1311,7 +1303,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
         logger.debug("[Vault] Create User Access Key Response:{}", createAccessKeyResult);
 
-        storeSecretKey(
+        secretKeyStore.store(
                 ScalityModelConverter.toRepoKeyForCredentials(userId,
                         createAccessKeyResult.getAccessKey().getAccessKeyId()),
                 createAccessKeyResult.getAccessKey().getSecretAccessKey());
@@ -1370,68 +1362,6 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 ||
                 (e instanceof UtapiClientException &&
                         (HttpStatus.FORBIDDEN.value() == ((UtapiClientException) e).getStatusCode()));
-    }
-
-    private void storeSecretKey(String repoKey, String secretAccessKey) throws Exception {
-        // Using `repoKey` for Associated Data during encryption
-        logger.debug("[Cache] Store Secret Key on cache. Key:{}", repoKey);
-        SecretKeyRepoData encryptedRepoData = cipherFactory.getCipher().encrypt(secretAccessKey,
-                cipherFactory.getLatestSecretCipherKey(),
-                repoKey);
-
-        encryptedRepoData.setKeyID(cipherFactory.getLatestCipherID());
-        encryptedRepoData.getCipherInfo().setCipherName(cipherFactory.getLatestCipherName());
-        // Prefix Cipher ID to the encrypted value
-
-        if (REDIS_SPRING_CACHE_TYPE.equalsIgnoreCase(appEnv.getSpringCacheType())) {
-            scalityRedisRepository.save(repoKey, encryptedRepoData);
-        } else {
-            springLocalCache.put(repoKey, encryptedRepoData);
-        }
-        logger.debug("[Cache] Store Secret Key successful");
-    }
-
-    private String retrieveSecretKey(String repoKey) throws Exception {
-        logger.debug("[Cache] Retrieve Secret Key from cache. Key:{}", repoKey);
-        SecretKeyRepoData repoVal = null;
-        if (REDIS_SPRING_CACHE_TYPE.equalsIgnoreCase(appEnv.getSpringCacheType())) {
-            if (scalityRedisRepository.hasKey(repoKey)) {
-                repoVal = scalityRedisRepository.get(repoKey);
-            }
-        } else {
-            repoVal = springLocalCache.get(repoKey);
-        }
-
-        String secretKey = null;
-
-        if (repoVal != null) {
-            try {
-                // Using `repoKey` for Associated Data during decryption
-                secretKey = cipherFactory.getCipherByID(repoVal.getKeyID())
-                        .decrypt(repoVal,
-                                cipherFactory.getSecretCipherKeyByID(repoVal.getKeyID()),
-                                repoKey);
-
-                logger.debug("[Cache] Retrieve Secret Key successful");
-            } catch (Exception e) {
-                logger.error("Error: Unable to decrypt secret key data for Redis key: {}. Error details: {}", repoKey, e.getMessage());
-                logger.debug("Full stack trace:", e);
-                deleteSecretKey(repoKey);
-            }
-        }
-        return secretKey;
-    }
-
-    private void deleteSecretKey(String repoKey) throws Exception {
-        logger.debug("[Cache] Delete Secret Key from cache. Key:{}", repoKey);
-        if (REDIS_SPRING_CACHE_TYPE.equalsIgnoreCase(appEnv.getSpringCacheType())) {
-            if (scalityRedisRepository.hasKey(repoKey)) {
-                scalityRedisRepository.delete(repoKey);
-            }
-        } else {
-            springLocalCache.remove(repoKey);
-        }
-        logger.debug("[Cache] Delete Secret Key from cache successful");
     }
 
     private Map<String, String> getTenantIdAndUserIdByAccessKeyFromVault(String accessKey) {

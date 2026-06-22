@@ -153,6 +153,9 @@ class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
 
     }
 
+    // deleteS3Credential always delegates to the store; the store's delete is unconditional
+    // (an idempotent Redis HDEL, a no-op when the key is absent), so there is no existence
+    // check to assert here. The unconditional-delete contract is pinned in SecretKeyBackendTest.
     @Test
     void testDeleteS3Credential() {
         // Setup
@@ -163,19 +166,6 @@ class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
         // Verify the results
         verify(iamMock).deleteAccessKey(any(DeleteAccessKeyRequest.class));
         verify(redisRepositoryMock).delete(any());
-    }
-
-    @Test
-    void testDeleteS3CredentialWithNoKeyOnRedis() {
-        // Setup
-        when(redisRepositoryMock.hasKey(any())).thenReturn(Boolean.FALSE);
-
-        // Run the test
-        scalityOsisServiceUnderTest.deleteS3Credential(TEST_TENANT_ID, TEST_USER_ID, TEST_ACCESS_KEY);
-
-        // Verify the results
-        verify(iamMock).deleteAccessKey(any(DeleteAccessKeyRequest.class));
-        verify(redisRepositoryMock, never()).delete(any());
     }
 
     @Test
@@ -381,8 +371,8 @@ class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
 
     @Test
     void testGetS3CredentialWithNoKeyOnRedis() {
-        // Setup
-        when(redisRepositoryMock.hasKey(any())).thenReturn(Boolean.FALSE);
+        // Setup: the secret is absent from storage (Redis returns null for the lookup)
+        when(redisRepositoryMock.get(any())).thenReturn(null);
 
         // Run the test
         final OsisS3Credential result = scalityOsisServiceUnderTest.getS3Credential(SAMPLE_TENANT_ID, TEST_USER_ID,
@@ -485,8 +475,8 @@ class ScalityOsisServiceCredentialsTests extends BaseOsisServiceTest {
 
     @Test
     void testListS3CredentialsWithNoKeyOnRedis() {
-        // Setup
-        when(redisRepositoryMock.hasKey(any())).thenReturn(Boolean.FALSE);
+        // Setup: the secret is absent from storage (Redis returns null for the lookup)
+        when(redisRepositoryMock.get(any())).thenReturn(null);
 
         when(iamMock.listAccessKeys(any(ListAccessKeysRequest.class)))
                 .thenAnswer((Answer<ListAccessKeysResult>) invocation -> {

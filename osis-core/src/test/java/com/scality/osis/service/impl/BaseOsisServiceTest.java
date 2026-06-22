@@ -18,6 +18,9 @@ import com.scality.osis.security.crypto.BaseCipher;
 import com.scality.osis.security.crypto.model.CipherInformation;
 import com.scality.osis.security.crypto.model.SecretKeyRepoData;
 import com.scality.osis.security.utils.CipherFactory;
+import com.scality.osis.service.credentials.EncryptedSecretKeyStore;
+import com.scality.osis.service.credentials.RedisSecretKeyBackend;
+import com.scality.osis.service.credentials.SecretKeyStore;
 import com.scality.osis.utapi.impl.UtapiImpl;
 import com.scality.osis.utapiclient.dto.MetricsData;
 import com.scality.osis.utapiclient.services.UtapiServiceClient;
@@ -103,8 +106,10 @@ class BaseOsisServiceTest {
 
         ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "asyncScalityOsisService",
                 asyncScalityOsisServiceUnderTest);
-        ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "scalityRedisRepository", redisRepositoryMock);
-        ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "cipherFactory", cipherFactoryMock);
+
+        final SecretKeyStore secretKeyStore = new EncryptedSecretKeyStore(
+                new RedisSecretKeyBackend(redisRepositoryMock), cipherFactoryMock);
+        ReflectionTestUtils.setField(scalityOsisServiceUnderTest, "secretKeyStore", secretKeyStore);
     }
 
     protected void initMocks() {
@@ -174,7 +179,6 @@ class BaseOsisServiceTest {
 
     private void initRedisMocks() {
         when(redisRepositoryMock.get(any())).thenReturn(mockSecretKeyRepoData());
-        when(redisRepositoryMock.hasKey(any())).thenReturn(Boolean.TRUE);
     }
 
     private SecretKeyRepoData mockSecretKeyRepoData() {
