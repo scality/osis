@@ -111,9 +111,8 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             return resOsisTenant;
         } catch (VaultServiceException e) {
-            // Create Tenant supports only 400:BAD_REQUEST error, change status code in the
-            // VaultServiceException
-            logger.error("Create Tenant error. Error details: ", e);
+            // Create Tenant supports only 400:BAD_REQUEST error. Logged once at the error
+            // boundary; rethrow typed so the status is preserved.
             throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         }
     }
@@ -154,7 +153,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return pageOfTenants;
 
             } catch (VaultServiceException e) {
-                logger.error("Query Tenants error. Return empty list. Error details: ", e);
+                logger.warn("Query Tenants failed; returning empty list: {}", e.getMessage());
                 // For errors, List Tenants should return empty PageOfTenants
                 PageInfo pageInfo = new PageInfo(limit, offset);
 
@@ -188,7 +187,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             return pageOfTenants;
 
         } catch (VaultServiceException e) {
-            logger.error("List Tenants error. Return empty list. Error details: ", e);
+            logger.warn("List Tenants failed; returning empty list: {}", e.getMessage());
             // For errors, List Tenants should return empty PageOfTenants
             PageInfo pageInfo = new PageInfo(limit, offset);
 
@@ -253,9 +252,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return resOsisUser;
             });
         } catch (Exception e) {
-            // Create User supports only 400:BAD_REQUEST error, change status code in the
-            // VaultServiceException
-            logger.error("Create User error. Error details: ", e);
+            // Create User supports only 400:BAD_REQUEST error. Logged once at the boundary.
             throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         }
 
@@ -357,7 +354,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             } catch (Exception e) {
 
-                logger.error("Query Users error. Return empty list. Error details: ", e);
+                logger.warn("Query Users failed; returning empty list: {}", e.getMessage());
                 // For errors, Query users should return empty PageOfUsers
                 PageInfo pageInfo = new PageInfo(limit, offset);
 
@@ -367,7 +364,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return pageOfUsers;
             }
         } else {
-            logger.error("QueryUsers requested with invalid filter. Returns empty set of users");
+            logger.info("Query Users requested with invalid filter; returning empty list");
             // For errors, Query Users should return empty PageOfUsers
             PageInfo pageInfo = new PageInfo(limit, offset);
 
@@ -399,8 +396,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return credential;
             });
         } catch (Exception e) {
-            // Create S3 Credential supports only 400:BAD_REQUEST error
-            logger.error("Create S3 Credential error. Error details: ", e);
+            // Create S3 Credential supports only 400:BAD_REQUEST error. Logged once at the boundary.
             throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         }
     }
@@ -430,15 +426,14 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                     return pageOfS3Credentials;
 
                 } catch (Exception e) {
-                    logger.error(
-                            "Query S3 credential :: The S3 Credential doesn't exist for the given access key. Error details:",
-                            e);
+                    logger.info("Query S3 credential: no credential for the given access key; "
+                            + "returning empty list: {}", e.getMessage());
                     // For errors, Query Credentials should return empty PageOfS3Credentials
                     return ScalityModelConverter.getEmptyPageOfS3Credentials(offset, limit);
                 }
             }
         } else {
-            logger.error("QueryS3Credentials requested with invalid filter. Returns empty set of credentials");
+            logger.info("Query S3 Credentials requested with invalid filter; returning empty list");
             // For errors, Query Credentials should return empty PageOfS3Credentials
             return ScalityModelConverter.getEmptyPageOfS3Credentials(offset, limit);
         }
@@ -466,7 +461,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                             OsisS3Capabilities.class);
             logger.info("S3 capabilities response:{}", new Gson().toJson(osisS3Capabilities));
         } catch (IOException e) {
-            logger.info("Fail to load S3 capabilities from configuration file {}.", s3CapabilitiesFilePath);
+            logger.warn("Fail to load S3 capabilities from configuration file {}.", s3CapabilitiesFilePath);
         }
         return osisS3Capabilities;
     }
@@ -511,7 +506,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             });
 
         } catch (Exception e) {
-            logger.error("Delete S3 credential failed. Error details:", e);
+            logger.warn("Delete S3 credential failed; treating as deleted: {}", e.getMessage());
         }
     }
 
@@ -533,7 +528,6 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             OsisTenant osisTenantFromStoragePlatform = getTenant(tenantId);
             if (!Objects.equals(osisTenant.getName(), osisTenantFromStoragePlatform.getName()) ||
                     !Objects.equals(osisTenant.getTenantId(), osisTenantFromStoragePlatform.getTenantId())) {
-                logger.error("Update Tenant failed. Tenant name and tenant ID doesn't match in the request and storage platform");
                 throw new VaultServiceException(
                         HttpStatus.BAD_REQUEST,
                         "E_BAD_REQUEST", "Tenant name and tenant ID doesn't match in the request and storage platform"
@@ -557,10 +551,9 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             return resOsisTenant;
         } catch (VaultServiceException e) {
-            // Update Tenant supports only 400:BAD_REQUEST error, change status code in the
-            // VaultServiceException
-            logger.error("Update Tenant error. Error details: ", e);
-            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getErrorCode(), e.getReason());
+            // Update Tenant supports only 400:BAD_REQUEST error. Logged once at the boundary.
+            // Keep the original Vault failure as the cause so the trace survives to the log.
+            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getErrorCode(), e.getReason(), e);
         }
     }
 
@@ -598,7 +591,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             });
         } catch (Exception e) {
             // If delete user fails just return no error response
-            logger.error("deleteUser error. User not found. Error details: ", e);
+            logger.warn("Delete User failed; treating as deleted: {}", e.getMessage());
         }
 
     }
@@ -619,9 +612,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             return getS3Credential(tenantId, userId, accessKey);
 
         } catch (Exception e) {
-            logger.error(
-                    "Get S3 credential :: The S3 Credential doesn't exist for the given access key. Error details:",
-                    e);
+            // The S3 Credential doesn't exist for the given access key. Logged once at the boundary.
             throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
     }
@@ -694,9 +685,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             });
 
         } catch (Exception e) {
-            logger.error(
-                    "Get S3 credential :: The S3 Credential doesn't exist for the given access key. Error details:",
-                    e);
+            // The S3 Credential doesn't exist for the given access key. Logged once at the boundary.
             throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
     }
@@ -719,7 +708,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             return resOsisTenant;
         } catch (Exception e) {
-            logger.error("The tenant doesn't exist. Error details: ", e);
+            // The tenant doesn't exist. Logged once at the boundary.
             throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
     }
@@ -768,7 +757,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             return osisUser;
         } catch (Exception e) {
-            logger.error("The tenant doesn't exist. Error details: ", e);
+            // The tenant doesn't exist. Logged once at the boundary.
             throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
     }
@@ -816,7 +805,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return osisUser;
             });
         } catch (Exception e) {
-            logger.error("GetUser error. User not found. Error details: ", e);
+            // User not found. Logged once at the boundary.
             throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
 
@@ -841,7 +830,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             // and for other errors a generic exception should be thrown such as RuntimeException
             // Post testing with Vmware OSE 2.2.0.1, OSE expects a 404 in any error scenario and does not handle any other error code
             // Reference: https://developer.vmware.com/apis/1034#/tenant/headTenant
-            logger.error("Head Tenant error. Error details: ", e);
+            // Logged once at the boundary.
             throw new NotFoundException("Head Tenant error. Error details: " + e.getMessage());
         }
     }
@@ -860,7 +849,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             logger.info("Head User response:: {}", getUserResult.getUser());
             return getUserResult.getUser() != null && getUserResult.getUser().getUserName().equals(userId);
         } catch (Exception e) {
-            logger.error("Head User error. Error details: ", e);
+            // Logged once at the boundary.
             throw new VaultServiceException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         }
     }
@@ -917,7 +906,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return pageOfS3Credentials;
             });
         } catch (Exception e) {
-            logger.error("ListS3Credentials error. Returning empty list. Error details: ", e);
+            logger.warn("List S3 Credentials failed; returning empty list: {}", e.getMessage());
             // For errors, ListS3Credentials should return empty PageOfS3Credentials
 
             return ScalityModelConverter.getEmptyPageOfS3Credentials(offset, limit);
@@ -956,7 +945,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return newOsisS3Credential;
             });
         } catch (Exception e) {
-            logger.error("UpdateCredentialStatus error. Error details: ", e);
+            // Logged once at the boundary.
             throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         }
     }
@@ -1004,7 +993,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return pageOfUsers;
             });
         } catch (Exception e) {
-            logger.error("ListUsers error. Returning empty list. Error details: ", e);
+            logger.warn("List Users failed; returning empty list: {}", e.getMessage());
             // For errors, List Users should return empty PageOfUsers
             PageInfo pageInfo = new PageInfo(limit, offset);
 
@@ -1049,7 +1038,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return osisUser;
             });
         } catch (Exception e) {
-            logger.error("Update User error. Error details: ", e);
+            // Logged once at the boundary.
             throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         }
     }
@@ -1103,7 +1092,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return pageOfOsisBucketMeta;
             });
         } catch (Exception e) {
-            logger.error("GetBucketList error. Returning empty list. Error details: ", e);
+            logger.warn("Get Bucket List failed; returning empty list: {}", e.getMessage());
             // For errors, GetBucketList should return empty PageOfOsisBucketMeta
             PageInfo pageInfo = new PageInfo(limit, offset);
 

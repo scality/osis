@@ -36,4 +36,9 @@ public class VaultServiceException extends ResponseStatusException {
   public VaultServiceException(HttpStatus status, String messageCode, Throwable cause) {
     super(status, messageCode, cause);
   }
+
+  public VaultServiceException(HttpStatus status, String errorCode, String message, Throwable cause) {
+    super(status, message, cause);
+    this.errorCode = errorCode;
+  }
 }
