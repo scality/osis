@@ -85,6 +85,20 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     }
 
     /**
+     * Builds the exception to surface for a failed create/update operation. A genuine Vault server
+     * fault (a {@link VaultServiceException} with a 5xx status) is returned unchanged so the error
+     * boundary logs it once at ERROR with the stack trace. Every other failure is treated as a
+     * client-side rejection and mapped to {@code 400 BAD_REQUEST}, keeping the original as the cause.
+     */
+    private VaultServiceException toResponseException(Exception e) {
+        if (e instanceof VaultServiceException
+                && ((VaultServiceException) e).getStatus().is5xxServerError()) {
+            return (VaultServiceException) e;
+        }
+        return new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+    }
+
+    /**
      * Create a tenant in the platform
      *
      * @param osisTenant Tenant to create in the platform (required)
@@ -111,9 +125,9 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             return resOsisTenant;
         } catch (VaultServiceException e) {
-            // Create Tenant supports only 400:BAD_REQUEST error. Logged once at the error
-            // boundary; rethrow typed so the status is preserved.
-            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+            // A client-side Vault rejection maps to 400; a genuine Vault server fault (5xx) is
+            // preserved so the boundary logs it once at ERROR with the trace.
+            throw toResponseException(e);
         }
     }
 
@@ -252,8 +266,9 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return resOsisUser;
             });
         } catch (Exception e) {
-            // Create User supports only 400:BAD_REQUEST error. Logged once at the boundary.
-            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+            // A client-side Vault rejection maps to 400; a genuine Vault server fault (5xx) is
+            // preserved so the boundary logs it once at ERROR with the trace.
+            throw toResponseException(e);
         }
 
     }
@@ -396,8 +411,9 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return credential;
             });
         } catch (Exception e) {
-            // Create S3 Credential supports only 400:BAD_REQUEST error. Logged once at the boundary.
-            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+            // A client-side Vault rejection maps to 400; a genuine Vault server fault (5xx) is
+            // preserved so the boundary logs it once at ERROR with the trace.
+            throw toResponseException(e);
         }
     }
 
@@ -551,8 +567,12 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             return resOsisTenant;
         } catch (VaultServiceException e) {
-            // Update Tenant supports only 400:BAD_REQUEST error. Logged once at the boundary.
-            // Keep the original Vault failure as the cause so the trace survives to the log.
+            // A genuine Vault server fault (5xx) is preserved so the boundary logs it once at ERROR
+            // with the trace. A client-side rejection maps to 400 (errorCode retained for the
+            // response contract), keeping the original Vault failure as the cause.
+            if (e.getStatus().is5xxServerError()) {
+                throw e;
+            }
             throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getErrorCode(), e.getReason(), e);
         }
     }
@@ -945,8 +965,9 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return newOsisS3Credential;
             });
         } catch (Exception e) {
-            // Logged once at the boundary.
-            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+            // A client-side Vault rejection maps to 400; a genuine Vault server fault (5xx) is
+            // preserved so the boundary logs it once at ERROR with the trace.
+            throw toResponseException(e);
         }
     }
 
@@ -1038,8 +1059,9 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return osisUser;
             });
         } catch (Exception e) {
-            // Logged once at the boundary.
-            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+            // A client-side Vault rejection maps to 400; a genuine Vault server fault (5xx) is
+            // preserved so the boundary logs it once at ERROR with the trace.
+            throw toResponseException(e);
         }
     }
 

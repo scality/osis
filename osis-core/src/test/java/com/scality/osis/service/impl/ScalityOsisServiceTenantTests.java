@@ -74,6 +74,22 @@ class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     @Test
+    void testCreateTenant500PreservesServerFault() {
+
+        when(vaultAdminMock.createAccount(any(CreateAccountRequestDTO.class)))
+                .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "Vault unavailable");
+                });
+
+        final VaultServiceException exception = assertThrows(VaultServiceException.class, () -> {
+            scalityOsisServiceUnderTest.createTenant(createSampleOsisTenantObj());
+        });
+
+        assertEquals(500, exception.getStatus().value(),
+                "a genuine Vault server fault must not be downgraded to 400");
+    }
+
+    @Test
     void testListTenants() {
         // Setup
         final long offset = 0L;
@@ -317,6 +333,22 @@ class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
 
         assertEquals(400, exception.getStatus().value());
         assertEquals("E_BAD_REQUEST", exception.getErrorCode());
+    }
+
+    @Test
+    void testUpdateTenant500PreservesServerFault() {
+        // A matching request passes the name/ID consistency check and reaches the Vault call.
+        when(vaultAdminMock.updateAccountAttributes(any(UpdateAccountAttributesRequestDTO.class)))
+                .thenAnswer((Answer<CreateAccountResponseDTO>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "Vault unavailable");
+                });
+
+        final VaultServiceException exception = assertThrows(VaultServiceException.class, () -> {
+            scalityOsisServiceUnderTest.updateTenant(SAMPLE_ID, createSampleOsisTenantObj());
+        });
+
+        assertEquals(500, exception.getStatus().value(),
+                "a genuine Vault server fault must not be downgraded to 400");
     }
 
     @Test
