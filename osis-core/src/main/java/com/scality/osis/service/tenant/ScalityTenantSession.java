@@ -87,35 +87,52 @@ public class ScalityTenantSession implements TenantSession {
     /**
      * Gets the tenant's temporary assume-role credentials.
      *
-     * <p>On an access-denied response the role is recreated via
-     * {@code setupAssumeRole} and the assume-role is retried.
+     * <p>On the first access-denied response the role is recreated via
+     * {@code setupAssumeRole} and the assume-role is retried exactly once. If the
+     * retry still returns access-denied (a persistent Vault misconfiguration), the
+     * {@link VaultServiceException} is rethrown rather than recursing again, so the
+     * call cannot loop forever and overflow the stack.
      *
      * @param accountID the account id
      * @return the credentials
      */
     private Credentials getCredentials(String accountID) {
-        Credentials credentials;
         try {
-            AssumeRoleRequest assumeRoleRequest = ScalityModelConverter.getAssumeRoleRequestForAccount(accountID,
-                    appEnv.getAssumeRoleName());
-            logger.debug("[Vault] Assume Role request:{}", assumeRoleRequest);
-            credentials = vaultAdmin.getTempAccountCredentials(assumeRoleRequest);
-            logger.debug("[Vault] Assume Role response received with access key:{}, expiration:{}",
-                    credentials.getAccessKeyId(), credentials.getExpiration());
+            return assumeRole(accountID);
         } catch (VaultServiceException e) {
-
-            if (!StringUtils.isNullOrEmpty(e.getErrorCode()) &&
-                    ACCESS_DENIED.equals(e.getErrorCode())) {
-                // if access denied, the osis role is not provisioned yet: set it up and retry
-                logger.debug("Assume role not ready for account {} ({}); recreating the role", accountID, e.getReason());
-                // Call get Account with Account ID to retrieve account name
-                AccountData account = vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(accountID));
-                asyncScalityOsisService.setupAssumeRole(accountID, account.getName());
-                return getCredentials(accountID);
+            if (!isAccessDenied(e)) {
+                throw e;
             }
-            throw e;
+            // access denied: the osis role is not provisioned yet, set it up and retry once
+            logger.debug("Assume role not ready for account {} ({}); recreating the role", accountID, e.getReason());
+            // Call get Account with Account ID to retrieve account name
+            AccountData account = vaultAdmin.getAccount(ScalityModelConverter.toGetAccountRequestWithID(accountID));
+            asyncScalityOsisService.setupAssumeRole(accountID, account.getName());
+
+            try {
+                return assumeRole(accountID);
+            } catch (VaultServiceException retryError) {
+                if (isAccessDenied(retryError)) {
+                    logger.error("Assume role still access-denied for account {} after recreating the role; "
+                            + "giving up to avoid unbounded retries", accountID);
+                }
+                throw retryError;
+            }
         }
+    }
+
+    private Credentials assumeRole(String accountID) {
+        AssumeRoleRequest assumeRoleRequest = ScalityModelConverter.getAssumeRoleRequestForAccount(accountID,
+                appEnv.getAssumeRoleName());
+        logger.debug("[Vault] Assume Role request:{}", assumeRoleRequest);
+        Credentials credentials = vaultAdmin.getTempAccountCredentials(assumeRoleRequest);
+        logger.debug("[Vault] Assume Role response received with access key:{}, expiration:{}",
+                credentials.getAccessKeyId(), credentials.getExpiration());
         return credentials;
+    }
+
+    private boolean isAccessDenied(VaultServiceException e) {
+        return !StringUtils.isNullOrEmpty(e.getErrorCode()) && ACCESS_DENIED.equals(e.getErrorCode());
     }
 
     private void generateAdminPolicy(String tenantId) throws Exception {

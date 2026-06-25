@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import java.util.Collections;
 import java.util.Date;
 
+import static com.scality.osis.utils.ScalityConstants.ACCESS_DENIED;
 import static com.scality.osis.utils.ScalityTestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -122,6 +123,24 @@ class ScalityTenantSessionTest {
         // setupAssumeRole called once with the account name resolved via getAccount
         verify(asyncScalityOsisServiceMock).setupAssumeRole(TEST_TENANT_ID, SAMPLE_TENANT_NAME);
         verify(vaultAdminMock, times(2)).getTempAccountCredentials(any(AssumeRoleRequest.class));
+    }
+
+    @Test
+    void stopsRetryingWhenAccessDeniedPersistsAfterRecreatingRole() {
+        when(vaultAdminMock.getTempAccountCredentials(any(AssumeRoleRequest.class)))
+                .thenThrow(new VaultServiceException(HttpStatus.FORBIDDEN, "AccessDenied",
+                        "User: backbeat is not allowed to assume role"));
+
+        // persistent access-denied must surface as a VaultServiceException, not recurse forever
+        final VaultServiceException error = assertThrows(VaultServiceException.class,
+                () -> tenantSessionUnderTest.getIamClient(TEST_TENANT_ID));
+        assertEquals(ACCESS_DENIED, error.getErrorCode());
+
+        // recovery routine invoked at most once
+        verify(asyncScalityOsisServiceMock, times(1)).setupAssumeRole(TEST_TENANT_ID, SAMPLE_TENANT_NAME);
+        // exactly one recovery means one original attempt plus one retry
+        verify(vaultAdminMock, times(2)).getTempAccountCredentials(any(AssumeRoleRequest.class));
+        verifyNoInteractions(iamMock);
     }
 
     @Test
