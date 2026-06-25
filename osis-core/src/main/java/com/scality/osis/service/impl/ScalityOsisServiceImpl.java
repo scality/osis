@@ -10,6 +10,7 @@ import com.amazonaws.Response;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.util.StringUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +28,6 @@ import com.scality.osis.utapiclient.dto.ListMetricsRequestDTO;
 import com.scality.osis.utapiclient.dto.MetricsData;
 import com.scality.osis.utapiclient.services.UtapiServiceClient;
 import com.scality.osis.utils.ScalityModelConverter;
-import com.scality.osis.s3.impl.S3ServiceException;
 import com.scality.osis.utils.ScalityUtils;
 import com.scality.osis.vaultadmin.VaultAdmin;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
@@ -1093,8 +1093,8 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return pageOfOsisBucketMeta;
             });
         } catch (Exception e) {
-            if (e instanceof S3ServiceException
-                    && ((S3ServiceException) e).getStatus() == HttpStatus.NOT_FOUND) {
+            if (e instanceof AmazonS3Exception
+                    && ((AmazonS3Exception) e).getStatusCode() == HttpStatus.NOT_FOUND.value()) {
                 // A tenant with no buckets is an expected, recoverable condition: the platform
                 // answers with a 404 and OSIS returns an empty list. Log it at DEBUG with a
                 // concise message and no stack trace so the normal "no buckets yet" case does

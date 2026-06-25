@@ -6,11 +6,11 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.amazonaws.Response;
 import com.amazonaws.services.identitymanagement.model.*;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.Owner;
 import com.scality.osis.model.*;
 import com.scality.osis.model.exception.NotImplementedException;
-import com.scality.osis.s3.impl.S3ServiceException;
 import com.scality.osis.utapi.impl.UtapiServiceException;
 import com.scality.osis.utapiclient.dto.ListMetricsRequestDTO;
 import com.scality.osis.utapiclient.dto.MetricsData;
@@ -166,8 +166,10 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         final long limit = 1000L;
         when(s3ClientMock.listBuckets())
                 .thenAnswer((Answer<List<Bucket>>) invocation -> {
-                    throw new S3ServiceException(HttpStatus.BAD_REQUEST,
+                    final AmazonS3Exception ex = new AmazonS3Exception(
                             "Requested offset is outside the total available items");
+                    ex.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                    throw ex;
                 });
 
         final PageOfOsisBucketMeta response = scalityOsisServiceUnderTest.getBucketList(SAMPLE_TENANT_ID, offset, limit);
@@ -191,7 +193,9 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         final long limit = 1000L;
         when(s3ClientMock.listBuckets())
                 .thenAnswer((Answer<List<Bucket>>) invocation -> {
-                    throw new S3ServiceException(HttpStatus.NOT_FOUND, "The specified bucket does not exist");
+                    final AmazonS3Exception ex = new AmazonS3Exception("The specified bucket does not exist");
+                    ex.setStatusCode(HttpStatus.NOT_FOUND.value());
+                    throw ex;
                 });
 
         final Logger serviceLogger = (Logger) LoggerFactory.getLogger(ScalityOsisServiceImpl.class);
@@ -244,7 +248,9 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         final long limit = 1000L;
         when(s3ClientMock.listBuckets())
                 .thenAnswer((Answer<List<Bucket>>) invocation -> {
-                    throw new S3ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "storage platform unavailable");
+                    final AmazonS3Exception ex = new AmazonS3Exception("storage platform unavailable");
+                    ex.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+                    throw ex;
                 });
 
         final Logger serviceLogger = (Logger) LoggerFactory.getLogger(ScalityOsisServiceImpl.class);
