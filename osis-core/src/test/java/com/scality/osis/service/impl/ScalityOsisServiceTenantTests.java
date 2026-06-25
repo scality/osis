@@ -1,5 +1,9 @@
 package com.scality.osis.service.impl;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.scality.osis.model.OsisTenant;
 import com.scality.osis.model.PageOfTenants;
 import com.scality.osis.model.exception.BadRequestException;
@@ -8,6 +12,7 @@ import com.scality.osis.vaultadmin.impl.VaultServiceException;
 import com.scality.vaultclient.dto.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import com.scality.osis.model.exception.NotFoundException;
 
@@ -398,5 +403,43 @@ class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
         assertThrows(NotFoundException.class, () -> {
             scalityOsisServiceUnderTest.headTenant("bad_tenant_id");
         });
+    }
+
+    /**
+     * OSIS-155: during tenant activation OSE does a headTenant existence check before the
+     * account exists, so the platform answers with a 404 and OSIS rethrows NotFoundException.
+     * That is the expected pre-create path: the service layer must not log it as an error
+     * nor dump a stack trace (the boundary logs the 404 once at INFO). This pins that the
+     * misleading "invalid account ID" stack trace stays gone after OSIS-163.
+     */
+    @Test
+    void testHeadTenantPreCreateNotFoundIsNotLoggedAsError() {
+        // Setup: account does not exist yet, platform returns a 404
+        when(vaultAdminMock.getAccount(any(GetAccountRequestDTO.class)))
+                .thenAnswer((Answer<AccountData>) invocation -> {
+                    throw new VaultServiceException(HttpStatus.NOT_FOUND, "The account does not exist");
+                });
+
+        final Logger serviceLogger = (Logger) LoggerFactory.getLogger(ScalityOsisServiceImpl.class);
+        final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        serviceLogger.addAppender(appender);
+
+        try {
+            // Contract: still a 404 for the caller
+            assertThrows(NotFoundException.class,
+                    () -> scalityOsisServiceUnderTest.headTenant(SAMPLE_TENANT_ID));
+
+            // The expected pre-create 404 must not be logged at ERROR or WARN by the service,
+            // and must not carry a stack trace.
+            assertTrue(appender.list.stream().noneMatch(e -> e.getLevel() == Level.ERROR),
+                    "the expected pre-create 404 must not be logged at ERROR");
+            assertTrue(appender.list.stream().noneMatch(e -> e.getLevel() == Level.WARN),
+                    "the expected pre-create 404 must not be logged at WARN");
+            assertTrue(appender.list.stream().allMatch(e -> e.getThrowableProxy() == null),
+                    "the expected pre-create 404 must not dump a stack trace");
+        } finally {
+            serviceLogger.detachAppender(appender);
+        }
     }
 }
