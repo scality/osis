@@ -406,11 +406,11 @@ class ScalityOsisServiceTenantTests extends BaseOsisServiceTest {
     }
 
     /**
-     * OSIS-155: during tenant activation OSE does a headTenant existence check before the
-     * account exists, so the platform answers with a 404 and OSIS rethrows NotFoundException.
-     * That is the expected pre-create path: the service layer must not log it as an error
-     * nor dump a stack trace (the boundary logs the 404 once at INFO). This pins that the
-     * misleading "invalid account ID" stack trace stays gone after OSIS-163.
+     * During tenant activation OSE does a headTenant existence check before the account
+     * exists, so the platform answers with a 404 and OSIS rethrows NotFoundException. That is
+     * the expected pre-create path: the service layer must not log it as an error nor dump a
+     * stack trace (the error boundary logs the 404 once at INFO). This pins that the misleading
+     * "invalid account ID" stack trace stays gone.
      */
     @Test
     void testHeadTenantPreCreateNotFoundIsNotLoggedAsError() {
