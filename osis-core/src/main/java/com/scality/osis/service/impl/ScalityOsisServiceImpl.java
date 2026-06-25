@@ -27,6 +27,7 @@ import com.scality.osis.utapiclient.dto.ListMetricsRequestDTO;
 import com.scality.osis.utapiclient.dto.MetricsData;
 import com.scality.osis.utapiclient.services.UtapiServiceClient;
 import com.scality.osis.utils.ScalityModelConverter;
+import com.scality.osis.s3.impl.S3ServiceException;
 import com.scality.osis.utils.ScalityUtils;
 import com.scality.osis.vaultadmin.VaultAdmin;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
@@ -1092,11 +1093,18 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return pageOfOsisBucketMeta;
             });
         } catch (Exception e) {
-            // A tenant with no buckets is an expected, recoverable condition: the platform
-            // answers with a 404/error and OSIS returns an empty list. Log it at DEBUG with a
-            // concise message and no stack trace so the normal "no buckets yet" case does not
-            // read as a failure. A genuine fault still surfaces through the returned empty page.
-            logger.debug("Get Bucket List returned no buckets; returning empty list: {}", e.getMessage());
+            if (e instanceof S3ServiceException
+                    && ((S3ServiceException) e).getStatus() == HttpStatus.NOT_FOUND) {
+                // A tenant with no buckets is an expected, recoverable condition: the platform
+                // answers with a 404 and OSIS returns an empty list. Log it at DEBUG with a
+                // concise message and no stack trace so the normal "no buckets yet" case does
+                // not read as a failure.
+                logger.debug("Get Bucket List returned no buckets; returning empty list: {}", e.getMessage());
+            } else {
+                // A genuine fault (Vault, S3, network, or auth) stays visible to operators at
+                // WARN, even though the OSE contract still requires returning an empty page here.
+                logger.warn("Get Bucket List failed; returning empty list: {}", e.getMessage());
+            }
             // For errors, GetBucketList should return empty PageOfOsisBucketMeta
             PageInfo pageInfo = new PageInfo(limit, offset);
 

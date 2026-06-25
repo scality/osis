@@ -232,6 +232,49 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         }
     }
 
+    /**
+     * OSIS-156 (follow-up): only the expected empty-bucket 404 is quieted to DEBUG. A genuine
+     * fault (here a 500 from the storage platform) must stay visible at WARN so operators are not
+     * blind to real failures, while the empty-page contract is still honored.
+     */
+    @Test
+    void testGetBucketListGenuineFaultLogsAtWarn() {
+        // Setup: a non-404 fault from the storage platform (genuine failure, not "no buckets")
+        final long offset = 0L;
+        final long limit = 1000L;
+        when(s3ClientMock.listBuckets())
+                .thenAnswer((Answer<List<Bucket>>) invocation -> {
+                    throw new S3ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "storage platform unavailable");
+                });
+
+        final Logger serviceLogger = (Logger) LoggerFactory.getLogger(ScalityOsisServiceImpl.class);
+        final Level originalLevel = serviceLogger.getLevel();
+        serviceLogger.setLevel(Level.DEBUG);
+        final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        serviceLogger.addAppender(appender);
+
+        try {
+            // Contract: still an empty page for the caller
+            final PageOfOsisBucketMeta response =
+                    scalityOsisServiceUnderTest.getBucketList(SAMPLE_TENANT_ID, offset, limit);
+            assertEquals(0L, response.getItems().size());
+
+            // A genuine (non-404) fault must surface at WARN, not be hidden at DEBUG.
+            assertTrue(appender.list.stream()
+                            .anyMatch(e -> e.getLevel() == Level.WARN
+                                    && e.getFormattedMessage().contains("failed")),
+                    "a genuine bucket-list fault must be logged at WARN");
+            assertTrue(appender.list.stream()
+                            .noneMatch(e -> e.getLevel() == Level.DEBUG
+                                    && e.getFormattedMessage().contains("no buckets")),
+                    "a genuine fault must not be misreported as the expected no-buckets case");
+        } finally {
+            serviceLogger.detachAppender(appender);
+            serviceLogger.setLevel(originalLevel);
+        }
+    }
+
 
     // test to check if getUsage API throws an error not implemented
     // this will be removed as a part of S3C-8266
