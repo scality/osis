@@ -180,9 +180,9 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     /**
-     * OSIS-156: a tenant that legitimately has no buckets is an expected, recoverable
-     * condition. The empty-list contract must hold and the recovery must not be logged as
-     * an error or warning, nor dump a stack trace, so operators do not chase a non-failure.
+     * A tenant that legitimately has no buckets is an expected, recoverable condition. The
+     * empty-list contract must hold and the recovery must not be logged as an error or
+     * warning, nor dump a stack trace, so operators do not chase a non-failure.
      */
     @Test
     void testGetBucketListEmptyLogsAtDebugWithoutErrorOrTrace() {
@@ -233,9 +233,9 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
     }
 
     /**
-     * OSIS-156 (follow-up): only the expected empty-bucket 404 is quieted to DEBUG. A genuine
-     * fault (here a 500 from the storage platform) must stay visible at WARN so operators are not
-     * blind to real failures, while the empty-page contract is still honored.
+     * Only the expected empty-bucket 404 is quieted to DEBUG. A genuine fault (here a 500 from
+     * the storage platform) must stay visible at WARN so operators are not blind to real
+     * failures, while the empty-page contract is still honored.
      */
     @Test
     void testGetBucketListGenuineFaultLogsAtWarn() {
