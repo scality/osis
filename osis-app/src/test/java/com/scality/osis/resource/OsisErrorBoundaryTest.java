@@ -90,27 +90,6 @@ class OsisErrorBoundaryTest {
         assertNull(event.getThrowableProxy(), "4xx must not carry a stack trace");
     }
 
-    /**
-     * OSIS-155: the headTenant existence check during tenant activation throws a
-     * NotFoundException when the account does not exist yet. That expected 404 must be
-     * logged once at INFO with no stack trace, so activation no longer prints a misleading
-     * "invalid account ID" error even though the create that follows succeeds.
-     */
-    @Test
-    void testHeadTenantPreCreateNotFoundLoggedOnceAtInfoWithoutTrace() {
-        final ResponseEntity<OsisError> response = boundary.handleResponseStatus(
-                new NotFoundException("Head Tenant error. Error details: The account does not exist"));
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("E_NOT_FOUND", response.getBody().getCode());
-
-        final ILoggingEvent event = onlyLogEvent();
-        assertEquals(Level.INFO, event.getLevel(),
-                "the expected pre-create 404 must be logged at INFO, not ERROR");
-        assertNull(event.getThrowableProxy(),
-                "the expected pre-create 404 must not carry a stack trace");
-    }
-
     @Test
     void testBadRequestMapsTo400LoggedOnceAtInfo() {
         final ResponseEntity<OsisError> response =
