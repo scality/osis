@@ -1,5 +1,9 @@
 package com.scality.osis.service.impl;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.amazonaws.Response;
 import com.amazonaws.services.identitymanagement.model.*;
 import com.amazonaws.services.s3.model.Bucket;
@@ -17,6 +21,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
@@ -172,6 +177,59 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         assertEquals(offset, response.getPageInfo().getOffset());
         assertEquals(limit, response.getPageInfo().getLimit());
         assertEquals(0L, response.getItems().size());
+    }
+
+    /**
+     * OSIS-156: a tenant that legitimately has no buckets is an expected, recoverable
+     * condition. The empty-list contract must hold and the recovery must not be logged as
+     * an error or warning, nor dump a stack trace, so operators do not chase a non-failure.
+     */
+    @Test
+    void testGetBucketListEmptyLogsAtDebugWithoutErrorOrTrace() {
+        // Setup: tenant with no buckets surfaces as a 404 from the storage platform
+        final long offset = 0L;
+        final long limit = 1000L;
+        when(s3ClientMock.listBuckets())
+                .thenAnswer((Answer<List<Bucket>>) invocation -> {
+                    throw new S3ServiceException(HttpStatus.NOT_FOUND, "The specified bucket does not exist");
+                });
+
+        final Logger serviceLogger = (Logger) LoggerFactory.getLogger(ScalityOsisServiceImpl.class);
+        final Level originalLevel = serviceLogger.getLevel();
+        // Capture DEBUG so we can assert the expected case is logged there, not at WARN/ERROR.
+        serviceLogger.setLevel(Level.DEBUG);
+        final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        serviceLogger.addAppender(appender);
+
+        try {
+            // Run: empty-list contract must be preserved
+            final PageOfOsisBucketMeta response =
+                    scalityOsisServiceUnderTest.getBucketList(SAMPLE_TENANT_ID, offset, limit);
+
+            assertEquals(0L, response.getPageInfo().getTotal());
+            assertEquals(offset, response.getPageInfo().getOffset());
+            assertEquals(limit, response.getPageInfo().getLimit());
+            assertEquals(0L, response.getItems().size());
+
+            // The expected "no buckets" case must never be logged at ERROR or WARN, and must
+            // not carry a stack trace.
+            assertTrue(appender.list.stream().noneMatch(e -> e.getLevel() == Level.ERROR),
+                    "the expected empty-bucket case must not be logged at ERROR");
+            assertTrue(appender.list.stream().noneMatch(e -> e.getLevel() == Level.WARN),
+                    "the expected empty-bucket case must not be logged at WARN");
+            assertTrue(appender.list.stream().allMatch(e -> e.getThrowableProxy() == null),
+                    "the expected empty-bucket case must not dump a stack trace");
+
+            // The recovery line is emitted, at DEBUG, with the concise message.
+            assertTrue(appender.list.stream()
+                            .anyMatch(e -> e.getLevel() == Level.DEBUG
+                                    && e.getFormattedMessage().contains("returning empty list")),
+                    "the empty-bucket recovery should be logged once at DEBUG");
+        } finally {
+            serviceLogger.detachAppender(appender);
+            serviceLogger.setLevel(originalLevel);
+        }
     }
 
 

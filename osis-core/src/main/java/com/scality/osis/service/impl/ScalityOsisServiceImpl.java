@@ -1092,7 +1092,11 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 return pageOfOsisBucketMeta;
             });
         } catch (Exception e) {
-            logger.warn("Get Bucket List failed; returning empty list: {}", e.getMessage());
+            // A tenant with no buckets is an expected, recoverable condition: the platform
+            // answers with a 404/error and OSIS returns an empty list. Log it at DEBUG with a
+            // concise message and no stack trace so the normal "no buckets yet" case does not
+            // read as a failure. A genuine fault still surfaces through the returned empty page.
+            logger.debug("Get Bucket List returned no buckets; returning empty list: {}", e.getMessage());
             // For errors, GetBucketList should return empty PageOfOsisBucketMeta
             PageInfo pageInfo = new PageInfo(limit, offset);
 
