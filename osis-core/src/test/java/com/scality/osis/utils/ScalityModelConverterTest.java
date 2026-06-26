@@ -681,7 +681,7 @@ class ScalityModelConverterTest {
         assertEquals(2, pageOfS3Credentials.getItems().size());
 
         final Map<String, Boolean> activeByKey = new HashMap<>();
-        for (OsisS3Credential cred : pageOfS3Credentials.getItems()) {
+        for (final OsisS3Credential cred : pageOfS3Credentials.getItems()) {
             activeByKey.put(cred.getAccessKey(), cred.getActive());
         }
         assertTrue(activeByKey.containsKey(TEST_ACCESS_KEY_2),
