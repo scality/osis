@@ -1216,7 +1216,19 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 }
             }
 
-            logger.error("GetBucketList error. Returning empty list. Error details: ", e);
+            if (e instanceof AmazonS3Exception
+                    && ((AmazonS3Exception) e).getStatusCode() == HttpStatus.NOT_FOUND.value()) {
+                // A tenant with no buckets is an expected, recoverable condition: the platform
+                // answers with a 404 and OSIS returns an empty list. Log it at DEBUG with a
+                // concise message and no stack trace so the normal "no buckets yet" case does
+                // not read as a failure.
+                logger.debug("Get Bucket List returned no buckets; returning empty list: {}", e.getMessage());
+            } else {
+                // A genuine fault (Vault, S3, network, or auth) stays visible at ERROR with its
+                // stack trace, exactly as before. Only the expected empty-list case above is
+                // quieted; the contract still requires returning an empty page here.
+                logger.error("GetBucketList error. Returning empty list. Error details: ", e);
+            }
             // For errors, GetBucketList should return empty PageOfOsisBucketMeta
             PageInfo pageInfo = new PageInfo(limit, offset);
 

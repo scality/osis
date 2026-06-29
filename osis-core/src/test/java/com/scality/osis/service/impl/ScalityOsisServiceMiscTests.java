@@ -1,17 +1,16 @@
 package com.scality.osis.service.impl;
 
+import ch.qos.logback.classic.*;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.amazonaws.Response;
 import com.amazonaws.services.identitymanagement.model.*;
-import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.s3.model.Owner;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.Credentials;
+import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.securitytoken.model.*;
 import com.scality.osis.model.*;
 import com.scality.osis.model.exception.NotImplementedException;
-import com.scality.osis.s3.impl.S3ServiceException;
 import com.scality.osis.utapi.impl.UtapiServiceException;
-import com.scality.osis.utapiclient.dto.ListMetricsRequestDTO;
-import com.scality.osis.utapiclient.dto.MetricsData;
+import com.scality.osis.utapiclient.dto.*;
 import com.scality.osis.vaultadmin.impl.VaultServiceException;
 import com.scality.vaultclient.dto.*;
 
@@ -19,6 +18,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
@@ -164,8 +164,10 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         final long limit = 1000L;
         when(s3ClientMock.listBuckets())
                 .thenAnswer((Answer<List<Bucket>>) invocation -> {
-                    throw new S3ServiceException(HttpStatus.BAD_REQUEST,
+                    final AmazonS3Exception s3Exception = new AmazonS3Exception(
                             "Requested offset is outside the total available items");
+                    s3Exception.setStatusCode(HttpStatus.BAD_REQUEST.value());
+                    throw s3Exception;
                 });
 
         final PageOfOsisBucketMeta response = scalityOsisServiceUnderTest.getBucketList(SAMPLE_TENANT_ID, offset, limit);
@@ -175,6 +177,106 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         assertEquals(offset, response.getPageInfo().getOffset());
         assertEquals(limit, response.getPageInfo().getLimit());
         assertEquals(0L, response.getItems().size());
+    }
+
+    /**
+     * A tenant that legitimately has no buckets is an expected, recoverable condition. The
+     * empty-list contract must hold and the recovery must not be logged as an error or
+     * warning, nor dump a stack trace, so operators do not chase a non-failure.
+     */
+    @Test
+    void testGetBucketListEmptyLogsAtDebugWithoutErrorOrTrace() {
+        // Setup: tenant with no buckets surfaces as a 404 from the storage platform
+        final long offset = 0L;
+        final long limit = 1000L;
+        when(s3ClientMock.listBuckets())
+                .thenAnswer((Answer<List<Bucket>>) invocation -> {
+                    final AmazonS3Exception s3Exception = new AmazonS3Exception("The specified bucket does not exist");
+                    s3Exception.setStatusCode(HttpStatus.NOT_FOUND.value());
+                    throw s3Exception;
+                });
+
+        final Logger serviceLogger = (Logger) LoggerFactory.getLogger(ScalityOsisServiceImpl.class);
+        final Level originalLevel = serviceLogger.getLevel();
+        // Capture DEBUG so we can assert the expected case is logged there, not at WARN/ERROR.
+        serviceLogger.setLevel(Level.DEBUG);
+        final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        serviceLogger.addAppender(appender);
+
+        try {
+            // Run: empty-list contract must be preserved
+            final PageOfOsisBucketMeta response =
+                    scalityOsisServiceUnderTest.getBucketList(SAMPLE_TENANT_ID, offset, limit);
+
+            assertEquals(0L, response.getPageInfo().getTotal());
+            assertEquals(offset, response.getPageInfo().getOffset());
+            assertEquals(limit, response.getPageInfo().getLimit());
+            assertEquals(0L, response.getItems().size());
+
+            // The expected "no buckets" case must never be logged at ERROR or WARN, and must
+            // not carry a stack trace.
+            assertTrue(appender.list.stream().noneMatch(e -> e.getLevel() == Level.ERROR),
+                    "the expected empty-bucket case must not be logged at ERROR");
+            assertTrue(appender.list.stream().noneMatch(e -> e.getLevel() == Level.WARN),
+                    "the expected empty-bucket case must not be logged at WARN");
+            assertTrue(appender.list.stream().allMatch(e -> e.getThrowableProxy() == null),
+                    "the expected empty-bucket case must not dump a stack trace");
+
+            // The recovery line is emitted, at DEBUG, with the concise message.
+            assertTrue(appender.list.stream()
+                            .anyMatch(e -> e.getLevel() == Level.DEBUG
+                                    && e.getFormattedMessage().contains("returning empty list")),
+                    "the empty-bucket recovery should be logged once at DEBUG");
+        } finally {
+            serviceLogger.detachAppender(appender);
+            serviceLogger.setLevel(originalLevel);
+        }
+    }
+
+    /**
+     * Only the expected empty-bucket 404 is quieted to DEBUG. A genuine fault (here a 500 from
+     * the storage platform) stays visible at ERROR with its stack trace, exactly as before, while
+     * the empty-page contract is still honored.
+     */
+    @Test
+    void testGetBucketListGenuineFaultLogsAtError() {
+        // Setup: a non-404 fault from the storage platform (genuine failure, not "no buckets")
+        final long offset = 0L;
+        final long limit = 1000L;
+        when(s3ClientMock.listBuckets())
+                .thenAnswer((Answer<List<Bucket>>) invocation -> {
+                    final AmazonS3Exception s3Exception = new AmazonS3Exception("storage platform unavailable");
+                    s3Exception.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+                    throw s3Exception;
+                });
+
+        final Logger serviceLogger = (Logger) LoggerFactory.getLogger(ScalityOsisServiceImpl.class);
+        final Level originalLevel = serviceLogger.getLevel();
+        serviceLogger.setLevel(Level.DEBUG);
+        final ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        serviceLogger.addAppender(appender);
+
+        try {
+            // Contract: still an empty page for the caller
+            final PageOfOsisBucketMeta response =
+                    scalityOsisServiceUnderTest.getBucketList(SAMPLE_TENANT_ID, offset, limit);
+            assertEquals(0L, response.getItems().size());
+
+            // A genuine (non-404) fault must surface at ERROR with its stack trace, not be hidden at DEBUG.
+            assertTrue(appender.list.stream()
+                            .anyMatch(e -> e.getLevel() == Level.ERROR
+                                    && e.getThrowableProxy() != null),
+                    "a genuine bucket-list fault must be logged at ERROR with a stack trace");
+            assertTrue(appender.list.stream()
+                            .noneMatch(e -> e.getLevel() == Level.DEBUG
+                                    && e.getFormattedMessage().contains("no buckets")),
+                    "a genuine fault must not be misreported as the expected no-buckets case");
+        } finally {
+            serviceLogger.detachAppender(appender);
+            serviceLogger.setLevel(originalLevel);
+        }
     }
 
 
