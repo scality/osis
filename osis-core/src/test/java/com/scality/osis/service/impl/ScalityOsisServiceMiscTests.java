@@ -26,7 +26,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static com.scality.osis.utils.ScalityConstants.IAM_PREFIX;
+import static com.scality.osis.utils.ScalityConstants.*;
 import static com.scality.osis.utils.ScalityTestUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -469,6 +469,25 @@ class ScalityOsisServiceMiscTests extends BaseOsisServiceTest {
         assertThrows(VaultServiceException.class, () -> scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID));
 
         // Verify the results
+    }
+
+    @Test
+    void testGetCredentialsStopsRetryingWhenAccessDeniedPersists() {
+        // Setup: every assume-role attempt returns access-denied (persistent Vault misconfiguration)
+        when(vaultAdminMock.getTempAccountCredentials(any(AssumeRoleRequest.class)))
+                .thenThrow(new VaultServiceException(HttpStatus.FORBIDDEN, ACCESS_DENIED,
+                        "User: backbeat is not allowed to assume role"));
+
+        // Run the test: persistent access-denied must surface as a VaultServiceException, not recurse forever
+        final VaultServiceException error = assertThrows(VaultServiceException.class,
+                () -> scalityOsisServiceUnderTest.getCredentials(TEST_TENANT_ID));
+
+        // Verify the results
+        assertEquals(ACCESS_DENIED, error.getErrorCode(), "Invalid Error Code");
+        // recovery routine (setupAssumeRole) is reached exactly once: it looks up the account name once
+        verify(vaultAdminMock, times(1)).getAccount(any(GetAccountRequestDTO.class));
+        // exactly one recovery means one original attempt plus one retry, no unbounded recursion
+        verify(vaultAdminMock, times(2)).getTempAccountCredentials(any(AssumeRoleRequest.class));
     }
 
     @Test
