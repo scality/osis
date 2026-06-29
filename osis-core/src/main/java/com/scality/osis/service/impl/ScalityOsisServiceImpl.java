@@ -97,6 +97,20 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
     }
 
     /**
+     * Builds the exception to surface for a failed create/update operation. A genuine Vault server
+     * fault (a {@link VaultServiceException} with a 5xx status) is returned unchanged so the real
+     * server status is preserved. Every other failure is treated as a client-side rejection and
+     * mapped to {@code 400 BAD_REQUEST}, keeping the original exception as the cause.
+     */
+    private VaultServiceException toResponseException(Exception e) {
+        if (e instanceof VaultServiceException
+                && ((VaultServiceException) e).getStatus().is5xxServerError()) {
+            return (VaultServiceException) e;
+        }
+        return new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+    }
+
+    /**
      * Create a tenant in the platform
      *
      * @param osisTenant Tenant to create in the platform (required)
@@ -123,10 +137,8 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             return resOsisTenant;
         } catch (VaultServiceException e) {
-            // Create Tenant supports only 400:BAD_REQUEST error, change status code in the
-            // VaultServiceException
             logger.error("Create Tenant error. Error details: ", e);
-            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+            throw toResponseException(e);
         }
     }
 
@@ -274,10 +286,8 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                     e = ex;
                 }
             }
-            // Create User supports only 400:BAD_REQUEST error, change status code in the
-            // VaultServiceException
             logger.error("Create User error. Error details: ", e);
-            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+            throw toResponseException(e);
         }
 
     }
@@ -432,9 +442,8 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
                 }
             }
 
-            // Create S3 Credential supports only 400:BAD_REQUEST error
             logger.error("Create S3 Credential error. Error details: ", e);
-            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+            throw toResponseException(e);
         }
     }
 
@@ -595,9 +604,12 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
 
             return resOsisTenant;
         } catch (VaultServiceException e) {
-            // Update Tenant supports only 400:BAD_REQUEST error, change status code in the
-            // VaultServiceException
+            // 5xx Vault faults are rethrown as-is; other failures map to 400, keeping the
+            // errorCode/reason for the response contract.
             logger.error("Update Tenant error. Error details: ", e);
+            if (e.getStatus().is5xxServerError()) {
+                throw e;
+            }
             throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getErrorCode(), e.getReason());
         }
     }
@@ -1042,7 +1054,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             }
 
             logger.error("UpdateCredentialStatus error. Error details: ", e);
-            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+            throw toResponseException(e);
         }
     }
 
@@ -1154,7 +1166,7 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             }
 
             logger.error("Update User error. Error details: ", e);
-            throw new VaultServiceException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+            throw toResponseException(e);
         }
     }
 
