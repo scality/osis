@@ -907,7 +907,8 @@ public class ScalityOsisServiceImpl implements ScalityOsisService {
             // and for other errors a generic exception should be thrown such as RuntimeException
             // Post testing with Vmware OSE 2.2.0.1, OSE expects a 404 in any error scenario and does not handle any other error code
             // Reference: https://developer.vmware.com/apis/1034#/tenant/headTenant
-            logger.error("Head Tenant error. Error details: ", e);
+            // OSE probes headTenant before the account exists during tenant activation, so this expected
+            // pre-create 404 is not logged as an error here; the 404 is still rethrown for OSE compatibility.
             throw new NotFoundException("Head Tenant error. Error details: " + e.getMessage());
         }
     }
