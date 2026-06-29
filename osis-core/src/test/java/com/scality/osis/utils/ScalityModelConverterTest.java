@@ -641,6 +641,57 @@ class ScalityModelConverterTest {
     }
 
     @Test
+    void testToPageOfS3CredentialsKeepsInactiveCredential() {
+        // OSIS must keep deactivated (Inactive) access keys in the credential listing as
+        // active=false, never filter them out. Verified live against an OSE 3.1 / VCD lab
+        // (OSIS returns the inactive key in both GET and LIST); this locks the mapping so a
+        // future change cannot start hiding inactive keys on the OSIS side.
+        final AccessKeyMetadata activeKey = new AccessKeyMetadata()
+                .withAccessKeyId(TEST_ACCESS_KEY)
+                .withCreateDate(new Date())
+                .withStatus(StatusType.Active)
+                .withUserName(TEST_USER_ID);
+        final AccessKeyMetadata inactiveKey = new AccessKeyMetadata()
+                .withAccessKeyId(TEST_ACCESS_KEY_2)
+                .withCreateDate(new Date())
+                .withStatus(StatusType.Inactive)
+                .withUserName(TEST_USER_ID);
+
+        final List<AccessKeyMetadata> accessKeyMetadataList = new ArrayList<>();
+        accessKeyMetadataList.add(activeKey);
+        accessKeyMetadataList.add(inactiveKey);
+
+        final ListAccessKeysResult listAccessKeysResult = new ListAccessKeysResult()
+                .withAccessKeyMetadata(accessKeyMetadataList);
+
+        final Map<String, String> secretKeyMap = new HashMap<>();
+        secretKeyMap.put(TEST_ACCESS_KEY, TEST_SECRET_KEY);
+
+        final OsisTenant osisTenant = new OsisTenant();
+        osisTenant.tenantId(SAMPLE_TENANT_ID);
+        osisTenant.name(SAMPLE_TENANT_NAME);
+        osisTenant.cdTenantIds(SAMPLE_CD_TENANT_IDS);
+        osisTenant.active(true);
+
+        // Run the test
+        final PageOfS3Credentials pageOfS3Credentials = ScalityModelConverter
+                .toPageOfS3Credentials(listAccessKeysResult, 0, 1000, osisTenant, secretKeyMap);
+
+        // Verify: both keys are returned (the inactive one is not dropped)
+        assertEquals(2, pageOfS3Credentials.getItems().size());
+
+        final Map<String, Boolean> activeByKey = new HashMap<>();
+        for (final OsisS3Credential cred : pageOfS3Credentials.getItems()) {
+            activeByKey.put(cred.getAccessKey(), cred.getActive());
+        }
+        assertTrue(activeByKey.containsKey(TEST_ACCESS_KEY_2),
+                "deactivated key must still appear in the listing");
+        assertEquals(Boolean.TRUE, activeByKey.get(TEST_ACCESS_KEY));
+        assertEquals(Boolean.FALSE, activeByKey.get(TEST_ACCESS_KEY_2),
+                "deactivated key must be active=false, not hidden");
+    }
+
+    @Test
     void testToPageOfS3CredentialsNotAvailableKey() {
         // Setup
 
