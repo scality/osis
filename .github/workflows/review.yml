@@ -6,7 +6,7 @@ on:
 
 jobs:
   review:
-    uses: scality/workflows/.github/workflows/claude-code-review.yml@v2
+    uses: scality/workflows/.github/workflows/claude-code-review.yml@v2.8.5
     secrets:
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
