@@ -1,0 +1,51 @@
+name: Vertex Opus 4.8 probe (TEMPORARY - do not merge)
+
+# Throwaway diagnostic: calls Vertex rawPredict directly as the CI service
+# account, in the CI project+region, with UNMASKED output. Tells platform
+# engineering whether Opus 4.8 is actually enabled/served (200), missing in the
+# region (404 NOT_FOUND), or out of quota (429 RESOURCE_EXHAUSTED).
+# Delete this file once the question is answered.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # required for workload identity federation
+    steps:
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: access_token   # mint an OAuth token AS the service account
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Probe Vertex for Opus 4.6 (control) and 4.8
+        env:
+          TOKEN: ${{ steps.auth.outputs.access_token }}
+          PROJECT: ${{ secrets.ANTHROPIC_VERTEX_PROJECT_ID }}
+          REGION: ${{ secrets.CLOUD_ML_REGION }}
+        run: |
+          set +e
+          probe() {
+            local loc="$1" model="$2" host
+            if [ "$loc" = "global" ]; then host="aiplatform.googleapis.com"; else host="${loc}-aiplatform.googleapis.com"; fi
+            echo "================= $model @ $loc ================="
+            curl -sS -w '\nHTTP %{http_code}\n' -X POST \
+              -H "Authorization: Bearer ${TOKEN}" \
+              -H "Content-Type: application/json" \
+              "https://${host}/v1/projects/${PROJECT}/locations/${loc}/publishers/anthropic/models/${model}:rawPredict" \
+              -d '{"anthropic_version":"vertex-2023-10-16","messages":[{"role":"user","content":"ping"}],"max_tokens":16}'
+            echo
+          }
+          echo "## Configured region (CLOUD_ML_REGION) ##"
+          probe "$REGION" claude-opus-4-6
+          probe "$REGION" claude-opus-4-8
+          echo "## global endpoint (Anthropic-recommended) ##"
+          probe global claude-opus-4-6
+          probe global claude-opus-4-8
