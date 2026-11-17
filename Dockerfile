@@ -3,7 +3,7 @@ COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle bootJar -PsonatypeUsername=${NEXUS_UNAME} -PsonatypePassword=${NEXUS_PWD}
 
-FROM amazoncorretto:17.0.0-alpine AS build-image
+FROM amazoncorretto:17.0.21-alpine AS build-image
 EXPOSE 8443
 RUN apk add --no-cache bash
 COPY --from=gradle-build /home/gradle/src/build/libs/osis-scality-*.jar /app/lib/app.jar
